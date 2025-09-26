@@ -1,0 +1,22 @@
+/* khusus swal button biar tidak transparan */
+.swal2-confirm,
+.swal2-cancel {
+  background-color: var(--swal2-confirm-button-background-color, #e3342f) !important;
+  color: #fff !important;
+  background-image: none !important;
+}
+.swal2-confirm {
+  background-color: #e3342f !important;
+  border: none !important;
+  color: #fff !important;
+}
+
+.swal2-cancel {
+  background-color: #6c757d !important; /* abu-abu */
+  border: none !important;
+  color: #fff !important;
+}
+.whitespace-nowrap {
+  white-space: nowrap;
+}
+
