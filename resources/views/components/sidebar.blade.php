@@ -47,17 +47,12 @@
                 </ul>
             </li>
             <li class="sidebar-menu-group-title">Application</li>
-            <li class="dropdown">
-                <a href="javascript:void(0)">
+            <li>
+                <a href="{{ route('anggota.index') }}">
                     <iconify-icon icon="flowbite:users-group-outline" class="menu-icon"></iconify-icon>
                     <span>Member</span>
                 </a>
-                <ul class="sidebar-submenu">
-                    <li>
-                        <a href="{{ route('anggota.index') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Member</a>
-                    </li>
-                </ul>
-            </li>    
+            </li>   
             <li class="dropdown">
                 <a href="javascript:void(0)">
                     <iconify-icon icon="fe:vector" class="menu-icon"></iconify-icon>
@@ -65,10 +60,30 @@
                 </a>
                 <ul class="sidebar-submenu">
                     <li>
-                        <a href="{{ route('kategori_paket_membership.index') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Kategori Paket</a>
+                        <a class="sidebar-menu-text" href="{{ route('kategori_paket_membership.index') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Kategori Paket</a>
                     </li>
                     <li>
-                        <a href="{{ route('paket_membership.index') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Paket Member</a>
+                        <a class="sidebar-menu-text" href="{{ route('paket_membership.index') }}"><i class="ri-circle-fill circle-icon text-warning-600 w-auto"></i> Paket Member</a>
+                    </li>
+                    <li>
+                        <a class="sidebar-menu-text" href="{{ route('anggota_membership.index') }}"><i class="ri-circle-fill circle-icon text-success-600 w-auto"></i> Anggota Member</a>
+                    </li>
+                </ul>
+            </li>    
+            <li class="dropdown">
+                <a href="javascript:void(0)">
+                    <iconify-icon icon="solar:document-text-outline" class="menu-icon"></iconify-icon>
+                    <span>Personal Trainer</span>
+                </a>
+                <ul class="sidebar-submenu">
+                    <li>
+                        <a class="sidebar-menu-text" href="{{ route('trainer.index') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Trainers</a>
+                    </li>
+                    <li>
+                        <a class="sidebar-menu-text" href="#"><i class="ri-circle-fill circle-icon text-warning-600 w-auto"></i> Paket Trainer</a>
+                    </li>
+                    <li>
+                        <a class="sidebar-menu-text" href="#"><i class="ri-circle-fill circle-icon text-success-600 w-auto"></i> Member Trainer</a>
                     </li>
                 </ul>
             </li>    

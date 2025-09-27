@@ -58,8 +58,8 @@ class PaketMembershipController extends Controller
      */
     public function edit(PaketMembership $paket_membership)
     {
-        $kategoriPaket = KategoriPaketMembership::all();
-        return view('pages.paketmembership.edit', compact('paketmembership', 'kategoriPaket'));
+        $kategori = KategoriPaketMembership::all();
+        return view('pages.paketmembership.edit', compact('paket_membership', 'kategori'));
     }
 
     /**

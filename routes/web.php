@@ -17,6 +17,8 @@ use App\Http\Controllers\CryptocurrencyController;
 use App\Http\Controllers\AnggotaController;
 use App\Http\Controllers\KategoriPaketController;
 use App\Http\Controllers\PaketMembershipController;
+use App\Http\Controllers\AnggotaMembershipController;
+use App\Http\Controllers\TrainerController;
 
 Route::middleware('auth', 'verified')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -49,6 +51,25 @@ Route::middleware('auth', 'verified')->group(function () {
         Route::put('/paket-membership/{paket_membership}', 'update')->name('paket_membership.update');
         Route::delete('/paket-membership/{paket_membership}', 'destroy')->name('paket_membership.destroy');
     });
+
+    Route::controller(AnggotaMembershipController::class)->group(function () {
+        Route::get('/anggota-membership', 'index')->name('anggota_membership.index');
+        Route::get('/anggota-membership/create', 'create')->name('anggota_membership.create');
+        Route::post('/anggota-membership', 'store')->name('anggota_membership.store');
+        Route::get('/anggota-membership/{id}/edit', 'edit')->name('anggota_membership.edit');
+        Route::put('/anggota-membership/{id}', 'update')->name('anggota_membership.update');
+        Route::delete('/anggota-membership/{id}', 'destroy')->name('anggota_membership.destroy');
+    });
+
+    Route::controller(TrainerController::class)->group(function () {
+        Route::get('/trainer', 'index')->name('trainer.index');
+        Route::get('/trainer/create', 'create')->name('trainer.create');
+        Route::post('/trainer', 'store')->name('trainer.store');
+        Route::get('/trainer/{id}/edit', 'edit')->name('trainer.edit');
+        Route::put('/trainer/{id}', 'update')->name('trainer.update');
+        Route::delete('/trainer/{id}', 'destroy')->name('trainer.destroy');
+    });
+    
 
     Route::controller(DashboardController::class)->group(function () {
         Route::get('/dashboard', 'index')->name('index');

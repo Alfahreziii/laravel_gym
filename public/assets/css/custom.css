@@ -20,3 +20,6 @@
   white-space: nowrap;
 }
 
+.sidebar-menu-text {
+  font-size: 0.8rem !important;
+}
