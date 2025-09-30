@@ -112,8 +112,8 @@
                             <input type="date" name="tgl_bayar" class="form-control" value="{{ old('tgl_bayar') }}">
                         </div>
                         <div class="col-span-12 md:col-span-6">
-                            <label class="form-label">Total Dibayarkan</label>
-                            <input type="number" name="total_dibayarkan" id="total_dibayarkan" class="form-control" value="0">
+                            <label class="form-label">Total Dibayarkan Diawal</label>
+                            <input type="number" name="jumlah_bayar" id="jumlah_bayar" class="form-control" value="0">
                         </div>
                         
                         {{-- Status Pembayaran --}}
@@ -145,7 +145,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const tglSelesai = document.getElementById('tgl_selesai');
     const diskonInput = document.getElementById('diskon');
     const totalBiaya = document.getElementById('total_biaya');
-    const totalDibayarkan = document.getElementById('total_dibayarkan');
+    const totalDibayarkan = document.getElementById('jumlah_bayar');
     const statusPembayaran = document.getElementById('status_pembayaran');
 
     let harga = 0;

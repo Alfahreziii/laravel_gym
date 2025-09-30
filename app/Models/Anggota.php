@@ -41,4 +41,17 @@ class Anggota extends Model
     {
         return $this->hasMany(AnggotaMembership::class, 'id_anggota');
     }
+    
+    public function getStatusKeanggotaanAttribute()
+    {
+        // Ambil membership terbaru
+        $latestMembership = $this->anggotaMemberships()->latest('tgl_selesai')->first();
+
+        if (!$latestMembership) {
+            return false; // Tidak ada membership
+        }
+
+        return $latestMembership->is_active; // pakai accessor dari atas
+    }
+
 }

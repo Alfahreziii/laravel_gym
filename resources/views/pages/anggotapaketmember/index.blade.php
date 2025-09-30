@@ -58,7 +58,7 @@
                         @foreach($anggotaMemberships as $index => $item)
                         <tr>
                             <td class="whitespace-nowrap">{{ $index + 1 }}</td>
-                            <td class="whitespace-nowrap">{{ $item->kode_transaksi }}</td>
+                            <td class="whitespace-nowrap"><a class="text-primary-600" href="{{ route('anggota_membership.edit', $item->id) }}">{{ $item->kode_transaksi }}</a></td>
                             <td class="whitespace-nowrap">{{ $item->anggota->name ?? '-' }}</td>
                             <td class="whitespace-nowrap">{{ $item->paketMembership->nama_paket ?? '-' }}</td>
                             <td class="whitespace-nowrap">
@@ -80,6 +80,7 @@
                                    class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
                                     <iconify-icon icon="lucide:edit"></iconify-icon>
                                 </a>
+                                <a href="{{ route('anggota_membership.edit', $item->id) }}" class="w-8 h-8 bg-primary-50 text-primary-600 rounded-full inline-flex items-center justify-center">
                                 <form action="{{ route('anggota_membership.destroy', $item->id) }}" method="POST" class="inline-block delete-form">
                                     @csrf
                                     @method('DELETE')

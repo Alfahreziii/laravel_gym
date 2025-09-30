@@ -3,24 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\AnggotaMembership;
+use App\Models\PembayaranMembership;
 use App\Models\Anggota;
 use App\Models\PaketMembership;
 use Illuminate\Http\Request;
 
 class AnggotaMembershipController extends Controller
 {
-    /**
-     * Tampilkan semua data anggota membership
-     */
     public function index()
     {
-        $anggotaMemberships = AnggotaMembership::with(['anggota', 'paketMembership'])->latest()->get();
+        $anggotaMemberships = AnggotaMembership::with(['anggota', 'paketMembership', 'pembayaranMemberships'])->latest()->get();
         return view('pages.anggotapaketmember.index', compact('anggotaMemberships'));
     }
 
-    /**
-     * Form tambah data baru
-     */
     public function create()
     {
         $anggotas = Anggota::all();
@@ -28,9 +23,6 @@ class AnggotaMembershipController extends Controller
         return view('pages.anggotapaketmember.create', compact('anggotas', 'pakets'));
     }
 
-    /**
-     * Simpan data baru
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -40,16 +32,16 @@ class AnggotaMembershipController extends Controller
             'tgl_selesai'         => 'required|date',
             'diskon'              => 'nullable|numeric|min:0',
             'total_biaya'         => 'required|numeric|min:0',
+            // validasi pembayaran pertama
+            'tgl_bayar'           => 'required|date',
+            'jumlah_bayar'        => 'required|numeric|min:0',
             'metode_pembayaran'   => 'required|string',
-            'tgl_bayar'           => 'nullable|date',
-            'total_dibayarkan'    => 'nullable|numeric|min:0',
-            'status_pembayaran'   => 'required|string',
         ]);
 
-        // Kode transaksi tetap dibuat otomatis di backend
         $kodeTransaksi = 'TRX-' . date('Ymd') . '-' . strtoupper(uniqid());
 
-        AnggotaMembership::create([
+        // 1️⃣ simpan membership dulu
+        $anggotaMembership = AnggotaMembership::create([
             'kode_transaksi'      => $kodeTransaksi,
             'id_anggota'          => $request->id_anggota,
             'id_paket_membership' => $request->id_paket_membership,
@@ -57,23 +49,32 @@ class AnggotaMembershipController extends Controller
             'tgl_selesai'         => $request->tgl_selesai,
             'diskon'              => $request->diskon,
             'total_biaya'         => $request->total_biaya,
-            'metode_pembayaran'   => $request->metode_pembayaran,
-            'tgl_bayar'           => $request->tgl_bayar,
-            'total_dibayarkan'    => $request->total_dibayarkan,
-            'status_pembayaran'   => $request->status_pembayaran,
+            'status_pembayaran'   => $request->jumlah_bayar >= $request->total_biaya ? 'Lunas' : 'Belum Lunas',
+        ]);
+
+        // 2️⃣ simpan pembayaran pertama
+        PembayaranMembership::create([
+            'id_anggota_membership' => $anggotaMembership->id,
+            'tgl_bayar'             => $request->tgl_bayar,
+            'jumlah_bayar'          => $request->jumlah_bayar,
+            'metode_pembayaran'     => $request->metode_pembayaran,
         ]);
 
         return redirect()->route('anggota_membership.index')
-            ->with('success', 'Data anggota membership berhasil ditambahkan.');
+            ->with('success', 'Data anggota membership berhasil ditambahkan beserta pembayaran pertama.');
     }
 
-
+    public function show($id)
+    {
+        $anggotaMembership = AnggotaMembership::with('pembayaranMemberships')->findOrFail($id);
+        return view('pages.anggotapaketmember.show', compact('anggotaMembership'));
+    }
     /**
      * Form edit data
      */
     public function edit($id)
     {
-        $anggotaMembership = AnggotaMembership::findOrFail($id);
+        $anggotaMembership = AnggotaMembership::with('pembayaranMemberships')->findOrFail($id);
         $anggotas = Anggota::all();
         $pakets = PaketMembership::all();
         $paketMemberships = PaketMembership::all();
@@ -81,13 +82,12 @@ class AnggotaMembershipController extends Controller
         return view('pages.anggotapaketmember.edit', compact('anggotaMembership', 'anggotas', 'paketMemberships', 'pakets'));
     }
 
-    /**
-     * Update data
-     */
+
     public function update(Request $request, $id)
     {
         $anggotaMembership = AnggotaMembership::findOrFail($id);
 
+        // jika update info membership
         $request->validate([
             'id_anggota'          => 'required|exists:anggotas,id',
             'id_paket_membership' => 'required|exists:paket_memberships,id',
@@ -95,19 +95,46 @@ class AnggotaMembershipController extends Controller
             'tgl_selesai'         => 'required|date|after_or_equal:tgl_mulai',
             'diskon'              => 'nullable|numeric|min:0',
             'total_biaya'         => 'required|numeric|min:0',
-            'metode_pembayaran'   => 'required|string',
-            'status_pembayaran'   => 'required|string',
-            'tgl_bayar'           => 'nullable|date',
-            'total_dibayarkan'    => 'nullable|numeric|min:0',
         ]);
 
-        // update data tanpa sentuh kode_transaksi
-        $anggotaMembership->update($request->except('kode_transaksi'));
+        $anggotaMembership->update($request->only([
+            'id_anggota',
+            'id_paket_membership',
+            'tgl_mulai',
+            'tgl_selesai',
+            'diskon',
+            'total_biaya',
+        ]));
 
         return redirect()->route('anggota_membership.index')
-            ->with('success', 'Data anggota membership berhasil diperbarui.');
+            ->with('success', 'Data membership berhasil diperbarui.');
     }
 
+    public function tambahPembayaran(Request $request, $id)
+    {
+        $request->validate([
+            'tgl_bayar'        => 'required|date',
+            'jumlah_bayar'     => 'required|numeric|min:0',
+            'metode_pembayaran'=> 'required|string',
+        ]);
+
+        $anggotaMembership = AnggotaMembership::findOrFail($id);
+
+        PembayaranMembership::create([
+            'id_anggota_membership' => $anggotaMembership->id,
+            'tgl_bayar'             => $request->tgl_bayar,
+            'jumlah_bayar'          => $request->jumlah_bayar,
+            'metode_pembayaran'     => $request->metode_pembayaran,
+        ]);
+
+        // update status otomatis
+        $totalDibayar = $anggotaMembership->pembayaranMemberships()->sum('jumlah_bayar');
+        $anggotaMembership->status_pembayaran = $totalDibayar >= $anggotaMembership->total_biaya ? 'Lunas' : 'Belum Lunas';
+        $anggotaMembership->save();
+
+        return redirect()->route('anggota_membership.edit', $id)
+            ->with('success', 'Pembayaran baru berhasil ditambahkan.');
+    }
 
     /**
      * Hapus data
@@ -119,4 +146,24 @@ class AnggotaMembershipController extends Controller
 
         return redirect()->route('anggota_membership.index')->with('success', 'Data anggota membership berhasil dihapus.');
     }
+
+    /**
+     * Hapus data pembayaran
+     */
+    public function destroyPembayaran($id)
+    {
+        $pembayaran = PembayaranMembership::findOrFail($id);
+        $anggotaMembership = $pembayaran->anggotaMembership; // relasi balik
+
+        $pembayaran->delete();
+
+        // update status setelah hapus
+        $totalDibayar = $anggotaMembership->pembayaranMemberships()->sum('jumlah_bayar');
+        $anggotaMembership->status_pembayaran = $totalDibayar >= $anggotaMembership->total_biaya ? 'Lunas' : 'Belum Lunas';
+        $anggotaMembership->save();
+
+        return redirect()->route('anggota_membership.edit', $anggotaMembership->id)
+            ->with('success', 'Pembayaran berhasil dihapus.');
+    }
+
 }

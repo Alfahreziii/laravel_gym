@@ -46,7 +46,7 @@
                             <td class="whitespace-nowrap">{{ $anggota->tgl_lahir->format('d M Y') }}</td>
                             <td class="whitespace-nowrap">{{ $anggota->no_telp }}</td>
                             <td class="whitespace-nowrap">
-                                @if($anggota->anggotaMemberships->count() > 0)
+                                @if($anggota->status_keanggotaan)
                                     <span class="bg-success-100 text-success-600 px-6 py-1.5 rounded-full font-medium text-sm">Aktif</span>
                                 @else
                                     <span class="bg-warning-100 text-warning-600 px-6 py-1.5 rounded-full font-medium text-sm">Tidak Aktif</span>

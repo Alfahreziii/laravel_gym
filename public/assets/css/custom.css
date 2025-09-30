@@ -23,3 +23,34 @@
 .sidebar-menu-text {
   font-size: 0.8rem !important;
 }
+
+/* aktifkan kembali indikator time picker */
+input[type="time"] {
+  position: relative;
+  padding-right: 35px;
+}
+
+/* bikin icon bawaan tetap aktif */
+input[type="time"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0; /* transparan tapi tetap bisa dipencet */
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+/* taruh icon custom di atasnya */
+input[type="time"]::after {
+  content: "🕒"; /* atau SVG seperti tadi */
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  pointer-events: none; /* biar kliknya tetap masuk ke indicator bawaan */
+}
+
+

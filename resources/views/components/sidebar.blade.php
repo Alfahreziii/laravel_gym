@@ -77,13 +77,16 @@
                 </a>
                 <ul class="sidebar-submenu">
                     <li>
-                        <a class="sidebar-menu-text" href="{{ route('trainer.index') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Trainers</a>
+                        <a class="sidebar-menu-text" href="{{ route('specialisasi.index') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Specialisasi</a>
                     </li>
                     <li>
-                        <a class="sidebar-menu-text" href="#"><i class="ri-circle-fill circle-icon text-warning-600 w-auto"></i> Paket Trainer</a>
+                        <a class="sidebar-menu-text" href="{{ route('paket_personal_trainer.index') }}"><i class="ri-circle-fill circle-icon text-warning-600 w-auto"></i> Paket Trainer</a>
                     </li>
                     <li>
-                        <a class="sidebar-menu-text" href="#"><i class="ri-circle-fill circle-icon text-success-600 w-auto"></i> Member Trainer</a>
+                        <a class="sidebar-menu-text" href="{{ route('trainer.index') }}"><i class="ri-circle-fill circle-icon text-success-600 w-auto"></i> Trainers</a>
+                    </li>
+                    <li>
+                        <a class="sidebar-menu-text" href="#"><i class="ri-circle-fill circle-icon text-danger-600 w-auto"></i> Member Trainer</a>
                     </li>
                 </ul>
             </li>    

@@ -47,9 +47,9 @@ class TrainerController extends Controller
             'alamat'          => 'required|string',
 
             // Validasi jadwal
-            'jadwal.*.hari'       => 'required|string',
-            'jadwal.*.jam_mulai'  => 'required',
-            'jadwal.*.jam_selesai'=> 'required',
+            'jadwal.*.day_of_week'       => 'required|string',
+            'jadwal.*.start_time'  => 'required',
+            'jadwal.*.end_time'=> 'required',
         ]);
 
         $photoPath = $request->file('photo')->store('trainers', 'public');
@@ -74,9 +74,9 @@ class TrainerController extends Controller
         if($request->has('jadwal')){
             foreach($request->jadwal as $j){
                 $trainer->schedules()->create([
-                    'hari'       => $j['hari'],
-                    'jam_mulai'  => $j['jam_mulai'],
-                    'jam_selesai'=> $j['jam_selesai'],
+                    'day_of_week'       => $j['day_of_week'],
+                    'start_time'  => $j['start_time'],
+                    'end_time'=> $j['end_time'],
                 ]);
             }
         }
@@ -114,9 +114,9 @@ class TrainerController extends Controller
             'alamat'          => 'required|string',
 
             // Validasi jadwal
-            'jadwal.*.hari'       => 'required|string',
-            'jadwal.*.jam_mulai'  => 'required',
-            'jadwal.*.jam_selesai'=> 'required',
+            'jadwal.*.day_of_week'       => 'required|string',
+            'jadwal.*.start_time'  => 'required',
+            'jadwal.*.end_time'=> 'required',
         ]);
 
         $data = $request->only([
@@ -135,9 +135,9 @@ class TrainerController extends Controller
         if($request->has('jadwal')){
             foreach($request->jadwal as $j){
                 $trainer->schedules()->create([
-                    'hari'       => $j['hari'],
-                    'jam_mulai'  => $j['jam_mulai'],
-                    'jam_selesai'=> $j['jam_selesai'],
+                    'day_of_week'       => $j['day_of_week'],
+                    'start_time'  => $j['start_time'],
+                    'end_time'=> $j['end_time'],
                 ]);
             }
         }

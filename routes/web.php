@@ -19,6 +19,8 @@ use App\Http\Controllers\KategoriPaketController;
 use App\Http\Controllers\PaketMembershipController;
 use App\Http\Controllers\AnggotaMembershipController;
 use App\Http\Controllers\TrainerController;
+use App\Http\Controllers\SpecialisasiController;
+use App\Http\Controllers\PaketPersonalTrainerController;
 
 Route::middleware('auth', 'verified')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -52,6 +54,22 @@ Route::middleware('auth', 'verified')->group(function () {
         Route::delete('/paket-membership/{paket_membership}', 'destroy')->name('paket_membership.destroy');
     });
 
+    Route::controller(PaketPersonalTrainerController::class)->group(function () {
+        Route::get('/paket-personal-trainer', 'index')->name('paket_personal_trainer.index');
+        Route::get('/paket-personal-trainer/create', 'create')->name('paket_personal_trainer.create');
+        Route::post('/paket-personal-trainer', 'store')->name('paket_personal_trainer.store');
+        Route::get('/paket-personal-trainer/{paket_personal_trainer}/edit', 'edit')->name('paket_personal_trainer.edit');
+        Route::put('/paket-personal-trainer/{paket_personal_trainer}', 'update')->name('paket_personal_trainer.update');
+        Route::delete('/paket-personal-trainer/{paket_personal_trainer}', 'destroy')->name('paket_personal_trainer.destroy');
+    });
+
+    Route::controller(SpecialisasiController::class)->group(function () {
+        Route::get('/specialisasi', 'index')->name('specialisasi.index');
+        Route::post('/specialisasi', 'store')->name('specialisasi.store');
+        Route::put('/specialisasi/{specialisasi}', 'update')->name('specialisasi.update');
+        Route::delete('/specialisasi/{specialisasi}', 'destroy')->name('specialisasi.destroy');
+    });
+
     Route::controller(AnggotaMembershipController::class)->group(function () {
         Route::get('/anggota-membership', 'index')->name('anggota_membership.index');
         Route::get('/anggota-membership/create', 'create')->name('anggota_membership.create');
@@ -59,15 +77,18 @@ Route::middleware('auth', 'verified')->group(function () {
         Route::get('/anggota-membership/{id}/edit', 'edit')->name('anggota_membership.edit');
         Route::put('/anggota-membership/{id}', 'update')->name('anggota_membership.update');
         Route::delete('/anggota-membership/{id}', 'destroy')->name('anggota_membership.destroy');
+
+        Route::post('/anggota-membership/{id}/tambah-pembayaran', 'tambahPembayaran')->name('anggota_membership.tambahPembayaran');
+        Route::delete('/pembayaran-membership/{id}', 'destroyPembayaran')->name('pembayaran_membership.destroy');
     });
 
     Route::controller(TrainerController::class)->group(function () {
         Route::get('/trainer', 'index')->name('trainer.index');
         Route::get('/trainer/create', 'create')->name('trainer.create');
         Route::post('/trainer', 'store')->name('trainer.store');
-        Route::get('/trainer/{id}/edit', 'edit')->name('trainer.edit');
-        Route::put('/trainer/{id}', 'update')->name('trainer.update');
-        Route::delete('/trainer/{id}', 'destroy')->name('trainer.destroy');
+        Route::get('/trainer/{trainer}/edit', 'edit')->name('trainer.edit');
+        Route::put('/trainer/{trainer}', 'update')->name('trainer.update');
+        Route::delete('/trainer/{trainer}', 'destroy')->name('trainer.destroy');
     });
     
 

@@ -1,7 +1,7 @@
 @extends('layout.layout')
 @php
-    $title='Trainer';
-    $subTitle = 'Trainer';
+    $title='Paket Membership';
+    $subTitle = 'Paket Membership';
     $script='<script src="' . asset('assets/js/data-table.js') . '"></script>';
 @endphp
 
@@ -14,8 +14,7 @@
         <div class="flex items-center gap-4">
             {{ session('success') }}
         </div>
-        <button class="remove-button text-success-600 text-2xl">                                         
-            <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
+        <button class="remove-button text-success-600 text-2xl"><iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
         </button>
     </div>
 @endif
@@ -34,56 +33,36 @@
     <div class="col-span-12">
         <div class="card border-0 overflow-hidden">
             <div class="card-header flex items-center justify-between">
-                <h6 class="card-title mb-0 text-lg">Daftar Trainer</h6>
-                <a href="{{ route('trainer.create') }}" 
-                   class="text-primary-600 focus:bg-primary-600 hover:bg-primary-700 border border-primary-600 hover:text-white 
-                          focus:text-white focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2 
-                          text-center inline-flex items-center dark:text-primary-400 dark:hover:text-white dark:focus:text-white 
-                          dark:focus:ring-primary-800">
-                    + Tambah Trainer
-                </a>
+                <h6 class="card-title mb-0 text-lg">Daftar Paket Membership</h6>
+                <a href="{{ route('paket_personal_trainer.create') }}" class="text-primary-600 focus:bg-primary-600 hover:bg-primary-700 border border-primary-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center dark:text-primary-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-primary-800">+ Tambah Paket</a>
             </div>
             <div class="card-body">
                 <table id="selection-table" class="border border-neutral-200 rounded-lg border-separate">
                     <thead>
                         <tr>
                             <th scope="col">S.L</th>
-                            <th scope="col">Foto</th>
-                            <th scope="col">Nama</th>
-                            <th scope="col">No Telp</th>
-                            <th scope="col">Spesialisasi</th>
-                            <th scope="col">Experience</th>
-                            <th scope="col">Tanggal Gabung</th>
-                            <th scope="col">Status</th>
+                            <th scope="col">Nama Paket</th>
+                            <th scope="col">Durasi</th>
+                            <th scope="col">Periode</th>
+                            <th scope="col">Jumlah Sesi</th>
+                            <th scope="col">Biaya</th>
                             <th scope="col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($trainers as $index => $trainer)
+                        @foreach($paketPersonalTrainers as $index => $paket)
                         <tr>
                             <td class="whitespace-nowrap">{{ $index + 1 }}</td>
+                            <td class="whitespace-nowrap">{{ $paket->nama_paket }}</td>
+                            <td class="whitespace-nowrap">{{ $paket->durasi }}</td>
+                            <td class="whitespace-nowrap">{{ ucfirst($paket->periode) }}</td>
+                            <td class="whitespace-nowrap">{{ $paket->jumlah_sesi ?? '-' }}</td>
+                            <td class="whitespace-nowrap">Rp {{ number_format($paket->biaya, 0, ',', '.') }}</td>
                             <td class="whitespace-nowrap">
-                                <img src="{{ asset('storage/'.$trainer->photo) }}" alt="Foto" class="w-12 h-12 rounded-full">
-                            </td>
-                            <td class="whitespace-nowrap">{{ $trainer->name }}</td>
-                            <td class="whitespace-nowrap">{{ $trainer->no_telp }}</td>
-                            <td class="whitespace-nowrap">
-                                {{ $trainer->specialisasi ? $trainer->specialisasi->nama_specialisasi : '-' }}
-                            </td>
-                            <td class="whitespace-nowrap">{{ $trainer->experience }}</td>
-                            <td class="whitespace-nowrap">{{ $trainer->tgl_gabung->format('d-m-Y') }}</td>
-                            <td class="whitespace-nowrap">
-                                @if($trainer->status === 'aktif')
-                                    <span class="bg-success-100 text-success-600 px-6 py-1.5 rounded-full font-medium text-sm">Aktif</span>
-                                @elseif($trainer->status === 'nonaktif')
-                                    <span class="bg-warning-100 text-warning-600 px-6 py-1.5 rounded-full font-medium text-sm">Tidak Aktif</span>
-                                @endif
-                            </td>
-                            <td class="whitespace-nowrap">
-                                <a href="{{ route('trainer.edit', $trainer->id) }}" class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
+                                <a href="{{ route('paket_personal_trainer.edit', $paket->id) }}" class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
                                     <iconify-icon icon="lucide:edit"></iconify-icon>
                                 </a>
-                                <form action="{{ route('trainer.destroy', $trainer->id) }}" method="POST" class="inline-block delete-form">
+                                <form action="{{ route('paket_personal_trainer.destroy', $paket->id) }}" method="POST" class="inline-block delete-form">
                                     @csrf
                                     @method('DELETE')
                                     <button type="button" class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center delete-btn">
@@ -114,7 +93,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             Swal.fire({
                 title: 'Apakah kamu yakin?',
-                text: "Data trainer yang dihapus tidak bisa dikembalikan!",
+                text: "Data paket membership yang dihapus tidak bisa dikembalikan!",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#e3342f',

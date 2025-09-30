@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class AnggotaMembership extends Model
 {
@@ -40,5 +41,19 @@ class AnggotaMembership extends Model
     public function paketMembership()
     {
         return $this->belongsTo(PaketMembership::class, 'id_paket_membership');
+    }
+
+    /**
+     * Relasi ke PaketMembership
+     */
+    public function pembayaranMemberships()
+    {
+        return $this->hasMany(PembayaranMembership::class, 'id_anggota_membership');
+    }
+
+    public function getIsActiveAttribute()
+    {
+        $today = Carbon::today();
+        return $this->tgl_mulai <= $today && $this->tgl_selesai >= $today;
     }
 }

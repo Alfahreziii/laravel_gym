@@ -17,7 +17,6 @@ class PaketPersonalTrainer extends Model
         'nama_paket',
         'jumlah_sesi',
         'durasi',
-        'periode',
         'biaya',
     ];
 }
