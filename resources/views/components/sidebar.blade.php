@@ -86,7 +86,7 @@
                         <a class="sidebar-menu-text" href="{{ route('trainer.index') }}"><i class="ri-circle-fill circle-icon text-success-600 w-auto"></i> Trainers</a>
                     </li>
                     <li>
-                        <a class="sidebar-menu-text" href="#"><i class="ri-circle-fill circle-icon text-danger-600 w-auto"></i> Member Trainer</a>
+                        <a class="sidebar-menu-text" href="{{ route('membertrainer.index') }}"><i class="ri-circle-fill circle-icon text-danger-600 w-auto"></i> Member Trainer</a>
                     </li>
                 </ul>
             </li>    

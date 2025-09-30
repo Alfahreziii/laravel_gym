@@ -19,4 +19,10 @@ class PaketPersonalTrainer extends Model
         'durasi',
         'biaya',
     ];
+
+    public function memberTrainers()
+    {
+        return $this->hasMany(MemberTrainer::class, 'id_paket_personal_trainer');
+    }
+
 }

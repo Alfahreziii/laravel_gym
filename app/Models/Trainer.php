@@ -43,4 +43,9 @@ class Trainer extends Model
     {
         return $this->hasMany(TrainerSchedule::class, 'trainer_id');
     }
+
+    public function memberTrainers()
+    {
+        return $this->hasMany(MemberTrainer::class, 'id_trainer');
+    }
 }

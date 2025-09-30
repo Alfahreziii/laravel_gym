@@ -54,4 +54,9 @@ class Anggota extends Model
         return $latestMembership->is_active; // pakai accessor dari atas
     }
 
+    public function memberTrainers()
+    {
+        return $this->hasMany(MemberTrainer::class, 'id_anggota');
+    }
+
 }

@@ -21,6 +21,7 @@ use App\Http\Controllers\AnggotaMembershipController;
 use App\Http\Controllers\TrainerController;
 use App\Http\Controllers\SpecialisasiController;
 use App\Http\Controllers\PaketPersonalTrainerController;
+use App\Http\Controllers\MemberTrainerController;
 
 Route::middleware('auth', 'verified')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -69,6 +70,18 @@ Route::middleware('auth', 'verified')->group(function () {
         Route::put('/specialisasi/{specialisasi}', 'update')->name('specialisasi.update');
         Route::delete('/specialisasi/{specialisasi}', 'destroy')->name('specialisasi.destroy');
     });
+    
+    Route::controller(MemberTrainerController::class)->group(function () {
+        Route::get('/member-trainer', 'index')->name('membertrainer.index');
+        Route::get('/member-trainer/create', 'create')->name('membertrainer.create');
+        Route::post('/member-trainer', 'store')->name('membertrainer.store');
+        Route::get('/member-trainer/{id}/edit', 'edit')->name('membertrainer.edit');
+        Route::put('/member-trainer/{id}', 'update')->name('membertrainer.update');
+        Route::delete('/member-trainer/{id}', 'destroy')->name('membertrainer.destroy');
+
+        Route::post('/member-trainer/{id}/tambah-pembayaran', 'tambahPembayaran')->name('membertrainer.tambahPembayaran');
+        Route::delete('/pembayaran-trainer/{id}', 'destroyPembayaran')->name('pembayaran_trainer.destroy');
+    });
 
     Route::controller(AnggotaMembershipController::class)->group(function () {
         Route::get('/anggota-membership', 'index')->name('anggota_membership.index');
@@ -89,6 +102,15 @@ Route::middleware('auth', 'verified')->group(function () {
         Route::get('/trainer/{trainer}/edit', 'edit')->name('trainer.edit');
         Route::put('/trainer/{trainer}', 'update')->name('trainer.update');
         Route::delete('/trainer/{trainer}', 'destroy')->name('trainer.destroy');
+    });
+
+    Route::controller(AlatGymController::class)->group(function () {
+        Route::get('/alat-gym', 'index')->name('alat_gym.index');
+        Route::get('/alat-gym/create', 'create')->name('alat_gym.create');
+        Route::post('/alat-gym', 'store')->name('alat_gym.store');
+        Route::get('/alat-gym/{id}/edit', 'edit')->name('alat_gym.edit');
+        Route::put('/alat-gym/{id}', 'update')->name('alat_gym.update');
+        Route::delete('/alat-gym/{id}', 'destroy')->name('alat_gym.destroy');
     });
     
 
