@@ -89,7 +89,27 @@
                         <a class="sidebar-menu-text" href="{{ route('membertrainer.index') }}"><i class="ri-circle-fill circle-icon text-danger-600 w-auto"></i> Member Trainer</a>
                     </li>
                 </ul>
-            </li>    
+            </li>
+            <li>
+                <a href="{{ route('alat_gym.index') }}">
+                    <iconify-icon icon="simple-line-icons:vector" class="menu-icon"></iconify-icon>
+                    <span>Alat Gym</span>
+                </a>
+            </li>  
+            <li class="dropdown">
+                <a href="javascript:void(0)">
+                    <iconify-icon icon="solar:document-text-outline" class="menu-icon"></iconify-icon>
+                    <span>Kehadiran</span>
+                </a>
+                <ul class="sidebar-submenu">
+                    <li>
+                        <a class="sidebar-menu-text" href="{{ route('kehadiranmember.index') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i>Member</a>
+                    </li>
+                    <li>
+                        <a class="sidebar-menu-text" href="{{ route('kehadirantrainer.index') }}"><i class="ri-circle-fill circle-icon text-warning-600 w-auto"></i>Trainer</a>
+                    </li>
+                </ul>
+            </li>   
             <li>
                 <a href="{{ route('email') }}">
                     <iconify-icon icon="mage:email" class="menu-icon"></iconify-icon>

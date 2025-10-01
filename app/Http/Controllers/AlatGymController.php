@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AlatGym;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class AlatGymController extends Controller
 {
@@ -13,7 +14,7 @@ class AlatGymController extends Controller
     public function index()
     {
         $alatGyms = AlatGym::latest()->paginate(10);
-        return view('alatgym.index', compact('alatGyms'));
+        return view('pages.alatgym.index', compact('alatGyms'));
     }
 
     /**
@@ -21,7 +22,7 @@ class AlatGymController extends Controller
      */
     public function create()
     {
-        return view('alatgym.create');
+        return view('pages.alatgym.create');
     }
 
     /**
@@ -42,17 +43,13 @@ class AlatGymController extends Controller
             'keterangan' => 'nullable|string',
         ]);
 
-        AlatGym::create($validated);
-
-        return redirect()->route('alatgym.index')->with('success', 'Data alat gym berhasil ditambahkan.');
-    }
-
-    /**
-     * Tampilkan detail data
-     */
-    public function show(AlatGym $alatgym)
-    {
-        return view('alatgym.show', compact('alatgym'));
+        try {
+            AlatGym::create($validated);
+            return redirect()->route('alat_gym.index')->with('success', 'Data alat gym berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return redirect()->back()->withInput()->with('error', 'Terjadi kesalahan saat menambahkan data alat gym.');
+        }
     }
 
     /**
@@ -60,7 +57,7 @@ class AlatGymController extends Controller
      */
     public function edit(AlatGym $alatgym)
     {
-        return view('alatgym.edit', compact('alatgym'));
+        return view('pages.alatgym.edit', compact('alatgym'));
     }
 
     /**
@@ -81,9 +78,13 @@ class AlatGymController extends Controller
             'keterangan' => 'nullable|string',
         ]);
 
-        $alatgym->update($validated);
-
-        return redirect()->route('alatgym.index')->with('success', 'Data alat gym berhasil diperbarui.');
+        try {
+            $alatgym->update($validated);
+            return redirect()->route('alat_gym.index')->with('success', 'Data alat gym berhasil diperbarui.');
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return redirect()->back()->withInput()->with('danger', 'Terjadi kesalahan saat memperbarui data alat gym.');
+        }
     }
 
     /**
@@ -91,7 +92,12 @@ class AlatGymController extends Controller
      */
     public function destroy(AlatGym $alatgym)
     {
-        $alatgym->delete();
-        return redirect()->route('alatgym.index')->with('success', 'Data alat gym berhasil dihapus.');
+        try {
+            $alatgym->delete();
+            return redirect()->route('alat_gym.index')->with('success', 'Data alat gym berhasil dihapus.');
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return redirect()->route('alat_gym.index')->with('danger', 'Terjadi kesalahan saat menghapus data alat gym.');
+        }
     }
 }

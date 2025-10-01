@@ -59,4 +59,9 @@ class Anggota extends Model
         return $this->hasMany(MemberTrainer::class, 'id_anggota');
     }
 
+    public function kehadirans()
+    {
+        return $this->hasMany(Kehadiran::class, 'rfid', 'id_kartu');
+    }
+
 }

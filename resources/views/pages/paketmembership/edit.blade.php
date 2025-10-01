@@ -1,7 +1,7 @@
 @extends('layout.layout')
 @php
-    $title = 'Tambah Paket Membership';
-    $subTitle = 'Tambah Paket Membership';
+    $title = 'Edit Paket Membership';
+    $subTitle = 'Edit Paket Membership';
 @endphp
 
 @section('content')
@@ -10,7 +10,7 @@
     <div class="col-span-12">
         <div class="card border-0">
             <div class="card-header">
-                <h6 class="text-lg font-semibold mb-0">Form Tambah Paket Membership</h6>
+                <h6 class="text-lg font-semibold mb-0">Form Edit Paket Membership</h6>
             </div>
             <div class="card-body">
                 <form action="{{ route('paket_membership.update', $paket_membership->id) }}" method="POST">

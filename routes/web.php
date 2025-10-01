@@ -22,6 +22,9 @@ use App\Http\Controllers\TrainerController;
 use App\Http\Controllers\SpecialisasiController;
 use App\Http\Controllers\PaketPersonalTrainerController;
 use App\Http\Controllers\MemberTrainerController;
+use App\Http\Controllers\AlatGymController;
+use App\Http\Controllers\KehadiranMemberController;
+use App\Http\Controllers\KehadiranTrainerController;
 
 Route::middleware('auth', 'verified')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -108,9 +111,23 @@ Route::middleware('auth', 'verified')->group(function () {
         Route::get('/alat-gym', 'index')->name('alat_gym.index');
         Route::get('/alat-gym/create', 'create')->name('alat_gym.create');
         Route::post('/alat-gym', 'store')->name('alat_gym.store');
-        Route::get('/alat-gym/{id}/edit', 'edit')->name('alat_gym.edit');
-        Route::put('/alat-gym/{id}', 'update')->name('alat_gym.update');
-        Route::delete('/alat-gym/{id}', 'destroy')->name('alat_gym.destroy');
+        Route::get('/alat-gym/{alatgym}/edit', 'edit')->name('alat_gym.edit');
+        Route::put('/alat-gym/{alatgym}', 'update')->name('alat_gym.update');
+        Route::delete('/alat-gym/{alatgym}', 'destroy')->name('alat_gym.destroy');
+    });
+
+    Route::controller(KehadiranMemberController::class)->group(function () {
+        Route::get('/kehadiran-member', 'index')->name('kehadiranmember.index');
+        Route::get('/kehadiran-member/create', 'create')->name('kehadiranmember.create');
+        Route::post('/kehadiran-member', 'store')->name('kehadiranmember.store');
+        Route::delete('/kehadiran-member/{kehadiranmember}', 'destroy')->name('kehadiranmember.destroy');
+    });
+
+    Route::controller(KehadiranTrainerController::class)->group(function () {
+        Route::get('/kehadiran-trainer', 'index')->name('kehadirantrainer.index');
+        Route::get('/kehadiran-trainer/create', 'create')->name('kehadirantrainer.create');
+        Route::post('/kehadiran-trainer', 'store')->name('kehadirantrainer.store');
+        Route::delete('/kehadiran-trainer/{kehadirantrainer}', 'destroy')->name('kehadirantrainer.destroy');
     });
     
 

@@ -48,4 +48,9 @@ class Trainer extends Model
     {
         return $this->hasMany(MemberTrainer::class, 'id_trainer');
     }
+
+    public function kehadiranTrainers()
+    {
+        return $this->hasMany(kehadiranTrainer::class, 'rfid', 'rfid');
+    }
 }
