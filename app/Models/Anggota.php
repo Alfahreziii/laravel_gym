@@ -61,7 +61,7 @@ class Anggota extends Model
 
     public function kehadirans()
     {
-        return $this->hasMany(Kehadiran::class, 'rfid', 'id_kartu');
+        return $this->hasMany(KehadiranMember::class, 'rfid', 'id_kartu');
     }
 
 }

@@ -1,7 +1,7 @@
 @extends('layout.layout')
 @php
-    $title='Pembayaran Membership';
-    $subTitle = 'Pembayaran Membership';
+    $title='Pembayaran Trainer';
+    $subTitle = 'Pembayaran Trainer';
     $script='<script src="' . asset('assets/js/data-table.js') . '"></script>';
 @endphp
 
@@ -33,7 +33,7 @@
     <div class="col-span-12">
         <div class="card border-0 overflow-hidden">
             <div class="card-header flex items-center justify-between">
-                <h6 class="card-title mb-0 text-lg">Data Pembayaran Membership</h6>
+                <h6 class="card-title mb-0 text-lg">Data Pembayaran Trainer</h6>
             </div>
             <div class="card-body">
                 <table id="selection-table" class="border border-neutral-200 rounded-lg border-separate w-full">
@@ -52,16 +52,16 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($anggotaMemberships as $index => $item)
+                        @foreach($memberTrainers as $index => $item)
                         <tr>
                             <td class="whitespace-nowrap">{{ $index + 1 }}</td>
-                            <td class="whitespace-nowrap"><a class="text-primary-600" href="{{ route('anggota_membership.edit', $item->id) }}">{{ $item->kode_transaksi }}</a></td>
+                            <td class="whitespace-nowrap"><a class="text-primary-600 cursor-pointer" href="{{ route('membertrainer.edit', $item->id) }}">{{ $item->kode_transaksi }}</a></td>
                             <td class="whitespace-nowrap">{{ $item->anggota->name ?? '-' }}</td>
-                            <td class="whitespace-nowrap">{{ $item->paketMembership->nama_paket ?? '-' }}</td>
-                            <td class="whitespace-nowrap">Rp {{ number_format($item->paketMembership->harga, 0, ',', '.') }}</td>
+                            <td class="whitespace-nowrap">{{ $item->paketPersonalTrainer->nama_paket ?? '-' }}</td>
+                            <td class="whitespace-nowrap">Rp {{ number_format($item->paketPersonalTrainer->biaya, 0, ',', '.') }}</td>
                             <td class="whitespace-nowrap">Rp {{ number_format($item->diskon, 0, ',', '.') }}</td>
                             <td class="whitespace-nowrap">Rp {{ number_format($item->total_biaya, 0, ',', '.') }}</td>
-                            <td class="whitespace-nowrap">Rp {{ number_format($item->pembayaranMemberships->sum('jumlah_bayar'), 0, ',', '.') }}</td>
+                            <td class="whitespace-nowrap">Rp {{ number_format($item->pembayaranMemberTrainers->sum('jumlah_bayar'), 0, ',', '.') }}</td>
                             <td class="whitespace-nowrap">
                                 @if($item->status_pembayaran === 'Lunas')
                                     <span class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm">Lunas</span>
@@ -94,8 +94,9 @@
                                         <span class="sr-only">Close modal</span>
                                     </button>
                                 </div>
+                                
                                 <div class="p-6">
-                                    <form action="{{ route('pembayaran_membership.tambahPembayaran', $item->id) }}" method="POST">
+                                    <form action="{{ route('pembayaran_trainer.tambahPembayaran', $item->id) }}" method="POST">
                                         @csrf
                                         @method('PUT')
 
@@ -163,7 +164,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             Swal.fire({
                 title: 'Apakah kamu yakin?',
-                text: "Data Pembayaran membership yang dihapus tidak bisa dikembalikan!",
+                text: "Data Pembayaran Trainer yang dihapus tidak bisa dikembalikan!",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#e3342f',

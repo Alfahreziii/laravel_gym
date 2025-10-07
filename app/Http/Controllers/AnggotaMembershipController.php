@@ -12,7 +12,7 @@ class AnggotaMembershipController extends Controller
 {
     public function index()
     {
-        $anggotaMemberships = AnggotaMembership::with(['anggota', 'paketMembership', 'pembayaranMemberships'])->latest()->get();
+        $anggotaMemberships = AnggotaMembership::with(['anggota', 'paketMembership'])->latest()->get();
         return view('pages.anggotapaketmember.index', compact('anggotaMemberships'));
     }
 

@@ -110,6 +110,31 @@
                     </li>
                 </ul>
             </li>   
+            <li class="dropdown">
+                <a href="javascript:void(0)">
+                    <iconify-icon icon="hugeicons:invoice-03" class="menu-icon"></iconify-icon>
+                    <span>Pembayaran</span>
+                </a>
+                <ul class="sidebar-submenu">
+                    <li>
+                        <a class="sidebar-menu-text" href="{{ route('pembayaran_membership.index') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i>Membership</a>
+                    </li>
+                    <li>
+                        <a class="sidebar-menu-text" href="{{ route('pembayaran_trainer.index') }}"><i class="ri-circle-fill circle-icon text-warning-600 w-auto"></i>Trainer</a>
+                    </li>
+                </ul>
+            </li>   
+            <li class="dropdown">
+                <a href="javascript:void(0)">
+                    <iconify-icon icon="hugeicons:invoice-03" class="menu-icon"></iconify-icon>
+                    <span>Mesin Kasir</span>
+                </a>
+                <ul class="sidebar-submenu">
+                    <li>
+                        <a class="sidebar-menu-text" href="{{ route('kasir.index') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i>POS</a>
+                    </li>
+                </ul>
+            </li>   
             <li>
                 <a href="{{ route('email') }}">
                     <iconify-icon icon="mage:email" class="menu-icon"></iconify-icon>

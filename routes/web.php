@@ -25,6 +25,9 @@ use App\Http\Controllers\MemberTrainerController;
 use App\Http\Controllers\AlatGymController;
 use App\Http\Controllers\KehadiranMemberController;
 use App\Http\Controllers\KehadiranTrainerController;
+use App\Http\Controllers\PembayaranMembershipController;
+use App\Http\Controllers\PembayaranTrainerController;
+use App\Http\Controllers\KasirController;
 
 Route::middleware('auth', 'verified')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -56,6 +59,9 @@ Route::middleware('auth', 'verified')->group(function () {
         Route::get('/paket-membership/{paket_membership}/edit', 'edit')->name('paket_membership.edit');
         Route::put('/paket-membership/{paket_membership}', 'update')->name('paket_membership.update');
         Route::delete('/paket-membership/{paket_membership}', 'destroy')->name('paket_membership.destroy');
+    });
+    Route::controller(KasirController::class)->group(function () {
+        Route::get('/kasir', 'index')->name('kasir.index');
     });
 
     Route::controller(PaketPersonalTrainerController::class)->group(function () {
@@ -96,6 +102,16 @@ Route::middleware('auth', 'verified')->group(function () {
 
         Route::post('/anggota-membership/{id}/tambah-pembayaran', 'tambahPembayaran')->name('anggota_membership.tambahPembayaran');
         Route::delete('/pembayaran-membership/{id}', 'destroyPembayaran')->name('pembayaran_membership.destroy');
+    });
+
+    Route::controller(PembayaranMembershipController::class)->group(function () {
+        Route::get('/pembayaran-membership', 'index')->name('pembayaran_membership.index');
+        Route::put('/pembayaran-membership/{id}', 'tambahPembayaran')->name('pembayaran_membership.tambahPembayaran');
+    });
+
+    Route::controller(PembayaranTrainerController::class)->group(function () {
+        Route::get('/pembayaran-trainer', 'index')->name('pembayaran_trainer.index');
+        Route::put('/pembayaran-trainer/{id}', 'tambahPembayaran')->name('pembayaran_trainer.tambahPembayaran');
     });
 
     Route::controller(TrainerController::class)->group(function () {

@@ -82,7 +82,7 @@ $script='<script src="' . asset('assets/js/data-table.js') . '"></script>';
                         <div class="col-span-12">
                             <label class="form-label">Trainer</label>
                             <input readonly type="text" id="trainer" class="form-control" 
-                                value="{{ $trainers->where('id', $memberTrainer->id_anggota)->first()->name ?? '' }}" required>
+                                value="{{ $trainers->where('id', $memberTrainer->id_trainer)->first()->name ?? '' }}" required>
                         </div>
     
                         <div class="col-span-12">
