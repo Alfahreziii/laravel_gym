@@ -28,6 +28,8 @@ use App\Http\Controllers\KehadiranTrainerController;
 use App\Http\Controllers\PembayaranMembershipController;
 use App\Http\Controllers\PembayaranTrainerController;
 use App\Http\Controllers\KasirController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\KategoriProductController;
 
 Route::middleware('auth', 'verified')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -36,6 +38,28 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::controller(DashboardController::class)->group(function () {
         Route::get('/', 'index')->name('dashboard');
     });
+
+    // Route untuk Produk
+    Route::controller(ProductController::class)->group(function () {
+        Route::get('/products', 'index')->name('products.index');
+        Route::get('/products/create', 'create')->name('products.create');
+        Route::post('/products', 'store')->name('products.store');
+        Route::get('/products/{product}/edit', 'edit')->name('products.edit');
+        Route::put('/products/{product}', 'update')->name('products.update');
+        Route::delete('/products/{product}', 'destroy')->name('products.destroy');
+        Route::post('/products/{product}/adjust','adjustQuantity')->name('products.adjust');
+        Route::get('/products/{product}/logs','logs')->name('products.logs');
+
+    });
+
+    // Route untuk Kategori Produk
+    Route::controller(KategoriProductController::class)->group(function () {
+        Route::get('/kategori-products', 'index')->name('kategori_products.index');
+        Route::post('/kategori-products', 'store')->name('kategori_products.store');
+        Route::put('/kategori-products/{kategori_product}', 'update')->name('kategori_products.update');
+        Route::delete('/kategori-products/{kategori_product}', 'destroy')->name('kategori_products.destroy');
+    });
+
     Route::controller(AnggotaController::class)->group(function () {
         Route::get('/anggota', 'index')->name('anggota.index');
         Route::get('/anggota/create', 'create')->name('anggota.create');
@@ -62,6 +86,10 @@ Route::middleware('auth', 'verified')->group(function () {
     });
     Route::controller(KasirController::class)->group(function () {
         Route::get('/kasir', 'index')->name('kasir.index');
+        Route::post('/kasir/hold', 'hold')->name('kasir.hold');
+        Route::post('/kasir/resume/{id}', 'resumeHold')->name('kasir.resume');
+        Route::get('/kasir/getHeldTransactions/', 'getHeldTransactions')->name('kasir.held');
+
     });
 
     Route::controller(PaketPersonalTrainerController::class)->group(function () {

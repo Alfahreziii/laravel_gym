@@ -13,7 +13,7 @@ class AlatGymController extends Controller
      */
     public function index()
     {
-        $alatGyms = AlatGym::latest()->paginate(10);
+        $alatGyms = AlatGym::latest()->get();
         return view('pages.alatgym.index', compact('alatGyms'));
     }
 

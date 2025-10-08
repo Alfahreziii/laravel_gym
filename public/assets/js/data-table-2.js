@@ -1,4 +1,4 @@
-if (document.getElementById("selection-table") && typeof simpleDatatables.DataTable !== 'undefined') {
+if (document.getElementById("selection-table-2") && typeof simpleDatatables.DataTable !== 'undefined') {
 
     let multiSelect = true;
     let rowNavigation = false;
@@ -33,7 +33,7 @@ if (document.getElementById("selection-table") && typeof simpleDatatables.DataTa
             options.tabIndex = 1;
         }
 
-        table = new simpleDatatables.DataTable("#selection-table", options);
+        table = new simpleDatatables.DataTable("#selection-table-2", options);
 
         // Mark all rows as unselected
         table.data.data.forEach(data => {

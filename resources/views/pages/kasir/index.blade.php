@@ -83,6 +83,54 @@
             });
         });
     </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const moreToggle = document.getElementById('moreToggle');
+        const dropdownMore = document.getElementById('dropdownMore');
+        const chevronMore = document.getElementById('chevronMore');
+
+        if (moreToggle && dropdownMore && chevronMore) {
+            moreToggle.addEventListener('click', function (e) {
+                e.stopPropagation();
+                dropdownMore.classList.toggle('hidden');
+                chevronMore.classList.toggle('rotate-180');
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!dropdownMore.contains(e.target) && !moreToggle.contains(e.target)) {
+                    dropdownMore.classList.add('hidden');
+                    chevronMore.classList.remove('rotate-180');
+                }
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    dropdownMore.classList.add('hidden');
+                    chevronMore.classList.remove('rotate-180');
+                }
+            });
+        }
+
+        // tombol Hold Items buka modal
+        document.querySelectorAll('.btn-hold-items').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const targetModal = document.getElementById(this.dataset.modalTarget);
+                if (targetModal) {
+                    targetModal.classList.remove('hidden');
+                }
+            });
+        });
+
+        // tombol close modal
+        document.querySelectorAll('.btn-close-modal').forEach(btn => {
+            btn.addEventListener('click', function () {
+                this.closest('.hidden')?.classList.add('hidden');
+                this.closest('[id$="-modal"]')?.classList.add('hidden'); // fallback
+            });
+        });
+    });
+</script>
+
 </head>
 <body class="dark:bg-neutral-800 bg-neutral-100">
     <div class="flex">
@@ -160,62 +208,443 @@
                                 <table id="selection-table" class="border border-neutral-200 rounded-lg border-separate w-full">
                                     <thead>
                                         <tr>
-                                            <th>S.L</th>
-                                            <th>Barcode</th>
-                                            <th>Nama Alat Gym</th>
-                                            <th>Jumlah</th>
+                                            <th>No</th>
+                                            <th>Foto Produk</th>
+                                            <th>Nama Produk</th>
                                             <th>Harga</th>
-                                            <th>Tanggal Pembelian</th>
-                                            <th>Lokasi Alat</th>
-                                            <th>Kondisi Alat</th>
-                                            <th>Vendor</th>
-                                            <th>Kontak</th>
+                                            <th>Diskon</th>
+                                            <th>Stok</th>
+                                            <th>Status</th>
                                             <th>Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach($alatGyms as $index => $item)
-                                        <tr>
-                                            <td class="whitespace-nowrap">{{ $index + 1 }}</td>
-                                            <td class="whitespace-nowrap"><a class="text-primary-600" href="{{ route('alat_gym.edit', $item->id) }}">{{ $item->barcode }}</a></td>
-                                            <td class="whitespace-nowrap">{{ $item->nama_alat_gym ?? '-' }}</td>
-                                            <td class="whitespace-nowrap">{{ $item->jumlah ?? '-' }}</td>
-                                            <td class="whitespace-nowrap">Rp {{ number_format($item->harga, 0, ',', '.') }}</td>
-                                            <td class="whitespace-nowrap">{{ \Carbon\Carbon::parse($item->tgl_pembelian)->format('d M Y') }}</td>
-                                            <td class="whitespace-nowrap">{{ $item->lokasi_alat ?? '-' }}</td>
-                                            <td class="whitespace-nowrap">{{ $item->kondisi_alat ?? '-' }}</td>
-                                            <td class="whitespace-nowrap">{{ $item->vendor ?? '-' }}</td>
-                                            <td class="whitespace-nowrap">{{ $item->kontak ?? '-' }}</td>
-                                            <td class="whitespace-nowrap flex gap-2">
-                                                <a href="{{ route('alat_gym.edit', $item->id) }}" 
-                                                class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
-                                                    <iconify-icon icon="lucide:edit"></iconify-icon>
-                                                </a>
-                                                <a href="{{ route('alat_gym.edit', $item->id) }}" class="w-8 h-8 bg-primary-50 text-primary-600 rounded-full inline-flex items-center justify-center">
-                                                <form action="{{ route('alat_gym.destroy', $item->id) }}" method="POST" class="inline-block delete-form">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="button" 
-                                                            class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center delete-btn">
-                                                        <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
+                                        @foreach($products as $index => $product)
+                                            <tr>
+                                                <td class="whitespace-nowrap">{{ $index + 1 }}</td>
+                                                <td class="whitespace-nowrap">
+                                                    @if($product->image)
+                                                        <img src="{{ asset('storage/' . $product->image) }}" 
+                                                            alt="image {{ $product->name }}" 
+                                                            class="w-10 h-10 rounded-full object-cover">
+                                                    @else
+                                                        <img src="{{ asset('assets/images/kasir/product-placeholder.png') }}" 
+                                                            alt="image {{ $product->name }}" 
+                                                            class="w-10 h-10 rounded-full object-cover">
+                                                    @endif
+                                                </td>
+                                                <td class="whitespace-nowrap">
+                                                    {{ $product->name }}
+                                                </td>
+                                                <td class="whitespace-nowrap">
+                                                    Rp {{ number_format($product->price, 0, ',', '.') }}
+                                                </td>
+                                                <td class="whitespace-nowrap">
+                                                    @if($product->discount > 0)
+                                                        {{ $product->discount }}
+                                                        {{ $product->discount_type == 'percent' ? '%' : 'Rp' }}
+                                                    @else
+                                                        -
+                                                    @endif
+                                                </td>
+                                                <td class="whitespace-nowrap">
+                                                    {{ $product->quantity }}
+                                                </td>
+                                                <td class="whitespace-nowrap ">
+                                                    @if($product->is_active)
+                                                        <span class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm">Aktif</span>
+                                                    @else
+                                                        <span class="bg-danger-100 text-danger-600 px-4 py-1.5 rounded-full font-medium text-sm">Nonaktif</span>
+                                                    @endif
+                                                </td>
+                                                <td class="whitespace-nowrap flex gap-2 items-center justify-center">
+                                                    <button 
+                                                        type="button" 
+                                                        data-modal-target="tambah-product-modal-{{ $product->id }}" 
+                                                        data-modal-toggle="tambah-product-modal-{{ $product->id }}"
+                                                        data-name="{{ $product->name }}"
+                                                        data-price="{{ $product->price }}"
+                                                        data-image="{{ $product->image }}"
+                                                        data-category="{{ $product->kategori->name }}"
+                                                        class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
+                                                        <i class="ri-shopping-bag-fill"></i>
                                                     </button>
-                                                </form>
-                                            </td>
-                                        </tr>
+                                                </td>
+                                            </tr>
                                         @endforeach
                                     </tbody>
                                 </table>
+                                @foreach($products as $product)
+                                {{-- MODAL TAMBAH PRODUCT --}}
+                                <div id="tambah-product-modal-{{ $product->id }}" tabindex="-1" 
+                                    class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 
+                                    justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+                                    <div class="rounded-2xl bg-white max-w-[800px] w-full">
+                                        <div class="py-4 px-6 border-b border-neutral-200 flex items-center justify-between">
+                                            <h1 class="text-xl">Tambah Product</h1>
+                                            <button data-modal-hide="tambah-product-modal-{{ $product->id }}" type="button"
+                                                class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
+                                                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                                                </svg>
+                                                <span class="sr-only">Close modal</span>
+                                            </button>
+                                        </div>
+
+                                        <div class="p-6">
+                                            <form 
+                                                data-product-id="{{ $product->id }}"  
+                                                data-name="{{ $product->name }}"
+                                                data-price="{{ $product->price }}"
+                                                data-image="{{ $product->image }}"
+                                                data-category="{{ $product->kategori->name ?? 'ada nih' }}"
+                                                class="form-tambah-cart">
+
+                                                @csrf
+                                                @method('PUT')
+
+                                                <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                                                    <div class="col-span-12">
+                                                        <label for="quantity_{{ $product->id }}" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
+                                                            Quantity
+                                                        </label>
+                                                        <input type="text" id="quantity_{{ $product->id }}" name="qty"
+                                                            class="form-control rounded-lg" required>
+                                                    </div>
+
+                                                    <div class="col-span-12 mt-4 flex items-center gap-3">
+                                                        <button type="button" data-modal-hide="tambah-product-modal-{{ $product->id }}"
+                                                            class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
+                                                            Cancel
+                                                        </button>
+                                                        <button type="submit" data-modal-hide="tambah-product-modal-{{ $product->id }}"
+                                                            class="btn btn-primary border border-primary-600 text-base px-6 py-3 rounded-lg">
+                                                            Tambah
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                @endforeach
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="cart-produk">
+            <div class="cart-produk flex flex-col justify-between wrapper-produk-detail">
+                <div class="">
+                    <div class="produk-header flex items-center justify-between">
+                        <h6 class="card-title mb-0 text-lg">Detail Items</h6>
+                    </div>
+                    
+                    <!-- tempat item cart muncul -->
+                    <div class="produk-body-container mt-3"></div>
 
+                    <div class="produk-footer mt-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm text-neutral-500">Total Items</span>
+                            <span class="font-medium text-sm total-items">0 Items</span>
+                        </div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm text-neutral-500">Total Harga</span>
+                            <span class="font-medium text-sm total-harga">Rp 0</span>
+                        </div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm text-neutral-500">Diskon</span>
+                            <span class="font-medium text-danger-600 text-sm">-Rp. 50,000</span>
+                        </div>
+                        <div class="flex items-center justify-between total-tagihan py-2">
+                            <span class="text-sm text-neutral-500">Total Tagihan</span>
+                            <span class="font-medium text-sm">Rp 0</span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex mt-4 gap-2 relative">
+                        <button id="btn-empty-cart" class="w-full py-2 bg-danger-600 text-white rounded-lg">Empty <i class="ri-delete-bin-line"></i></button>
+
+                        <button id="moreToggle"
+                            class="w-full flex justify-center items-center py-2 bg-warning-600 text-white rounded-lg gap-1 relative btn-hold-items"
+                            type="button">
+                            More
+                            <iconify-icon id="chevronMore" icon="mdi:chevron-down" class="text-lg transition-transform duration-200"></iconify-icon>
+                        </button>
+
+                        <div id="dropdownMore" class="hidden absolute mb-2 dropdown-more bg-white text-black rounded-lg shadow-lg w-48 z-50">
+                            <ul class="p-2 text-sm">
+                                <li><button type="button" class="block px-3 py-2 hover:bg-neutral-100 rounded btn-hold">Hold</button></li>
+                                <li><button type="button" data-modal-target="hold-items-modal" data-modal-toggle="hold-items-modal" class="block px-3 py-2 hover:bg-neutral-100 rounded btn-hold-items">Hold Items</button></li>
+                            </ul>
+                        </div>
+
+                    </div>
+                    <button class="w-full py-2 bg-primary-600 text-white rounded-lg mt-2">Bayar <i class="ri-bank-card-fill"></i></button>
+                </div>
             </div>
         </div>
     </div>
+    
+    {{-- MODAL Hold Items --}}
+<div id="hold-items-modal" tabindex="-1"
+    class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center 
+    w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="rounded-2xl bg-white max-w-[800px] w-full">
+        <div class="py-4 px-6 border-b border-neutral-200 flex items-center justify-between">
+            <h1 class="text-xl">Hold Items</h1>
+            <button data-modal-hide="hold-items-modal" type="button"
+                class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+        </div>
+        <div class="card-body">
+            <table id="selection-table-2" class="border border-neutral-200 rounded-lg border-separate w-full">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Foto Produk</th>
+                        <th>Nama Produk</th>
+                        <th>Harga</th>
+                        <th>Diskon</th>
+                        <th>Stok</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($products as $index => $product)
+                        <tr>
+                            <td class="whitespace-nowrap">{{ $index + 1 }}</td>
+                            <td class="whitespace-nowrap">
+                                @if($product->image)
+                                    <img src="{{ asset('storage/' . $product->image) }}" 
+                                        alt="image {{ $product->name }}" 
+                                        class="w-10 h-10 rounded-full object-cover">
+                                @else
+                                    <img src="{{ asset('assets/images/kasir/product-placeholder.png') }}" 
+                                        alt="image {{ $product->name }}" 
+                                        class="w-10 h-10 rounded-full object-cover">
+                                @endif
+                            </td>
+                            <td class="whitespace-nowrap">
+                                {{ $product->name }}
+                            </td>
+                            <td class="whitespace-nowrap">
+                                Rp {{ number_format($product->price, 0, ',', '.') }}
+                            </td>
+                            <td class="whitespace-nowrap">
+                                @if($product->discount > 0)
+                                    {{ $product->discount }}
+                                    {{ $product->discount_type == 'percent' ? '%' : 'Rp' }}
+                                @else
+                                    -
+                                @endif
+                            </td>
+                            <td class="whitespace-nowrap">
+                                {{ $product->quantity }}
+                            </td>
+                            <td class="whitespace-nowrap ">
+                                @if($product->is_active)
+                                    <span class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm">Aktif</span>
+                                @else
+                                    <span class="bg-danger-100 text-danger-600 px-4 py-1.5 rounded-full font-medium text-sm">Nonaktif</span>
+                                @endif
+                            </td>
+                            <td class="whitespace-nowrap flex gap-2 items-center justify-center">
+                                <button 
+                                    type="button" 
+                                    class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
+                                    <i class="ri-shopping-bag-fill"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+    <!-- <div id="hold-items-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-6 max-w-lg w-full">
+            <h2 class="text-lg font-semibold mb-4">Hold Items</h2>
+            <p>Isi konten modal di sini.</p>
+            <div class="mt-4 flex justify-end gap-2">
+                <button class="btn-close-modal border px-4 py-2 rounded bg-gray-200">Close</button>
+                <button class="border px-4 py-2 rounded bg-primary-600 text-white">Simpan</button>
+            </div>
+        </div>
+    </div> -->
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let cart = [];
+        const cartContainer = document.querySelector('.cart-produk .produk-body-container');
+        const totalItemEl = document.querySelector('.produk-footer .total-items');
+        const totalHargaEl = document.querySelector('.produk-footer .total-harga');
+        const totalTagihanEl = document.querySelector('.produk-footer .total-tagihan');
+
+        // Handle tambah produk dari setiap modal
+        document.querySelectorAll('.form-tambah-cart').forEach(form => {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const productId = this.dataset.productId;
+                const productName = this.dataset.name;
+                const image = this.dataset.image;
+                const categoryName = this.dataset.category;
+                const price = parseFloat(this.dataset.price);
+                const qty = parseInt(this.querySelector('input[name="qty"]').value) || 1;
+
+                const existing = cart.find(p => p.id === productId);
+                if (existing) {
+                    existing.qty += qty;
+                } else {
+                    cart.push({ id: productId, name: productName, qty, price, kategori: { name: categoryName }, image  });
+                }
+                console.log("Tambah ke cart:", { productId, productName, qty, price , categoryName });
+
+                updateCartUI();
+                this.closest('[id^="tambah-product-modal"]').classList.add('hidden');
+            });
+        });
+
+
+
+
+        // update tampilan cart
+        function updateCartUI() {
+            const container = document.querySelector('.cart-produk .produk-body-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            let total = 0;
+            let totalItems = 0;
+
+            cart.forEach(item => {
+                const subtotal = item.qty * item.price;
+                total += subtotal;
+                totalItems += item.qty;
+
+                // gunakan ternary operator JS untuk cek image
+                const imgSrc = item.image 
+                    ? `/storage/${item.image}` 
+                    : '{{ asset("assets/images/kasir/product-placeholder.png") }}';
+
+                container.innerHTML += `
+                    <div class="produk-body flex">
+                        <img src="${imgSrc}" alt="${item.name}" class="rounded product-placeholder">
+                        <div class="w-full">
+                            <h5 class="font-semibold text-sm">${item.name}</h5>
+                            <p class="text-xs text-neutral-500">${item.kategori.name}</p>
+                            <div class="flex items-center justify-between gap-3 mt-2 w-full">
+                                <div class="flex items-center gap-2">
+                                    <button class="minus w-6 h-6 button-quantity text-primary-600 rounded flex items-center text-xl justify-center" data-id="${item.id}">-</button>
+                                    <span>${item.qty}</span>
+                                    <button class="plus w-6 h-6 button-quantity bg-primary-600 text-white rounded flex items-center text-xl justify-center" data-id="${item.id}">+</button>
+                                </div>
+                                <span class="text-primary-600 text-sm font-semibold">Rp ${subtotal.toLocaleString()}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+
+            // update total
+            document.querySelector('.total-items').innerText = `${totalItems} Items`;
+            document.querySelector('.total-harga').innerText = 'Rp ' + total.toLocaleString();
+            document.querySelector('.total-tagihan span:last-child').innerText = 'Rp ' + total.toLocaleString();
+
+            // event plus/minus
+            document.querySelectorAll('.plus').forEach(btn => {
+                btn.addEventListener('click', () => adjustQty(btn.dataset.id, 1));
+            });
+            document.querySelectorAll('.minus').forEach(btn => {
+                btn.addEventListener('click', () => adjustQty(btn.dataset.id, -1));
+            });
+        }
+
+
+        // ubah qty
+        function adjustQty(id, delta) {
+            const item = cart.find(p => p.id === id);
+            if (!item) return;
+            item.qty += delta;
+            if (item.qty <= 0) {
+                cart = cart.filter(p => p.id !== id);
+            }
+            updateCartUI();
+        }
+
+        // tombol Hold
+        document.querySelector('.btn-hold').addEventListener('click', function () {
+            if (cart.length === 0) {
+                Swal.fire('Kosong', 'Tidak ada item dalam cart!', 'warning');
+                return;
+            }
+            fetch('{{ route("kasir.hold") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ cart })
+            })
+            .then(res => res.json())
+            .then(data => {
+                Swal.fire('Tersimpan', 'Transaksi di-hold!', 'success');
+                cart = [];
+                updateCartUI();
+            });
+        });
+
+        // tombol Hold Items
+        document.querySelectorAll('.btn-hold-items').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const targetModal = document.getElementById(this.dataset.modalTarget);
+                if (targetModal) {
+                    targetModal.classList.remove('hidden');
+
+                    // Inisialisasi DataTable hanya sekali
+                    const table = targetModal.querySelector('table');
+                    if (table && !table.classList.contains('datatable-initialized')) {
+                        $(table).DataTable();
+                        table.classList.add('datatable-initialized'); // tandai sudah diinisialisasi
+                    }
+                }
+            });
+        });
+
+        document.getElementById('btn-empty-cart')?.addEventListener('click', () => {
+            if (cart.length === 0) {
+                Swal.fire('Kosong', 'Cart sudah kosong!', 'info');
+                return;
+            }
+            Swal.fire({
+                title: 'Hapus semua item?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, hapus',
+            }).then(res => {
+                if (res.isConfirmed) {
+                    cart = [];
+                    updateCartUI();
+                }
+            });
+        });
+
+    });
+    </script>
+
     <x-script  script='{!! isset($script) ? $script : "" !!}' />
     <script src="{{ asset('assets/js/data-table.js') }}"></script>
+    <script src="{{ asset('assets/js/data-table-2.js') }}"></script>
 </body>
 </html>

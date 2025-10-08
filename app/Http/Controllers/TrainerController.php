@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Trainer;
 use App\Models\Specialisasi;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class TrainerController extends Controller
 {
@@ -150,7 +151,17 @@ class TrainerController extends Controller
      */
     public function destroy(Trainer $trainer)
     {
+        // Hapus photo dari storage jika ada
+        if ($trainer->photo && Storage::disk('public')->exists($trainer->photo)) {
+            Storage::disk('public')->delete($trainer->photo);
+        }
+
+        // Hapus jadwal terkait (jika perlu)
+        $trainer->schedules()->delete();
+
+        // Hapus record trainer
         $trainer->delete();
+
         return redirect()->route('trainer.index')->with('success', 'Trainer berhasil dihapus.');
     }
 }

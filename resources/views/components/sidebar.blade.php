@@ -46,7 +46,7 @@
                     </li>
                 </ul>
             </li>
-            <li class="sidebar-menu-group-title">Application</li>
+            <li class="sidebar-menu-group-title">Membership / GYM</li>
             <li>
                 <a href="{{ route('anggota.index') }}">
                     <iconify-icon icon="flowbite:users-group-outline" class="menu-icon"></iconify-icon>
@@ -124,6 +124,7 @@
                     </li>
                 </ul>
             </li>   
+            <li class="sidebar-menu-group-title">POS</li>
             <li class="dropdown">
                 <a href="javascript:void(0)">
                     <iconify-icon icon="hugeicons:invoice-03" class="menu-icon"></iconify-icon>
@@ -132,6 +133,20 @@
                 <ul class="sidebar-submenu">
                     <li>
                         <a class="sidebar-menu-text" href="{{ route('kasir.index') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i>POS</a>
+                    </li>
+                </ul>
+            </li>   
+            <li class="dropdown">
+                <a href="javascript:void(0)">
+                    <iconify-icon icon="hugeicons:invoice-03" class="menu-icon"></iconify-icon>
+                    <span>Product</span>
+                </a>
+                <ul class="sidebar-submenu">
+                    <li>
+                        <a class="sidebar-menu-text" href="{{ route('kategori_products.index') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i>Kategori</a>
+                    </li>
+                    <li>
+                        <a class="sidebar-menu-text" href="{{ route('products.index') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i>Product</a>
                     </li>
                 </ul>
             </li>   
