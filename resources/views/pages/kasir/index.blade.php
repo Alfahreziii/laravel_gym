@@ -388,99 +388,40 @@
     </div>
     
     {{-- MODAL Hold Items --}}
-<div id="hold-items-modal" tabindex="-1"
-    class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center 
-    w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-    <div class="rounded-2xl bg-white max-w-[800px] w-full">
-        <div class="py-4 px-6 border-b border-neutral-200 flex items-center justify-between">
-            <h1 class="text-xl">Hold Items</h1>
-            <button data-modal-hide="hold-items-modal" type="button"
-                class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
-                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
-                </svg>
-                <span class="sr-only">Close modal</span>
-            </button>
-        </div>
-        <div class="card-body">
-            <table id="selection-table-2" class="border border-neutral-200 rounded-lg border-separate w-full">
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Foto Produk</th>
-                        <th>Nama Produk</th>
-                        <th>Harga</th>
-                        <th>Diskon</th>
-                        <th>Stok</th>
-                        <th>Status</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($products as $index => $product)
+    <div id="hold-items-modal" tabindex="-1"
+        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center 
+        w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+        <div class="rounded-2xl bg-white max-w-[800px] w-full">
+            <div class="py-4 px-6 border-b border-neutral-200 flex items-center justify-between">
+                <h1 class="text-xl">Hold Items</h1>
+                <button data-modal-hide="hold-items-modal" type="button"
+                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
+            </div>
+            <div class="card-body">
+                <table id="selection-table-2" class="border border-neutral-200 rounded-lg border-separate w-full">
+                    <thead>
                         <tr>
-                            <td class="whitespace-nowrap">{{ $index + 1 }}</td>
-                            <td class="whitespace-nowrap">
-                                @if($product->image)
-                                    <img src="{{ asset('storage/' . $product->image) }}" 
-                                        alt="image {{ $product->name }}" 
-                                        class="w-10 h-10 rounded-full object-cover">
-                                @else
-                                    <img src="{{ asset('assets/images/kasir/product-placeholder.png') }}" 
-                                        alt="image {{ $product->name }}" 
-                                        class="w-10 h-10 rounded-full object-cover">
-                                @endif
-                            </td>
-                            <td class="whitespace-nowrap">
-                                {{ $product->name }}
-                            </td>
-                            <td class="whitespace-nowrap">
-                                Rp {{ number_format($product->price, 0, ',', '.') }}
-                            </td>
-                            <td class="whitespace-nowrap">
-                                @if($product->discount > 0)
-                                    {{ $product->discount }}
-                                    {{ $product->discount_type == 'percent' ? '%' : 'Rp' }}
-                                @else
-                                    -
-                                @endif
-                            </td>
-                            <td class="whitespace-nowrap">
-                                {{ $product->quantity }}
-                            </td>
-                            <td class="whitespace-nowrap ">
-                                @if($product->is_active)
-                                    <span class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm">Aktif</span>
-                                @else
-                                    <span class="bg-danger-100 text-danger-600 px-4 py-1.5 rounded-full font-medium text-sm">Nonaktif</span>
-                                @endif
-                            </td>
-                            <td class="whitespace-nowrap flex gap-2 items-center justify-center">
-                                <button 
-                                    type="button" 
-                                    class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
-                                    <i class="ri-shopping-bag-fill"></i>
-                                </button>
-                            </td>
+                            <th>No</th>
+                            <th>Kode Transaksi</th>
+                            <th>Qty</th>
+                            <th>Total</th>
+                            <th>Tanggal Hold</th>
+                            <th>Aksi</th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+                    </thead>
+                    <tbody>
 
-    <!-- <div id="hold-items-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-xl p-6 max-w-lg w-full">
-            <h2 class="text-lg font-semibold mb-4">Hold Items</h2>
-            <p>Isi konten modal di sini.</p>
-            <div class="mt-4 flex justify-end gap-2">
-                <button class="btn-close-modal border px-4 py-2 rounded bg-gray-200">Close</button>
-                <button class="border px-4 py-2 rounded bg-primary-600 text-white">Simpan</button>
+                    </tbody>
+                </table>
             </div>
         </div>
-    </div> -->
+    </div>
     
     <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -489,8 +430,58 @@
         const totalItemEl = document.querySelector('.produk-footer .total-items');
         const totalHargaEl = document.querySelector('.produk-footer .total-harga');
         const totalTagihanEl = document.querySelector('.produk-footer .total-tagihan');
+        const btnEmptyCart = document.getElementById('btn-empty-cart');
 
-        // Handle tambah produk dari setiap modal
+        // === Fungsi Update Cart UI ===
+        function updateCartUI() {
+            if (!cartContainer) return;
+            cartContainer.innerHTML = '';
+
+            let total = 0;
+            let totalItems = 0;
+
+            cart.forEach(item => {
+                const subtotal = item.qty * item.price;
+                total += subtotal;
+                totalItems += item.qty;
+
+                const imgSrc = item.image 
+                    ? `/storage/${item.image}` 
+                    : '{{ asset("assets/images/kasir/product-placeholder.png") }}';
+
+                cartContainer.innerHTML += `
+                    <div class="produk-body flex gap-3 py-2 border-b border-neutral-200">
+                        <img src="${imgSrc}" alt="${item.name}" class="rounded w-12 h-12 object-cover">
+                        <div class="w-full">
+                            <h5 class="font-semibold text-sm">${item.name}</h5>
+                            <p class="text-xs text-neutral-500">${item.kategori.name}</p>
+                            <div class="flex items-center justify-between gap-3 mt-2 w-full">
+                                <div class="flex items-center gap-2">
+                                    <button class="minus w-6 h-6 text-primary-600 border border-primary-600 rounded flex items-center justify-center" data-id="${item.id}">-</button>
+                                    <span>${item.qty}</span>
+                                    <button class="plus w-6 h-6 bg-primary-600 text-white rounded flex items-center justify-center" data-id="${item.id}">+</button>
+                                </div>
+                                <span class="text-primary-600 text-sm font-semibold">Rp ${subtotal.toLocaleString()}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            totalItemEl.innerText = `${totalItems} Items`;
+            totalHargaEl.innerText = 'Rp ' + total.toLocaleString();
+            totalTagihanEl.querySelector('span:last-child').innerText = 'Rp ' + total.toLocaleString();
+
+            // event plus/minus
+            document.querySelectorAll('.plus').forEach(btn => {
+                btn.addEventListener('click', () => adjustQty(btn.dataset.id, 1));
+            });
+            document.querySelectorAll('.minus').forEach(btn => {
+                btn.addEventListener('click', () => adjustQty(btn.dataset.id, -1));
+            });
+        }
+
+        // === Tambah ke Cart dari Modal ===
         document.querySelectorAll('.form-tambah-cart').forEach(form => {
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
@@ -506,73 +497,15 @@
                 if (existing) {
                     existing.qty += qty;
                 } else {
-                    cart.push({ id: productId, name: productName, qty, price, kategori: { name: categoryName }, image  });
+                    cart.push({ id: productId, name: productName, qty, price, kategori: { name: categoryName }, image });
                 }
-                console.log("Tambah ke cart:", { productId, productName, qty, price , categoryName });
 
                 updateCartUI();
                 this.closest('[id^="tambah-product-modal"]').classList.add('hidden');
             });
         });
 
-
-
-
-        // update tampilan cart
-        function updateCartUI() {
-            const container = document.querySelector('.cart-produk .produk-body-container');
-            if (!container) return;
-            container.innerHTML = '';
-
-            let total = 0;
-            let totalItems = 0;
-
-            cart.forEach(item => {
-                const subtotal = item.qty * item.price;
-                total += subtotal;
-                totalItems += item.qty;
-
-                // gunakan ternary operator JS untuk cek image
-                const imgSrc = item.image 
-                    ? `/storage/${item.image}` 
-                    : '{{ asset("assets/images/kasir/product-placeholder.png") }}';
-
-                container.innerHTML += `
-                    <div class="produk-body flex">
-                        <img src="${imgSrc}" alt="${item.name}" class="rounded product-placeholder">
-                        <div class="w-full">
-                            <h5 class="font-semibold text-sm">${item.name}</h5>
-                            <p class="text-xs text-neutral-500">${item.kategori.name}</p>
-                            <div class="flex items-center justify-between gap-3 mt-2 w-full">
-                                <div class="flex items-center gap-2">
-                                    <button class="minus w-6 h-6 button-quantity text-primary-600 rounded flex items-center text-xl justify-center" data-id="${item.id}">-</button>
-                                    <span>${item.qty}</span>
-                                    <button class="plus w-6 h-6 button-quantity bg-primary-600 text-white rounded flex items-center text-xl justify-center" data-id="${item.id}">+</button>
-                                </div>
-                                <span class="text-primary-600 text-sm font-semibold">Rp ${subtotal.toLocaleString()}</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-
-
-            // update total
-            document.querySelector('.total-items').innerText = `${totalItems} Items`;
-            document.querySelector('.total-harga').innerText = 'Rp ' + total.toLocaleString();
-            document.querySelector('.total-tagihan span:last-child').innerText = 'Rp ' + total.toLocaleString();
-
-            // event plus/minus
-            document.querySelectorAll('.plus').forEach(btn => {
-                btn.addEventListener('click', () => adjustQty(btn.dataset.id, 1));
-            });
-            document.querySelectorAll('.minus').forEach(btn => {
-                btn.addEventListener('click', () => adjustQty(btn.dataset.id, -1));
-            });
-        }
-
-
-        // ubah qty
+        // === Ubah Quantity ===
         function adjustQty(id, delta) {
             const item = cart.find(p => p.id === id);
             if (!item) return;
@@ -583,12 +516,35 @@
             updateCartUI();
         }
 
-        // tombol Hold
+        // === Tombol Kosongkan Cart ===
+        btnEmptyCart.addEventListener('click', function () {
+            if (cart.length === 0) {
+                Swal.fire('Kosong', 'Cart sudah kosong!', 'info');
+                return;
+            }
+            Swal.fire({
+                title: 'Kosongkan Cart?',
+                text: 'Semua item akan dihapus!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, kosongkan',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    cart = [];
+                    updateCartUI();
+                    Swal.fire('Berhasil', 'Cart dikosongkan', 'success');
+                }
+            });
+        });
+
+        // === Tombol Hold Transaksi ===
         document.querySelector('.btn-hold').addEventListener('click', function () {
             if (cart.length === 0) {
                 Swal.fire('Kosong', 'Tidak ada item dalam cart!', 'warning');
                 return;
             }
+
             fetch('{{ route("kasir.hold") }}', {
                 method: 'POST',
                 headers: {
@@ -604,47 +560,94 @@
                 updateCartUI();
             });
         });
-
-        // tombol Hold Items
+        
+        // === Tombol Hold Items (buka modal + tampilkan data) ===
         document.querySelectorAll('.btn-hold-items').forEach(btn => {
             btn.addEventListener('click', function () {
                 const targetModal = document.getElementById(this.dataset.modalTarget);
-                if (targetModal) {
-                    targetModal.classList.remove('hidden');
+                if (!targetModal) return;
 
-                    // Inisialisasi DataTable hanya sekali
-                    const table = targetModal.querySelector('table');
-                    if (table && !table.classList.contains('datatable-initialized')) {
-                        $(table).DataTable();
-                        table.classList.add('datatable-initialized'); // tandai sudah diinisialisasi
-                    }
+                targetModal.classList.remove('hidden');
+                const tableEl = targetModal.querySelector('#selection-table-2');
+
+                // Bersihkan DataTable lama
+                if (tableEl.classList.contains('datatable-initialized')) {
+                    const instance = simpleDatatables.DataTable.instances.find(dt => dt.table === tableEl);
+                    if (instance) instance.destroy();
+                    tableEl.classList.remove('datatable-initialized');
                 }
+
+                // Fetch data transaksi hold
+                fetch('{{ route("getHeldTransactions") }}')
+                    .then(res => res.json())
+                    .then(data => {
+                        const tbody = tableEl.querySelector('tbody');
+                        tbody.innerHTML = '';
+
+                        data.forEach((transaction, index) => {
+                            const totalItems = transaction.items.reduce((sum, item) => sum + parseInt(item.qty), 0);
+                            const totalHarga = transaction.items.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td>${index + 1}</td>
+                                    <td>${transaction.transaction_code}</td>
+                                    <td>${totalItems}</td>
+                                    <td>Rp ${totalHarga.toLocaleString()}</td>
+                                    <td>${new Date(transaction.created_at).toLocaleString()}</td>
+                                    <td>
+                                        <button 
+                                            class="btn-view-detail bg-primary-100 text-primary-600 rounded px-2 py-1"
+                                            data-items='${JSON.stringify(transaction.items)}'>
+                                            View
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+
+                        // ✅ Inisialisasi DataTable hanya sekali
+                        const datatable = new simpleDatatables.DataTable(tableEl, {
+                            searchable: true,
+                            fixedHeight: true,
+                            perPageSelect: [5, 10, 15],
+                            labels: {
+                                placeholder: "Cari...",
+                                perPage: "Data per halaman",
+                                noRows: "Tidak ada data hold",
+                                info: "Menampilkan {start}–{end} dari {rows} data"
+                            }
+                        });
+
+                        tableEl.classList.add('datatable-initialized');
+
+                        // Tombol view detail
+                        tableEl.querySelectorAll('.btn-view-detail').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                const items = JSON.parse(btn.dataset.items);
+                                let html = '<ul class="text-left">';
+                                items.forEach(it => {
+                                    html += `<li>${it.name} — ${it.qty} × Rp ${it.price.toLocaleString()}</li>`;
+                                });
+                                html += '</ul>';
+
+                                Swal.fire({
+                                    title: 'Detail Transaksi',
+                                    html,
+                                    confirmButtonText: 'Tutup'
+                                });
+                            });
+                        });
+                    })
+                    .catch(err => console.error('Error fetching held transactions:', err));
             });
         });
-
-        document.getElementById('btn-empty-cart')?.addEventListener('click', () => {
-            if (cart.length === 0) {
-                Swal.fire('Kosong', 'Cart sudah kosong!', 'info');
-                return;
-            }
-            Swal.fire({
-                title: 'Hapus semua item?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, hapus',
-            }).then(res => {
-                if (res.isConfirmed) {
-                    cart = [];
-                    updateCartUI();
-                }
-            });
-        });
-
+        
+        // === Inisialisasi Awal ===
+        updateCartUI();
     });
     </script>
-
     <x-script  script='{!! isset($script) ? $script : "" !!}' />
     <script src="{{ asset('assets/js/data-table.js') }}"></script>
-    <script src="{{ asset('assets/js/data-table-2.js') }}"></script>
 </body>
 </html>

@@ -87,9 +87,7 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::controller(KasirController::class)->group(function () {
         Route::get('/kasir', 'index')->name('kasir.index');
         Route::post('/kasir/hold', 'hold')->name('kasir.hold');
-        Route::post('/kasir/resume/{id}', 'resumeHold')->name('kasir.resume');
-        Route::get('/kasir/getHeldTransactions/', 'getHeldTransactions')->name('kasir.held');
-
+        Route::get('/held-transactions', 'getHeldTransactions')->name('getHeldTransactions');
     });
 
     Route::controller(PaketPersonalTrainerController::class)->group(function () {

@@ -3,9 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Str;
-use App\Models\HeldTransaction;
 use Illuminate\Http\Request;
 use App\Models\Product;
+use App\Models\Transaction;
+use App\Models\TransactionItem;
 
 class KasirController extends Controller
 {
@@ -15,38 +16,61 @@ class KasirController extends Controller
         return view('pages.kasir.index', compact('products'));
     }
 
+    /**
+     * Simpan transaksi dengan status 'hold'
+     */
     public function hold(Request $request)
     {
-        $cart = $request->input('cart'); // array of items
+        $cart = $request->input('cart', []);
 
-        $transactionCode = 'HOLD-' . strtoupper(Str::random(6));
+        if (empty($cart)) {
+            return response()->json(['success' => false, 'message' => 'Cart kosong.'], 400);
+        }
 
-        $held = HeldTransaction::create([
+        $transactionCode = 'TRX-' . strtoupper(Str::random(6));
+
+        // Hitung total amount
+        $total = collect($cart)->sum(function ($item) {
+            return $item['qty'] * $item['price'];
+        });
+
+        // Buat transaksi utama
+        $transaction = Transaction::create([
             'transaction_code' => $transactionCode,
-            'cart_data' => json_encode($cart),
+            'total_amount' => $total,
+            'status' => 'hold',
         ]);
+
+        // Simpan item-item transaksi
+        foreach ($cart as $item) {
+            TransactionItem::create([
+                'transaction_id' => $transaction->id,
+                'product_id' => $item['id'],
+                'product_name' => $item['name'],
+                'qty' => $item['qty'],
+                'price' => $item['price'],
+                'subtotal' => $item['qty'] * $item['price'],
+                'kategori' => $item['kategori']['name'] ?? null,
+            ]);
+        }
 
         return response()->json([
             'success' => true,
             'transaction_code' => $transactionCode,
-            'held_id' => $held->id,
+            'transaction_id' => $transaction->id,
         ]);
     }
 
-    public function resumeHold($id)
-    {
-        $hold = HeldTransaction::findOrFail($id);
-        $cart = json_decode($hold->cart_data, true);
-
-        session()->put('cart', $cart);
-        $hold->delete(); // hapus dari hold setelah di-load
-
-        return back()->with('success', 'Transaksi berhasil dilanjutkan');
-    }
-
+    /**
+     * Ambil semua transaksi yang di-hold
+     */
     public function getHeldTransactions()
     {
-        $heldTransactions = HeldTransaction::latest()->get();
+        $heldTransactions = Transaction::with('items')
+            ->where('status', 'hold')
+            ->latest()
+            ->get();
+
         return response()->json($heldTransactions);
     }
 }

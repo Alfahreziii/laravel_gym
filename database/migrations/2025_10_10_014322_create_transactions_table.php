@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('held_transactions', function (Blueprint $table) {
+        Schema::create('transactions', function (Blueprint $table) {
             $table->id();
             $table->string('transaction_code')->unique();
-            $table->json('cart_data'); // simpan isi cart dalam bentuk JSON
+            $table->decimal('total_amount', 15, 2)->default(0);
+            $table->enum('status', ['hold', 'completed', 'cancelled'])->default('hold');
             $table->timestamps();
         });
     }
@@ -24,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('held_transactions');
+        Schema::dropIfExists('transactions');
     }
 };
