@@ -18,14 +18,17 @@
                     <h4 class="mb-3">Forgot Password</h4>
                     <p class="mb-8 text-secondary-light text-lg">Enter the email address associated with your account and we will send you a link to reset your password.</p>
                 </div>
-                <form action="#">
+                <form method="POST" action="{{ route('password.email') }}">
+                    @csrf
                     <div class="icon-field mb-6 relative">
                         <span class="absolute start-4 top-1/2 -translate-y-1/2 pointer-events-none flex text-xl">
                             <iconify-icon icon="mage:email"></iconify-icon>
                         </span>
-                        <input type="email" class="form-control h-[56px] ps-11 border-neutral-300 bg-neutral-50 rounded-xl" placeholder="Email">
+                        <input type="email" name="email" required class="form-control h-[56px] ps-11 border-neutral-300 bg-neutral-50 rounded-xl" placeholder="Email">
                     </div>
-                    <button type="button" data-modal-target="popup-modal" data-modal-toggle="popup-modal" class="btn btn-primary justify-center text-sm btn-sm px-3 py-4 w-full rounded-xl"> Continue</button>
+                    <button type="submit" class="btn btn-primary justify-center text-sm btn-sm px-3 py-4 w-full rounded-xl">
+                        Continue
+                    </button>
 
                     <div class="text-center">
                         <a href="{{ route('login') }}" class="text-primary-600 font-bold mt-6 hover:underline">Back to Sign In</a>
@@ -51,18 +54,39 @@
                 <span class="sr-only">Close modal</span>
             </button>
             <div class="p-2.5 text-center">
-                <div class="mb-8 inline-flex">
-                    <img src="{{ asset('assets/images/auth/envelop-icon.png') }}" alt="">
-                </div>
                 <h6 class="mb-3">Verify your Email</h6>
                 <p class="text-secondary-light text-sm mb-0">Thank you, check your email for instructions to reset your password</p>
-                <button type="button" class="btn btn-primary justify-center text-sm btn-sm px-3 py-4 w-full rounded-xl mt-8">Skip</button>
-                <div class="mt-8 text-sm">
-                    <p class="mb-0">Don't receive an email? <a href="javascript:void(0)" class="text-primary-600 font-semibold">Resend</a></p>
-                </div>
+                <button type="button" data-modal-hide="popup-modal" class="btn btn-primary justify-center text-sm btn-sm px-3 py-4 w-full rounded-xl mt-8">Skip</button>
             </div>
         </div>
     </div>
+@if (session('status'))
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const modal = document.getElementById('popup-modal');
+
+        // Jika kamu pakai Flowbite
+        if (window.Flowbite && typeof Flowbite.Modal === 'function') {
+            const modalInstance = new Flowbite.Modal(modal);
+            modalInstance.show();
+        } else {
+            // Kalau gak pakai Flowbite, tampilkan manual
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        // ✅ Tambahkan event listener agar bisa ditutup manual
+        const closeButtons = modal.querySelectorAll('[data-modal-hide="popup-modal"]');
+        closeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            });
+        });
+    });
+</script>
+@endif
+
 
 </body>
 </html>

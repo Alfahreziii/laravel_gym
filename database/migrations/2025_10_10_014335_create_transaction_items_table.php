@@ -18,7 +18,6 @@ return new class extends Migration
             $table->string('product_name');
             $table->integer('qty');
             $table->decimal('price', 15, 2);
-            $table->decimal('subtotal', 15, 2);
             $table->string('kategori')->nullable();
             $table->timestamps();
         });

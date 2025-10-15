@@ -12,7 +12,13 @@ class Transaction extends Model
     protected $fillable = [
         'transaction_code',
         'total_amount',
+        'diskon',
+        'diskon_barang',
+        'harga_sebelum_diskon',
         'status',
+        'dibayarkan',
+        'metode_pembayaran',
+        'kembalian',
     ];
 
     /**
