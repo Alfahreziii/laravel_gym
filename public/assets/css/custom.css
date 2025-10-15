@@ -19,11 +19,18 @@
 .whitespace-nowrap {
   white-space: nowrap;
 }
-
+.mx-auto {
+  margin-inline: auto;
+}
 .sidebar-menu-text {
   font-size: 0.8rem !important;
 }
-
+.min-w-800px {
+  min-width: 800px;
+}
+.apexcharts-yaxis {
+  --tw-translate-x: 55px !important;
+}
 /* aktifkan kembali indikator time picker */
 input[type="time"] {
   position: relative;

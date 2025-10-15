@@ -98,7 +98,6 @@ class ProductController extends Controller
                 'price' => 'required|numeric|min:0',
                 'discount' => 'nullable|numeric|min:0',
                 'discount_type' => 'nullable|in:percent,nominal',
-                'quantity' => 'integer|min:0',
                 'is_active' => 'boolean',
                 'kategori_product_id' => 'required|exists:kategori_products,id',
             ]);

@@ -6,86 +6,57 @@ use Illuminate\Http\Request;
 use App\Models\Anggota;
 use App\Models\PembayaranMembership;
 use App\Models\PembayaranMemberTrainer;
+use App\Models\KehadiranMember;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        // Total semua anggota
+        // Member yang hadir hari ini
+        $memberInGymToday = KehadiranMember::with('anggota')
+            ->whereDate('created_at', now()->toDateString())
+            ->latest()
+            ->get()
+            ->groupBy('rfid')
+            ->map(fn($items) => $items->first())
+            ->filter(fn($item) => strtolower($item->status) === 'in')
+            ->values();
+
+        $kehadiranmembers = KehadiranMember::with('anggota')->latest()->get();
         $totalMember = Anggota::count();
+        $memberAktif = Anggota::all()->filter(fn($anggota) => $anggota->status_keanggotaan)->count();
+        $memberInGym = Anggota::whereHas('kehadirans', fn($q) => $q->where('status', 'in'))->count();
 
-        // Member aktif -> cek accessor StatusKeanggotaan
-        $memberAktif = Anggota::all()->filter(function ($anggota) {
-            return $anggota->status_keanggotaan; // true kalau aktif
-        })->count();
-
-        // Member In Gym (misalnya kalau lagi ada absensi dengan status "checkin")
-        // Asumsi ada relasi kehadiran dan kolom "status" di tabel kehadirans
-        $memberInGym = Anggota::whereHas('kehadirans', function($q){
-            $q->where('status', 'in'); 
-        })->count();
-
-
-        // Ambil semua pembayaran dari kedua tabel
-        $membershipPayments = PembayaranMembership::select('tgl_bayar', 'jumlah_bayar')
-            ->get();
-
-        $trainerPayments = PembayaranMemberTrainer::select('tgl_bayar', 'jumlah_bayar')
-            ->get();
-
-        // Satukan keduanya
+        // Semua pembayaran
+        $membershipPayments = PembayaranMembership::select('tgl_bayar', 'jumlah_bayar')->get();
+        $trainerPayments = PembayaranMemberTrainer::select('tgl_bayar', 'jumlah_bayar')->get();
         $allPayments = $membershipPayments->concat($trainerPayments);
 
-        // Hitung total revenue
         $totalRevenue = $allPayments->sum('jumlah_bayar');
 
-        // Hitung per bulan (untuk line chart)
+        // Revenue per bulan (Monthly)
         $monthlyRevenue = $allPayments
-            ->groupBy(function ($item) {
-                return date('M', strtotime($item->tgl_bayar)); // Jan, Feb, dst
-            })
-            ->map(function ($row) {
-                return $row->sum('jumlah_bayar');
-            });
-
-        // Pastikan 12 bulan ada meskipun 0
+            ->groupBy(fn($item) => date('M', strtotime($item->tgl_bayar)))
+            ->map(fn($row) => $row->sum('jumlah_bayar'));
         $months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-        $monthlyData = [];
-        foreach ($months as $m) {
-            $monthlyData[] = $monthlyRevenue[$m] ?? 0;
-        }
+        $monthlyData = array_map(fn($m) => $monthlyRevenue[$m] ?? 0, $months);
 
-        // Hitung harian (untuk bar chart weekly)
+        // Revenue per hari (Weekly)
         $weeklyRevenue = $allPayments
-            ->groupBy(function ($item) {
-                return date('D', strtotime($item->tgl_bayar)); // Sun, Mon, dst
-            })
-            ->map(function ($row) {
-                return $row->sum('jumlah_bayar');
-            });
-
+            ->groupBy(fn($item) => date('D', strtotime($item->tgl_bayar)))
+            ->map(fn($row) => $row->sum('jumlah_bayar'));
         $days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-        $weeklyData = [];
-        foreach ($days as $d) {
-            $weeklyData[] = $weeklyRevenue[$d] ?? 0;
-        }
-
-        // Hitung untuk Donut chart: Active/New/Total (contoh dummy)
-        $donutData = [
-            'active' => 500,
-            'new'    => 200,
-            'total'  => $totalRevenue,
-        ];
+        $weeklyData = array_map(fn($d) => $weeklyRevenue[$d] ?? 0, $days);
 
         return view('pages.dashboard.index', compact(
             'totalRevenue',
             'monthlyData',
             'weeklyData',
-            'donutData',
             'totalMember', 
             'memberAktif', 
-            'memberInGym'
+            'memberInGym',
+            'kehadiranmembers',
+            'memberInGymToday'
         ));
     }
-
 }

@@ -105,6 +105,9 @@
                     <li>
                         <a class="sidebar-menu-text" href="{{ route('kasir.index') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i>POS</a>
                     </li>
+                    <li>
+                        <a class="sidebar-menu-text" href="{{ route('kasir.riwayat') }}"><i class="ri-circle-fill circle-icon text-warning-600 w-auto"></i> Penjualan</a>
+                    </li>
                 </ul>
             </li>   
             <li class="dropdown">
@@ -123,13 +126,6 @@
             </li>   
 
             <li class="sidebar-menu-group-title">Application</li>
-
-            <li>
-                <a href="{{ route('pageError') }}">
-                    <iconify-icon icon="streamline:straight-face" class="menu-icon"></iconify-icon>
-                    <span>404</span>
-                </a>
-            </li>
 
             <li class="dropdown">
                 <a href="javascript:void(0)">

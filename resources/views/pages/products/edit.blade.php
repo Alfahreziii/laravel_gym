@@ -81,15 +81,8 @@
                             </select>
                         </div>
 
-                        {{-- Stok --}}
-                        <div class="col-span-12 md:col-span-6">
-                            <label class="form-label">Stok</label>
-                            <input type="number" name="quantity" class="form-control"
-                                   value="{{ old('quantity', $product->quantity) }}" required>
-                        </div>
-
                         {{-- Kategori Produk --}}
-                        <div class="col-span-12 md:col-span-6">
+                        <div class="col-span-12">
                             <label class="form-label">Kategori Produk</label>
                             <select name="kategori_product_id" class="form-control" required>
                                 <option value="">-- Pilih Kategori --</option>

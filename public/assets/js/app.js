@@ -1,4 +1,3 @@
-
 'use strict';
 
 // sidebar submenu collapsible js
@@ -51,7 +50,7 @@ if(sidebarColseBtn){
   });
 }
 
-//to keep the current page active
+// to keep the current page active
 document.addEventListener("DOMContentLoaded", function () {
   var nk = window.location.href;
   var links = document.querySelectorAll("ul#sidebar-menu a");
@@ -74,57 +73,14 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
+// ====== Force light mode ======
+document.documentElement.classList.remove('dark');
+localStorage.setItem('color-theme', 'light');
 
-
-
-// On page load or when changing themes, best to add inline in `head` to avoid FOUC
-if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-  document.documentElement.classList.add('dark');
-} else {
-  document.documentElement.classList.remove('dark')
-}
-
-// light dark version js
 var themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
 var themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
-
-// Change the icons inside the button based on previous settings
-if(themeToggleDarkIcon || themeToggleLightIcon){
-    if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      themeToggleLightIcon.classList.remove('hidden');
-  } else {
-      themeToggleDarkIcon.classList.remove('hidden');
-  }
-}
-
 var themeToggleBtn = document.getElementById('theme-toggle');
 
-if(themeToggleDarkIcon || themeToggleLightIcon || themeToggleBtn){
-  themeToggleBtn.addEventListener('click', function() {
-
-    // toggle icons inside button
-    themeToggleDarkIcon.classList.toggle('hidden');
-    themeToggleLightIcon.classList.toggle('hidden');
-
-    // if set via local storage previously
-    if (localStorage.getItem('color-theme')) {
-        if (localStorage.getItem('color-theme') === 'light') {
-            document.documentElement.classList.add('dark');
-            localStorage.setItem('color-theme', 'dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-            localStorage.setItem('color-theme', 'light');
-        }
-
-    // if NOT set via local storage previously
-    } else {
-        if (document.documentElement.classList.contains('dark')) {
-            document.documentElement.classList.remove('dark');
-            localStorage.setItem('color-theme', 'light');
-        } else {
-            document.documentElement.classList.add('dark');
-            localStorage.setItem('color-theme', 'dark');
-        }
-    }
-});
-}
+if(themeToggleDarkIcon) themeToggleDarkIcon.classList.add('hidden');
+if(themeToggleLightIcon) themeToggleLightIcon.classList.remove('hidden');
+if(themeToggleBtn) themeToggleBtn.style.display = 'none';

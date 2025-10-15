@@ -86,6 +86,7 @@ Route::middleware('auth', 'verified')->group(function () {
     });
     Route::controller(KasirController::class)->group(function () {
         Route::get('/kasir', 'index')->name('kasir.index');
+        Route::get('/riwayat-transaksi-kasir', 'riwayat')->name('kasir.riwayat');
         Route::post('/kasir/bayar', 'bayar')->name('kasirbayar');
         Route::post('/kasir/hold', 'hold')->name('kasir.hold');
         Route::get('/held-transactions', 'getHeldTransactions')->name('getHeldTransactions');
@@ -181,7 +182,7 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::controller(HomeController::class)->group(function () {
         Route::get('page-error','pageError')->name('pageError');
     });
-    
+
     // Users
     Route::prefix('users')->group(function () {
         Route::controller(UsersController::class)->group(function () {
@@ -193,6 +194,9 @@ Route::middleware('auth', 'verified')->group(function () {
     });
 });
 
+Route::fallback(function () {
+    return redirect()->route('pageError');
+});
 
 
 require __DIR__.'/auth.php';

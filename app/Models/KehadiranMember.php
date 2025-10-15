@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class KehadiranMember extends Model
 {
-    protected $fillable = ['rfid', 'status'];
+    protected $fillable = ['rfid', 'status', 'foto'];
 
     public function anggota()
     {

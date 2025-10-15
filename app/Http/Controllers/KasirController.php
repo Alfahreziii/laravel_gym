@@ -7,9 +7,19 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
+use App\Models\ProductQuantityLog;
 
 class KasirController extends Controller
 {
+    public function riwayat()
+    {
+        $transactions = Transaction::with('items')
+            ->where('status', 'completed')
+            ->latest()
+            ->get();
+        return view('pages.kasir.riwayat', compact('transactions'));
+    }
+
     public function index()
     {
         $products = Product::with('kategori')->get();
@@ -27,67 +37,46 @@ class KasirController extends Controller
         $metode_pembayaran = $request->input('metode_pembayaran');
         $dibayarkan = floatval($request->input('dibayarkan', 0));
         $kembalian = floatval($request->input('kembalian', 0));
-        $transaction_id = $request->input('transaction_id'); // dari data hold
+        $transaction_id = $request->input('transaction_id');
 
         if (empty($cart)) {
             return response()->json(['success' => false, 'message' => 'Cart kosong.'], 400);
         }
 
-        // Hitung total
         $total = collect($cart)->sum(fn($item) => $item['qty'] * $item['price']);
         $totalDiskon = $diskon_barang + $diskon;
         $totalTagihan = max($total - $totalDiskon, 0);
 
-        // 🟢 Jika ada transaction_id (dari hold), hapus dan buat baru
         if ($transaction_id) {
             $transaction = Transaction::find($transaction_id);
-
             if ($transaction) {
                 $transaction->items()->delete();
                 $transaction->delete();
             }
-
-            $transactionCode = 'TRX-' . strtoupper(Str::random(6));
-
-            $transaction = Transaction::create([
-                'transaction_code' => $transactionCode,
-                'total_amount' => $totalTagihan,
-                'harga_sebelum_diskon' => $total,
-                'diskon' => $diskon,
-                'diskon_barang' => $diskon_barang,
-                'status' => 'completed',
-                'dibayarkan' => $dibayarkan,
-                'kembalian' => $kembalian,
-                'metode_pembayaran' => $metode_pembayaran,
-            ]);
-        } else {
-            // 🟢 Jika belum pernah di-hold, buat transaksi baru
-            $transactionCode = 'TRX-' . strtoupper(Str::random(6));
-
-            $transaction = Transaction::create([
-                'transaction_code' => $transactionCode,
-                'total_amount' => $totalTagihan,
-                'harga_sebelum_diskon' => $total,
-                'diskon' => $diskon,
-                'diskon_barang' => $diskon_barang,
-                'status' => 'completed',
-                'dibayarkan' => $dibayarkan,
-                'kembalian' => $kembalian,
-                'metode_pembayaran' => $metode_pembayaran,
-            ]);
         }
 
-        // Simpan ulang item transaksi baru
+        $transactionCode = 'TRX-' . strtoupper(Str::random(6));
+        $transaction = Transaction::create([
+            'transaction_code' => $transactionCode,
+            'total_amount' => $totalTagihan,
+            'harga_sebelum_diskon' => $total,
+            'diskon' => $diskon,
+            'diskon_barang' => $diskon_barang,
+            'status' => 'completed',
+            'dibayarkan' => $dibayarkan,
+            'kembalian' => $kembalian,
+            'metode_pembayaran' => $metode_pembayaran,
+        ]);
+
         foreach ($cart as $item) {
             $discount = 0;
             if (!empty($item['discount']) && $item['discount'] > 0) {
-                if (($item['discount_type'] ?? '') === 'percent') {
-                    $discount = ($item['price'] * $item['discount'] / 100);
-                } else {
-                    $discount = $item['discount'];
-                }
+                $discount = ($item['discount_type'] ?? '') === 'percent'
+                    ? ($item['price'] * $item['discount'] / 100)
+                    : $item['discount'];
             }
 
+            // 🟢 Simpan item transaksi
             TransactionItem::create([
                 'transaction_id' => $transaction->id,
                 'image' => $item['image'] ?? null,
@@ -98,14 +87,36 @@ class KasirController extends Controller
                 'kategori' => $item['kategori']['name'] ?? null,
                 'diskon' => $discount,
             ]);
+
+            // 🟠 Kurangi stok produk
+            $product = Product::find($item['id']);
+            if ($product) {
+                $newQuantity = $product->quantity - $item['qty'];
+
+                // Cegah stok minus
+                if ($newQuantity < 0) $newQuantity = 0;
+
+                // Simpan log stok keluar
+                ProductQuantityLog::create([
+                    'product_id' => $product->id,
+                    'type' => 'out',
+                    'quantity' => $item['qty'],
+                    'current_quantity' => $newQuantity,
+                    'description' => 'Transaksi ' . $transactionCode,
+                ]);
+
+                // Update stok produk
+                $product->update(['quantity' => $newQuantity]);
+            }
         }
 
         return response()->json([
             'success' => true,
-            'message' => $transaction_id ? 'Transaksi hold dihapus dan dibuat baru (completed).' : 'Transaksi baru berhasil dibayar.',
+            'message' => 'Transaksi berhasil dan stok produk diperbarui.',
             'transaction_id' => $transaction->id,
         ]);
     }
+
 
     /**
      * Simpan transaksi dengan status 'hold'
