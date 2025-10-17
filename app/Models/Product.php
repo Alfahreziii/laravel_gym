@@ -20,6 +20,8 @@ class Product extends Model
         'discount',
         'discount_type',
         'quantity',
+        'reorder',
+        'hpp',
         'is_active',
         'kategori_product_id',
     ];

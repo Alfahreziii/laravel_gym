@@ -81,6 +81,20 @@
                             </select>
                         </div>
 
+                        {{-- HPP --}}
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="form-label">HPP (Rp)</label>
+                            <input type="number" name="hpp" class="form-control"
+                                   value="{{ old('hpp', $product->hpp) }}" required>
+                        </div>
+
+                        {{-- Reorder --}}
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="form-label">Reorder</label>
+                            <input type="number" name="reorder" class="form-control"
+                                   value="{{ old('reorder', $product->reorder) }}" required>
+                        </div>
+
                         {{-- Kategori Produk --}}
                         <div class="col-span-12">
                             <label class="form-label">Kategori Produk</label>

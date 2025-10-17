@@ -164,7 +164,7 @@
                         <div class="col-span-12 mt-4">
                             <div class="form-group flex items-center justify-end gap-2">
                                 <button type="submit" class="btn btn-primary-600">Update Trainer</button>
-                                <a href="{{ route('trainer.index') }}" class="text-danger-600 border border-danger-600 rounded-lg px-6 py-3">Batal</a>
+                                <a href="{{ route('trainer.index') }}" class="text-danger-600 border border-danger-600 rounded-lg px-6 py-3">Kembali</a>
                             </div>
                         </div>
 

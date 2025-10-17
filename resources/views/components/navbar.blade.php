@@ -17,15 +17,44 @@
         </div>
         <div class="col-auto">
             <div class="flex flex-wrap items-center gap-3">
-                <button type="button" id="theme-toggle" class="w-10 h-10 border border-neutral-200 rounded-full flex justify-center items-center">
-                    <span id="theme-toggle-dark-icon" class="hidden">
-                        <i class="ri-sun-line"></i>
-                    </span>
-                    <span id="theme-toggle-light-icon" class="hidden">
-                        <i class="ri-moon-line"></i>
-                    </span>
+                <!-- Notification Start  -->
+                <button data-dropdown-toggle="dropdownNotification" class="has-indicator relative w-10 h-10 flex justify-center items-center" type="button">
+                    <iconify-icon icon="iconoir:bell" class="text-neutral-900 text-xl"></iconify-icon>
+                    @if($lowStockProducts->count() > 0)
+                        <span class="indicator bg-danger-600 border-2 border-white dark:border-neutral-700 absolute rounded-full w-4 h-4 top-0 right-0 text-white text-xs">{{ $lowStockProducts->count() }}</span>
+                    @else
+                        <span class="indicator hidden bg-danger-600 border-2 border-white dark:border-neutral-700 absolute rounded-full w-4 h-4 top-0 right-0 text-white text-xs">{{ $lowStockProducts->count() }}</span>
+                    @endif    
                 </button>
-
+                <div id="dropdownNotification" class="z-10 hidden bg-white dark:bg-neutral-700 rounded-2xl overflow-hidden shadow-lg max-w-[394px] w-full">
+                    <div class="scroll-sm !border-t-0">
+                        <div class="max-h-[400px] overflow-y-auto">
+                            @forelse($lowStockProducts as $product)
+                                <a href="javascript:void(0)" class="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-600 justify-between gap-1">
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex-shrink-0 relative w-11 h-11 bg-warning-100 text-warning-600 flex justify-center items-center rounded-full">
+                                            <iconify-icon icon="mdi:alert-outline" class="text-2xl"></iconify-icon>
+                                        </div>
+                                        <div>
+                                            <h6 class="text-sm fw-semibold mb-1">{{ $product->name }}</h6>
+                                            <p class="mb-0 text-sm line-clamp-1">
+                                                Stok: {{ $product->quantity }} &nbsp;|&nbsp; Reorder: {{ $product->reorder }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="shrink-0">
+                                        <span class="text-sm text-neutral-500">Stok menipis</span>
+                                    </div>
+                                </a>
+                            @empty
+                                <div class="text-center py-3 text-sm text-neutral-500">
+                                    Semua stok aman ✅
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+                <!-- Notification End  -->
 
                 <button data-dropdown-toggle="dropdownProfile" id="profileToggle"
                     class="flex justify-center items-center rounded-full gap-1" type="button">
@@ -71,46 +100,67 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    // ====== PROFILE DROPDOWN ======
     const profileToggle = document.getElementById('profileToggle');
-    const dropdown = document.getElementById('dropdownProfile');
-    const chevron = document.getElementById('chevronIcon');
+    const profileDropdown = document.getElementById('dropdownProfile');
+    const profileChevron = profileToggle?.querySelector('#chevronIcon');
 
-    if (!profileToggle || !dropdown || !chevron) return;
+    // ====== NOTIF DROPDOWN ======
+    const notifToggle = document.getElementById('notifToggle');
+    const notifDropdown = document.getElementById('dropdownNotif');
+    const notifChevron = notifToggle?.querySelector('#chevronIcon');
 
-    // pastikan icon punya animasi
-    chevron.classList.add('transition-rotate');
+    function toggleDropdown(toggleBtn, dropdown, chevron) {
+        if (!toggleBtn || !dropdown || !chevron) return;
 
-    // Ketika tombol profile diklik: tunggu sebentar lalu sinkronkan icon
-    profileToggle.addEventListener('click', function (e) {
-        // beri waktu ke script dropdown (jika ada) untuk toggle class hidden
-        setTimeout(() => {
-            if (dropdown.classList.contains('hidden')) {
-                chevron.classList.remove('rotate-180');
-            } else {
+        toggleBtn.addEventListener('click', function (e) {
+            e.stopPropagation(); // cegah klik bubble ke document
+            const isHidden = dropdown.classList.contains('hidden');
+
+            // Tutup semua dropdown lain dulu
+            closeAllDropdowns();
+
+            // Toggle dropdown ini
+            if (isHidden) {
+                dropdown.classList.remove('hidden');
                 chevron.classList.add('rotate-180');
+            } else {
+                dropdown.classList.add('hidden');
+                chevron.classList.remove('rotate-180');
             }
-        }, 0);
-    });
+        });
+    }
 
-    // Klik di luar -> pastikan dropdown ditutup dan chevron kembali
-    document.addEventListener('click', function (e) {
-        if (!dropdown.contains(e.target) && !profileToggle.contains(e.target)) {
-            // jika dropdown masih terbuka, tutup & reset icon
-            if (!dropdown.classList.contains('hidden')) {
-                dropdown.classList.add('hidden'); // aman jika library sudah menutupnya
+    function closeAllDropdowns() {
+        [profileDropdown, notifDropdown].forEach((d, i) => {
+            if (d && !d.classList.contains('hidden')) {
+                d.classList.add('hidden');
+                const chevron = (i === 0) ? profileChevron : notifChevron;
+                chevron?.classList.remove('rotate-180');
             }
-            chevron.classList.remove('rotate-180');
+        });
+    }
+
+    // Klik di luar -> tutup semua dropdown
+    document.addEventListener('click', function (e) {
+        if (
+            !profileDropdown.contains(e.target) && !profileToggle.contains(e.target) &&
+            !notifDropdown.contains(e.target) && !notifToggle.contains(e.target)
+        ) {
+            closeAllDropdowns();
         }
     });
 
-    // Tombol ESC juga menutup dropdown + reset icon
+    // Tekan ESC -> tutup semua dropdown
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' || e.key === 'Esc') {
-            if (!dropdown.classList.contains('hidden')) {
-                dropdown.classList.add('hidden');
-            }
-            chevron.classList.remove('rotate-180');
+            closeAllDropdowns();
         }
     });
+
+    // Inisialisasi
+    toggleDropdown(profileToggle, profileDropdown, profileChevron);
+    toggleDropdown(notifToggle, notifDropdown, notifChevron);
 });
 </script>
+

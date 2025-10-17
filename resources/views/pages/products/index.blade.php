@@ -49,8 +49,10 @@
                             <th>Foto Produk</th>
                             <th>Nama Produk</th>
                             <th>Kategori</th>
+                            <th>HPP</th>
                             <th>Harga</th>
                             <th>Diskon</th>
+                            <th>Reorder</th>
                             <th>Stok</th>
                             <th>Status</th>
                             <th>Aksi</th>
@@ -78,16 +80,20 @@
                                 {{ $product->kategori->name ?? '-' }}
                             </td>
                             <td class="whitespace-nowrap">
+                                Rp {{ number_format($product->hpp, 0, ',', '.') }}
+                            </td>
+                            <td class="whitespace-nowrap">
                                 Rp {{ number_format($product->price, 0, ',', '.') }}
                             </td>
                             <td class="whitespace-nowrap">
                                 @if($product->discount > 0)
-                                    {{ $product->discount }}
                                     {{ $product->discount_type == 'percent' ? '%' : 'Rp' }}
+                                    {{ $product->discount }}
                                 @else
                                     -
                                 @endif
                             </td>
+                            <td class="whitespace-nowrap">{{ $product->reorder }}</td>
                             <td class="whitespace-nowrap">
                                 <button type="button" class="text-primary-600" data-modal-target="edit-quantity-modal-{{ $product->id }}" data-modal-toggle="edit-quantity-modal-{{ $product->id }}">
                                     {{ $product->quantity }}

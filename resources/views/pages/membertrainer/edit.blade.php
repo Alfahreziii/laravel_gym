@@ -1,7 +1,7 @@
 @extends('layout.layout')
 @php
-$title = 'Edit Member Trainer';
-$subTitle = 'Edit Member Trainer';
+$title = 'Detail Member Trainer';
+$subTitle = 'Detail Member Trainer';
 $script='<script src="' . asset('assets/js/data-table.js') . '"></script>';
 @endphp
 
@@ -57,7 +57,7 @@ $script='<script src="' . asset('assets/js/data-table.js') . '"></script>';
     <div class="col-span-12">
         <div class="card border-0">
             <div class="card-header flex items-center justify-between">
-                <h6 class="card-title mb-0 text-lg">Form Edit Member Trainer</h6>
+                <h6 class="card-title mb-0 text-lg">Detail Member Trainer</h6>
                 <a href="{{ route('membertrainer.index') }}" class="text-danger-600 focus:bg-danger-600 hover:bg-danger-700 border border-danger-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-danger-300 font-medium rounded-lg text-base px-6 py-3 text-center inline-flex items-center dark:text-danger-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-danger-800">Kembali</a>
             </div>
             <div class="card-body">
@@ -272,7 +272,7 @@ document.addEventListener("DOMContentLoaded", function() {
     diskonInput.addEventListener('input', hitungTotalBiaya);
     totalDibayarkan.addEventListener('input', hitungStatusPembayaran);
 
-    // Jalankan perhitungan awal saat halaman edit dibuka
+    // Jalankan perhitungan awal saat halaman Detail dibuka
     if (paketSelect.value) {
         let selected = paketSelect.options[paketSelect.selectedIndex];
         biaya = parseInt(selected.dataset.biaya || 0);

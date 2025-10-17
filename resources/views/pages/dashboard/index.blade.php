@@ -63,7 +63,7 @@
             <div class="card h-full w-full rounded-lg border-0">
                 <div class="card-body overflow-x-auto">
                     <div class="flex flex-wrap items-center justify-between">
-                        <h6 class="text-lg mb-0">Sales Statistic</h6>
+                        <h6 class="text-lg mb-0">Membership & Personal Trainer</h6>
                         <select id="chartFilter" class="form-select bg-white form-select-sm w-auto">
                             <option value="monthly" selected>Monthly</option>
                             <option value="weekly">Weekly</option>

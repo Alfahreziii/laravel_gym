@@ -96,6 +96,18 @@
                                 @endforeach
                             </select>
                         </div>
+
+                        {{-- Reorder --}}
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="form-label">Reorder</label>
+                            <input type="number" name="reorder" class="form-control" placeholder="Masukkan jumlah reorder" value="{{ old('reorder') }}" required>
+                        </div>
+
+                        {{-- HPP --}}
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="form-label">HPP</label>
+                            <input type="number" name="hpp" class="form-control" placeholder="Masukkan jumlah hpp" value="{{ old('hpp') }}" required>
+                        </div>
                         
                         {{-- Deskripsi --}}
                         <div class="col-span-12">

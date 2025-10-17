@@ -25,7 +25,15 @@ class DashboardController extends Controller
         $kehadiranmembers = KehadiranMember::with('anggota')->latest()->get();
         $totalMember = Anggota::count();
         $memberAktif = Anggota::all()->filter(fn($anggota) => $anggota->status_keanggotaan)->count();
-        $memberInGym = Anggota::whereHas('kehadirans', fn($q) => $q->where('status', 'in'))->count();
+        $memberInGym = KehadiranMember::with('anggota')
+            ->whereDate('created_at', now()->toDateString())
+            ->latest()
+            ->get()
+            ->groupBy('rfid')
+            ->map(fn($items) => $items->first())
+            ->filter(fn($item) => strtolower($item->status) === 'in')
+            ->count();
+
 
         // Semua pembayaran
         $membershipPayments = PembayaranMembership::select('tgl_bayar', 'jumlah_bayar')->get();

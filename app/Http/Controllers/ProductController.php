@@ -40,9 +40,11 @@ class ProductController extends Controller
                 'description' => 'nullable|string',
                 'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
                 'price' => 'required|numeric|min:0',
+                'hpp' => 'required|numeric|min:0',
                 'discount' => 'nullable|numeric|min:0',
                 'discount_type' => 'nullable|in:percent,nominal',
                 'quantity' => 'integer|min:0',
+                'reorder' => 'integer|min:0',
                 'is_active' => 'boolean',
                 'kategori_product_id' => 'required|exists:kategori_products,id',
             ]);
@@ -96,8 +98,10 @@ class ProductController extends Controller
                 'description' => 'nullable|string',
                 'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
                 'price' => 'required|numeric|min:0',
+                'hpp' => 'required|numeric|min:0',
                 'discount' => 'nullable|numeric|min:0',
                 'discount_type' => 'nullable|in:percent,nominal',
+                'reorder' => 'integer|min:0',
                 'is_active' => 'boolean',
                 'kategori_product_id' => 'required|exists:kategori_products,id',
             ]);
