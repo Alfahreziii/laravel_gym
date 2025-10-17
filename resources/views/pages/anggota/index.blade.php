@@ -37,7 +37,8 @@
                                 @if($anggota->photo)
                                     <img src="{{ asset('storage/' . $anggota->photo) }}" 
                                         alt="Photo {{ $anggota->name }}" 
-                                        class="w-10 h-10 rounded-full object-cover">
+                                        class="w-10 h-10 rounded-full object-cover cursor-pointer anggota-photo"
+                                        data-photo="{{ asset('storage/' . $anggota->photo) }}">
                                 @else
                                     <span class="text-gray-400 italic">No photo</span>
                                 @endif
@@ -78,29 +79,45 @@
 @section('scripts')
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+    // Script untuk konfirmasi hapus
     const deleteForms = document.querySelectorAll('.delete-form');
-
     deleteForms.forEach(form => {
         const btn = form.querySelector('.delete-btn');
         btn.addEventListener('click', function (e) {
             e.preventDefault();
-
             Swal.fire({
                 title: 'Apakah kamu yakin?',
                 text: "Data anggota yang dihapus tidak bisa dikembalikan!",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#e3342f',  // merah
-                cancelButtonColor: '#6c757d',   // abu
+                confirmButtonColor: '#e3342f',
+                cancelButtonColor: '#6c757d',
                 confirmButtonText: 'Ya, hapus!',
                 cancelButtonText: 'Batal'
             }).then((result) => {
-                            if (result.isConfirmed) {
-                                form.submit();
-                            }
-                        });
-                    });
-                });
+                if (result.isConfirmed) {
+                    form.submit();
+                }
             });
+        });
+    });
+
+    // ✅ Script untuk menampilkan pop-up foto anggota
+    const photos = document.querySelectorAll('.anggota-photo');
+    photos.forEach(photo => {
+        photo.addEventListener('click', function () {
+            const imageUrl = this.getAttribute('data-photo');
+            Swal.fire({
+                imageUrl: imageUrl,
+                imageAlt: 'Foto Anggota',
+                showConfirmButton: false,
+                background: 'transparent',
+                width: 'auto',
+                padding: '0',
+                showCloseButton: true,
+            });
+        });
+    });
+});
 </script>
 @endsection
