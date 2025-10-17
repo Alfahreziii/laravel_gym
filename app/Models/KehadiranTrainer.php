@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class KehadiranTrainer extends Model
 {
-    protected $fillable = ['rfid', 'status'];
+    protected $fillable = ['rfid', 'status', 'foto'];
 
     public function trainer()
     {

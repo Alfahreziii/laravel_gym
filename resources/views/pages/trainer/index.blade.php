@@ -48,6 +48,7 @@
                     <thead>
                         <tr>
                             <th scope="col">S.L</th>
+                            <th scope="col">RFID</th>
                             <th scope="col">Foto</th>
                             <th scope="col">Nama</th>
                             <th scope="col">No Telp</th>
@@ -62,6 +63,7 @@
                         @foreach($trainers as $index => $trainer)
                         <tr>
                             <td class="whitespace-nowrap">{{ $index + 1 }}</td>
+                            <td class="whitespace-nowrap">{{ $trainer->rfid }}</td>
                             <td class="whitespace-nowrap">
                                 <img src="{{ asset('storage/'.$trainer->photo) }}" alt="Foto" class="w-12 h-12 rounded-full">
                             </td>

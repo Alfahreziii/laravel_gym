@@ -22,7 +22,7 @@ class KehadiranTrainerController extends Controller
     {
         $request->validate([
             'rfid'   => 'required|string',
-            'status' => 'required|string|max:20',
+            'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         // cek apakah kartu ada di tabel trainers
@@ -34,10 +34,27 @@ class KehadiranTrainerController extends Controller
                 ->with('danger', 'Kartu dengan RFID' . e($request->rfid) . ' tidak ditemukan!');
         }
 
+        $today = now()->toDateString();
+
+        $lastAttendance = KehadiranTrainer::where('rfid', $request->rfid)
+            ->whereDate('created_at', $today)
+            ->orderByDesc('created_at')
+            ->first();
+
+        // Tentukan status otomatis (in/out)
+        $status = (!$lastAttendance || $lastAttendance->status === 'out') ? 'in' : 'out';
+
+        // Upload foto jika ada
+        $fotoPath = null;
+        if ($request->hasFile('foto')) {
+            $fotoPath = $request->file('foto')->store('kehadiran_foto', 'public');
+        }
+
         try {
             KehadiranTrainer::create([
                 'rfid'   => $request->rfid,
-                'status' => $request->status,
+                'status' => $status,
+                'foto'   => $fotoPath,
             ]);
 
             return redirect()->route('kehadirantrainer.index')
@@ -55,33 +72,14 @@ class KehadiranTrainerController extends Controller
     public function destroy(KehadiranTrainer $kehadirantrainer)
     {
         try {
+            if ($kehadirantrainer->foto && Storage::disk('public')->exists($kehadirantrainer->foto)) {
+                Storage::disk('public')->delete($kehadirantrainer->foto);
+            }
+
             $kehadirantrainer->delete();
             return redirect()->route('kehadirantrainer.index')->with('success', 'Data kehadiran berhasil dihapus.');
         } catch (\Exception $e) {
             return redirect()->route('kehadirantrainer.index')->with('danger', 'Gagal menghapus data kehadiran: ' . $e->getMessage());
         }
     }
-    // public function store(Request $request)
-    // {
-    //     $rfid = $request->input('rfid'); // hasil dari tap kartu
-
-    //     // cek apakah kartu ada di tabel anggota
-    //     $anggota = Anggota::where('id_kartu', $rfid)->first();
-
-    //     if (!$anggota) {
-    //         return response()->json(['error' => 'Kartu tidak terdaftar'], 404);
-    //     }
-
-    //     // simpan kehadiran
-    //     $kehadiran = Kehadiran::create([
-    //         'rfid'   => $rfid,
-    //         'status' => 'Hadir'
-    //     ]);
-
-    //     return response()->json([
-    //         'success' => true,
-    //         'message' => 'Absensi berhasil dicatat',
-    //         'data'    => $kehadiran
-    //     ]);
-    // }
 }
