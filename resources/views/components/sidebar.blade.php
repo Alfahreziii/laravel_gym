@@ -11,19 +11,27 @@
     </div>
     <div class="sidebar-menu-area">
         <ul class="sidebar-menu" id="sidebar-menu">
+            @role('admin')
             <li>
                 <a href="{{ route('index') }}">
                     <iconify-icon icon="solar:home-smile-angle-outline" class="menu-icon"></iconify-icon>
                     <span>Dashboard</span>
                 </a>
             </li>  
+            @endrole
+
             <li class="sidebar-menu-group-title">Membership / GYM</li>
+
+            @role('admin')
             <li>
                 <a href="{{ route('anggota.index') }}">
                     <iconify-icon icon="flowbite:users-group-outline" class="menu-icon"></iconify-icon>
                     <span>Member</span>
                 </a>
             </li>   
+            @endrole
+            
+            @role('admin')
             <li class="dropdown">
                 <a href="javascript:void(0)">
                     <iconify-icon icon="fe:vector" class="menu-icon"></iconify-icon>
@@ -41,6 +49,9 @@
                     </li>
                 </ul>
             </li>    
+            @endrole
+
+            @role('admin')
             <li class="dropdown">
                 <a href="javascript:void(0)">
                     <iconify-icon icon="solar:document-text-outline" class="menu-icon"></iconify-icon>
@@ -61,12 +72,18 @@
                     </li>
                 </ul>
             </li>
+            @endrole
+            
+            @role('admin')
             <li>
                 <a href="{{ route('alat_gym.index') }}">
                     <iconify-icon icon="simple-line-icons:vector" class="menu-icon"></iconify-icon>
                     <span>Alat Gym</span>
                 </a>
             </li>  
+            @endrole
+
+            @hasanyrole('guest|admin')
             <li class="dropdown">
                 <a href="javascript:void(0)">
                     <iconify-icon icon="solar:document-text-outline" class="menu-icon"></iconify-icon>
@@ -81,6 +98,9 @@
                     </li>
                 </ul>
             </li>   
+            @endhasanyrole
+
+            @role('admin')
             <li class="dropdown">
                 <a href="javascript:void(0)">
                     <iconify-icon icon="hugeicons:invoice-03" class="menu-icon"></iconify-icon>
@@ -95,6 +115,9 @@
                     </li>
                 </ul>
             </li>   
+            @endrole
+
+            @role('admin')
             <li class="sidebar-menu-group-title">POS</li>
             <li class="dropdown">
                 <a href="javascript:void(0)">
@@ -110,6 +133,9 @@
                     </li>
                 </ul>
             </li>   
+            @endrole
+
+            @role('admin')
             <li class="dropdown">
                 <a href="javascript:void(0)">
                     <i class="ri-inbox-2-line menu-icon"></i>
@@ -124,9 +150,11 @@
                     </li>
                 </ul>
             </li>   
-
-            <li class="sidebar-menu-group-title">Application</li>
-
+            @endrole
+            
+            @role('admin')
+            <li class="sidebar-menu-group-title">Parameter</li>
+            
             <li class="dropdown">
                 <a href="javascript:void(0)">
                     <iconify-icon icon="flowbite:users-group-outline" class="menu-icon"></iconify-icon>
@@ -136,18 +164,11 @@
                     <li>
                         <a href="{{ route('usersList') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Users List</a>
                     </li>
-                    <li>
-                        <a href="{{ route('usersGrid') }}"><i class="ri-circle-fill circle-icon text-warning-600 w-auto"></i> Users Grid</a>
-                    </li>
-                    <li>
-                        <a href="{{ route('addUser') }}"><i class="ri-circle-fill circle-icon text-info-600 w-auto"></i> Add User</a>
-                    </li>
-                    <li>
-                        <a href="{{ route('viewProfile') }}"><i class="ri-circle-fill circle-icon text-danger-600 w-auto"></i> View Profile</a>
-                    </li>
                 </ul>
             </li>
-
+            @endrole
+            
+            @role('admin')
             <li class="dropdown">
                 <a href="javascript:void(0)">
                     <iconify-icon icon="icon-park-outline:setting-two" class="menu-icon"></iconify-icon>
@@ -159,6 +180,7 @@
                     </li>
                 </ul>
             </li>
+            @endrole
         </ul>
     </div>
 </aside>

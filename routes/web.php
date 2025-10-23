@@ -30,8 +30,26 @@ use App\Http\Controllers\PembayaranTrainerController;
 use App\Http\Controllers\KasirController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\KategoriProductController;
+use App\Http\Middleware\RoleMiddleware;
+use App\Http\Middleware\LastActivityMiddleware;
 
-Route::middleware('auth', 'verified')->group(function () {
+Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddleware::class . ':guest|admin'])->group(function () {
+    Route::controller(KehadiranMemberController::class)->group(function () {
+        Route::get('/kehadiran-member', 'index')->name('kehadiranmember.index');
+        Route::get('/kehadiran-member/create', 'create')->name('kehadiranmember.create');
+        Route::post('/kehadiran-member', 'store')->name('kehadiranmember.store');
+        Route::delete('/kehadiran-member/{kehadiranmember}', 'destroy')->name('kehadiranmember.destroy');
+    });
+
+    Route::controller(KehadiranTrainerController::class)->group(function () {
+        Route::get('/kehadiran-trainer', 'index')->name('kehadirantrainer.index');
+        Route::get('/kehadiran-trainer/create', 'create')->name('kehadirantrainer.create');
+        Route::post('/kehadiran-trainer', 'store')->name('kehadirantrainer.store');
+        Route::delete('/kehadiran-trainer/{kehadirantrainer}', 'destroy')->name('kehadirantrainer.destroy');
+    });
+});
+
+Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddleware::class . ':admin'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -49,7 +67,6 @@ Route::middleware('auth', 'verified')->group(function () {
         Route::delete('/products/{product}', 'destroy')->name('products.destroy');
         Route::post('/products/{product}/adjust','adjustQuantity')->name('products.adjust');
         Route::get('/products/{product}/logs','logs')->name('products.logs');
-
     });
 
     // Route untuk Kategori Produk
@@ -160,27 +177,8 @@ Route::middleware('auth', 'verified')->group(function () {
         Route::delete('/alat-gym/{alatgym}', 'destroy')->name('alat_gym.destroy');
     });
 
-    Route::controller(KehadiranMemberController::class)->group(function () {
-        Route::get('/kehadiran-member', 'index')->name('kehadiranmember.index');
-        Route::get('/kehadiran-member/create', 'create')->name('kehadiranmember.create');
-        Route::post('/kehadiran-member', 'store')->name('kehadiranmember.store');
-        Route::delete('/kehadiran-member/{kehadiranmember}', 'destroy')->name('kehadiranmember.destroy');
-    });
-
-    Route::controller(KehadiranTrainerController::class)->group(function () {
-        Route::get('/kehadiran-trainer', 'index')->name('kehadirantrainer.index');
-        Route::get('/kehadiran-trainer/create', 'create')->name('kehadirantrainer.create');
-        Route::post('/kehadiran-trainer', 'store')->name('kehadirantrainer.store');
-        Route::delete('/kehadiran-trainer/{kehadirantrainer}', 'destroy')->name('kehadirantrainer.destroy');
-    });
-    
-
     Route::controller(DashboardController::class)->group(function () {
         Route::get('/dashboard', 'index')->name('index');
-    });
-
-    Route::controller(HomeController::class)->group(function () {
-        Route::get('page-error','pageError')->name('pageError');
     });
 
     // Users
@@ -190,10 +188,17 @@ Route::middleware('auth', 'verified')->group(function () {
             Route::get('/users-grid', 'usersGrid')->name('usersGrid');
             Route::get('/users-list', 'usersList')->name('usersList');
             Route::get('/view-profile', 'viewProfile')->name('viewProfile');
+            Route::put('/role/update/{id}', 'update')->name('role.update');
+            // Optional: Bulk update
+            Route::post('/role/bulk-update', 'bulkUpdate')->name('role.bulk-update');
+
         });
     });
 });
 
+Route::controller(HomeController::class)->group(function () {
+    Route::get('page-error','pageError')->name('pageError');
+});
 Route::fallback(function () {
     return redirect()->route('pageError');
 });

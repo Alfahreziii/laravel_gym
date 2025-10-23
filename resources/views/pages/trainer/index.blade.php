@@ -65,7 +65,14 @@
                             <td class="whitespace-nowrap">{{ $index + 1 }}</td>
                             <td class="whitespace-nowrap">{{ $trainer->rfid }}</td>
                             <td class="whitespace-nowrap">
-                                <img src="{{ asset('storage/'.$trainer->photo) }}" alt="Foto" class="w-12 h-12 rounded-full">
+                                @if($trainer->photo)
+                                    <img src="{{ asset('storage/' . $trainer->photo) }}" 
+                                        alt="Photo {{ $trainer->name }}" 
+                                        class="w-10 h-10 rounded-full object-cover cursor-pointer trainer-photo"
+                                        data-photo="{{ asset('storage/' . $trainer->photo) }}">
+                                @else
+                                    <span class="text-gray-400 italic">No photo</span>
+                                @endif
                             </td>
                             <td class="whitespace-nowrap">{{ $trainer->name }}</td>
                             <td class="whitespace-nowrap">{{ $trainer->no_telp }}</td>
@@ -142,6 +149,23 @@ document.addEventListener("DOMContentLoaded", function () {
                 if(alert) {
                     alert.remove();
                 }
+            });
+        });
+
+        // ✅ Script untuk menampilkan pop-up foto anggota
+        const photos = document.querySelectorAll('.trainer-photo');
+        photos.forEach(photo => {
+            photo.addEventListener('click', function () {
+                const imageUrl = this.getAttribute('data-photo');
+                Swal.fire({
+                    imageUrl: imageUrl,
+                    imageAlt: 'Foto Trainer',
+                    showConfirmButton: false,
+                    background: 'transparent',
+                    width: 'auto',
+                    padding: '0',
+                    showCloseButton: true,
+                });
             });
         });
     });

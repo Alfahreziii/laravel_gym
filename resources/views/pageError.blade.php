@@ -10,9 +10,20 @@
             <img src="{{ asset('assets/images/error-img.png') }}" alt="" class="mb-6 mx-auto">
             <h6 class="mb-4">Page not Found</h6>
             <p class="text-secondary-light">Sorry, the page you are looking for doesn't exist </p>
-            <a href="{{ route('index') }}" class="btn btn-primary-600 rounded-lg px-5 pb-[11px] mt-10">Back to Home</a>
+            @php
+                $homeRoute = 'login';
+                if(auth()->check()){
+                    $roles = auth()->user()->getRoleNames();
+                    if($roles->contains('guest')) $homeRoute = route('kehadiranmember.index');
+                    elseif($roles->contains('admin')) $homeRoute = route('dashboard');
+                    elseif($roles->contains('spv')) $homeRoute = route('dashboard');
+                }
+            @endphp
+
+            <a href="{{ $homeRoute }}" class="btn btn-primary-600 rounded-lg px-5 pb-[11px] mt-10">
+                Back to Home
+            </a>
         </div>
     </div>
-
 </body>
 </html>
