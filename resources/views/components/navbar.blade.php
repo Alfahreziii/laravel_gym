@@ -65,7 +65,7 @@
                     <div class="py-3 px-4 rounded-lg bg-primary-50 mb-4 flex items-center justify-between gap-2">
                         <div>
                             <h6 class="text-lg text-neutral-900 font-semibold mb-0">{{ Auth::user()->name }}</h6>
-                            <span class="text-neutral-500">Admin</span>
+                            <span class="text-neutral-500">{{ Auth::user()->getRoleNames()->first() }}</span>
                         </div>
                     </div>
 

@@ -36,10 +36,12 @@
         <div class="card border-0 overflow-hidden">
             <div class="card-header flex items-center justify-between">
                 <h6 class="card-title mb-0 text-lg">Data Produk</h6>
+                @role('admin')
                 <a href="{{ route('products.create') }}" 
                    class="text-primary-600 focus:bg-primary-600 hover:bg-primary-700 border border-primary-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center dark:text-primary-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-primary-800">
                    + Tambah Produk
                 </a>
+                @endrole
             </div>
             <div class="card-body">
                 <table id="selection-table" class="border border-neutral-200 rounded-lg border-separate w-full">
@@ -95,10 +97,14 @@
                             </td>
                             <td class="whitespace-nowrap">{{ $product->reorder }}</td>
                             <td class="whitespace-nowrap">
+                                @role('admin')
                                 <button type="button" class="text-primary-600" data-modal-target="edit-quantity-modal-{{ $product->id }}" data-modal-toggle="edit-quantity-modal-{{ $product->id }}">
                                     {{ $product->quantity }}
                                 </button>
-
+                                @endrole
+                                @role('spv')
+                                {{ $product->quantity }}
+                                @endrole
                             </td>
                             <td class="whitespace-nowrap">
                                 @if($product->is_active)
@@ -108,16 +114,19 @@
                                 @endif
                             </td>
                             <td class="whitespace-nowrap flex gap-2">
+                                @role('admin')
                                 <a href="{{ route('products.edit', $product->id) }}" 
                                    class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
                                     <iconify-icon icon="lucide:edit"></iconify-icon>
                                 </a>
+                                @endrole
 
                                 <a href="{{ route('products.logs', $product->id) }}" 
                                    class="w-8 h-8 bg-warning-100 text-warning-600 rounded-full inline-flex items-center justify-center">
                                     <i class="ri-calendar-schedule-line"></i>
                                 </a>
 
+                                @role('admin')
                                 <form action="{{ route('products.destroy', $product->id) }}" 
                                       method="POST" class="inline-block delete-form">
                                     @csrf
@@ -127,6 +136,7 @@
                                         <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
                                     </button>
                                 </form>
+                                @endrole
                             </td>
                         </tr>
 

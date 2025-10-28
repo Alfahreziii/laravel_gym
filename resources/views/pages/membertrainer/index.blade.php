@@ -34,10 +34,12 @@
         <div class="card border-0 overflow-hidden">
             <div class="card-header flex items-center justify-between">
                 <h6 class="card-title mb-0 text-lg">Data Member Trainer</h6>
+                @role('admin')
                 <a href="{{ route('membertrainer.create') }}" 
                    class="text-primary-600 focus:bg-primary-600 hover:bg-primary-700 border border-primary-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center dark:text-primary-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-primary-800">
                    + Tambah Data
                 </a>
+                @endrole
             </div>
             <div class="card-body">
                 <table id="selection-table" class="border border-neutral-200 rounded-lg border-separate w-full">
@@ -50,7 +52,9 @@
                             <th>Paket</th>
                             <th>Status Pembayaran</th>
                             <th>Total Biaya</th>
+                            @role('admin')
                             <th>Aksi</th>
+                            @endrole
                         </tr>
                     </thead>
                     <tbody>
@@ -69,12 +73,12 @@
                                 @endif
                             </td>
                             <td class="whitespace-nowrap">Rp {{ number_format($item->total_biaya, 0, ',', '.') }}</td>
+                            @role('admin')
                             <td class="whitespace-nowrap flex gap-2">
                                 <a href="{{ route('membertrainer.edit', $item->id) }}" 
                                    class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
                                     <iconify-icon icon="lucide:edit"></iconify-icon>
                                 </a>
-                                <a href="{{ route('membertrainer.edit', $item->id) }}" class="w-8 h-8 bg-primary-50 text-primary-600 rounded-full inline-flex items-center justify-center">
                                 <form action="{{ route('membertrainer.destroy', $item->id) }}" method="POST" class="inline-block delete-form">
                                     @csrf
                                     @method('DELETE')
@@ -84,6 +88,7 @@
                                     </button>
                                 </form>
                             </td>
+                            @endrole
                         </tr>
                         @endforeach
                     </tbody>

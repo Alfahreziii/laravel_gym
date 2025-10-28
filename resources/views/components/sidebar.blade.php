@@ -11,27 +11,27 @@
     </div>
     <div class="sidebar-menu-area">
         <ul class="sidebar-menu" id="sidebar-menu">
-            @role('admin')
+            @hasanyrole('spv|admin')
             <li>
                 <a href="{{ route('index') }}">
                     <iconify-icon icon="solar:home-smile-angle-outline" class="menu-icon"></iconify-icon>
                     <span>Dashboard</span>
                 </a>
             </li>  
-            @endrole
+            @endhasanyrole
 
             <li class="sidebar-menu-group-title">Membership / GYM</li>
 
-            @role('admin')
+            @hasanyrole('spv|admin')
             <li>
                 <a href="{{ route('anggota.index') }}">
                     <iconify-icon icon="flowbite:users-group-outline" class="menu-icon"></iconify-icon>
                     <span>Member</span>
                 </a>
             </li>   
-            @endrole
+            @endhasanyrole
             
-            @role('admin')
+            @hasanyrole('spv|admin')
             <li class="dropdown">
                 <a href="javascript:void(0)">
                     <iconify-icon icon="fe:vector" class="menu-icon"></iconify-icon>
@@ -49,9 +49,9 @@
                     </li>
                 </ul>
             </li>    
-            @endrole
+            @endhasanyrole
 
-            @role('admin')
+            @hasanyrole('spv|admin')
             <li class="dropdown">
                 <a href="javascript:void(0)">
                     <iconify-icon icon="solar:document-text-outline" class="menu-icon"></iconify-icon>
@@ -72,16 +72,16 @@
                     </li>
                 </ul>
             </li>
-            @endrole
+            @endhasanyrole
             
-            @role('admin')
+            @hasanyrole('spv|admin')
             <li>
                 <a href="{{ route('alat_gym.index') }}">
                     <iconify-icon icon="simple-line-icons:vector" class="menu-icon"></iconify-icon>
                     <span>Alat Gym</span>
                 </a>
             </li>  
-            @endrole
+            @endhasanyrole
 
             @hasanyrole('guest|admin')
             <li class="dropdown">
@@ -100,7 +100,7 @@
             </li>   
             @endhasanyrole
 
-            @role('admin')
+            @hasanyrole('spv|admin')
             <li class="dropdown">
                 <a href="javascript:void(0)">
                     <iconify-icon icon="hugeicons:invoice-03" class="menu-icon"></iconify-icon>
@@ -115,9 +115,9 @@
                     </li>
                 </ul>
             </li>   
-            @endrole
+            @endhasanyrole
 
-            @role('admin')
+            @hasanyrole('spv|admin')
             <li class="sidebar-menu-group-title">POS</li>
             <li class="dropdown">
                 <a href="javascript:void(0)">
@@ -133,9 +133,9 @@
                     </li>
                 </ul>
             </li>   
-            @endrole
+            @endhasanyrole
 
-            @role('admin')
+            @hasanyrole('spv|admin')
             <li class="dropdown">
                 <a href="javascript:void(0)">
                     <i class="ri-inbox-2-line menu-icon"></i>
@@ -150,9 +150,9 @@
                     </li>
                 </ul>
             </li>   
-            @endrole
+            @endhasanyrole
             
-            @role('admin')
+            @hasanyrole('spv|admin')
             <li class="sidebar-menu-group-title">Parameter</li>
             
             <li class="dropdown">
@@ -166,21 +166,24 @@
                     </li>
                 </ul>
             </li>
-            @endrole
+            @endhasanyrole
+
+            @hasanyrole('spv|admin')
+            <li class="sidebar-menu-group-title">Neraca Keuangan</li>
             
-            @role('admin')
             <li class="dropdown">
                 <a href="javascript:void(0)">
-                    <iconify-icon icon="icon-park-outline:setting-two" class="menu-icon"></iconify-icon>
-                    <span>Settings</span>
+                    <iconify-icon icon="flowbite:users-group-outline" class="menu-icon"></iconify-icon>
+                    <span>Users</span>
                 </a>
                 <ul class="sidebar-submenu">
                     <li>
-                        <a href="#"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> TEst</a>
+                        <a href="{{ route('neraca.index') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Neraca</a>
                     </li>
                 </ul>
             </li>
-            @endrole
+            @endhasanyrole
+        
         </ul>
     </div>
 </aside>

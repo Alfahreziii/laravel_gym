@@ -12,7 +12,9 @@
         <div class="card border-0 overflow-hidden">
             <div class="card-header flex items-center justify-between">
                 <h6 class="card-title mb-0 text-lg">Anggota Gym</h6>
+                @role('admin')
                 <a href="{{ route('anggota.create') }}" class="text-primary-600 focus:bg-primary-600 hover:bg-primary-700 border border-primary-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center dark:text-primary-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-primary-800">+ Tambah Data</a>
+                @endrole
             </div>
             <div class="card-body">
                 <table id="selection-table" class="border border-neutral-200 rounded-lg border-separate">
@@ -25,7 +27,9 @@
                             <th scope="col">Tanggal Lahir</th>
                             <th scope="col">No. Telp</th>
                             <th scope="col">Status</th>
+                            @role('admin')
                             <th scope="col">Aksi</th>
+                            @endrole
                         </tr>
                     </thead>
                     <tbody>
@@ -53,6 +57,7 @@
                                     <span class="bg-warning-100 text-warning-600 px-6 py-1.5 rounded-full font-medium text-sm">Tidak Aktif</span>
                                 @endif
                             </td>
+                            @role('admin')
                             <td class="whitespace-nowrap">
                                 <a href="{{ route('anggota.edit', $anggota->id) }}" class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
                                     <iconify-icon icon="lucide:edit"></iconify-icon>
@@ -65,6 +70,7 @@
                                     </button>
                                 </form>
                             </td>
+                            @endrole
                         </tr>
                         @endforeach
                     </tbody>

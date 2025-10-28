@@ -93,6 +93,17 @@ class TrainerController extends Controller
         $specialisasis = Specialisasi::all();
         return view('pages.trainer.edit', compact('trainer', 'specialisasis'));
     }
+    
+    /**
+     * Tampilkan detail trainer.
+     */
+    public function show(Trainer $trainer)
+    {
+        // Load relasi specialisasi dan jadwal
+        $trainer->load('specialisasi', 'schedules');
+
+        return view('pages.trainer.show', compact('trainer'));
+    }
 
     /**
      * Update data trainer.

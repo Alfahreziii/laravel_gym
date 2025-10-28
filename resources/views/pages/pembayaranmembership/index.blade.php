@@ -76,13 +76,20 @@
                                     <iconify-icon icon="hugeicons:money-send-square" class="menu-icon"></iconify-icon>
                                 </a>
                                 @else
+                                @role('admin')
                                 <button type="button" data-modal-target="edit-popup-modal-{{ $item->id }}" data-modal-toggle="edit-popup-modal-{{ $item->id }}" 
                                    class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
                                     <iconify-icon icon="hugeicons:invoice-03" class="menu-icon"></iconify-icon>
                                 </button>
+                                @endrole
+                                @role('spv')
+                                -
+                                @endrole
                                 @endif
                             </td>
                         </tr>
+                        
+                        @role('admin')
                         <div id="edit-popup-modal-{{ $item->id }}" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
                             <div class="rounded-2xl bg-white max-w-[800px] w-full">
                                 <div class="py-4 px-6 border-b border-neutral-200 flex items-center justify-between">
@@ -141,6 +148,7 @@
                                 </div>
                             </div>
                         </div>
+                        @endrole
                         @endforeach
                     </tbody>
                 </table>

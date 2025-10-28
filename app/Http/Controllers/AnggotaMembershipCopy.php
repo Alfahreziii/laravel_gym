@@ -33,7 +33,7 @@ class AnggotaMembershipController extends Controller
             'id_anggota'          => 'required|exists:anggotas,id',
             'id_paket_membership' => 'required|exists:paket_memberships,id',
             'tgl_mulai'           => 'required|date',
-            'tgl_selesai'         => 'required|date|after_or_equal:tgl_mulai',
+            'tgl_selesai'         => 'required|date',
             'diskon'              => 'nullable|numeric|min:0',
             'total_biaya'         => 'required|numeric|min:0',
             'tgl_bayar'           => 'required|date',
@@ -52,12 +52,12 @@ class AnggotaMembershipController extends Controller
                 'id_paket_membership' => $request->id_paket_membership,
                 'tgl_mulai'           => $request->tgl_mulai,
                 'tgl_selesai'         => $request->tgl_selesai,
-                'diskon'              => $request->diskon ?? 0,
+                'diskon'              => $request->diskon,
                 'total_biaya'         => $request->total_biaya,
                 'status_pembayaran'   => $request->jumlah_bayar >= $request->total_biaya ? 'Lunas' : 'Belum Lunas',
             ]);
 
-            // 2️⃣ Catat piutang awal
+            // 2️⃣ Catat piutang awal (Debit Piutang, Kredit Pendapatan)
             $this->createPiutangAwalMembership($anggotaMembership);
 
             // 3️⃣ Simpan pembayaran pertama
@@ -68,7 +68,7 @@ class AnggotaMembershipController extends Controller
                 'metode_pembayaran'     => $request->metode_pembayaran,
             ]);
 
-            // 4️⃣ Catat transaksi keuangan pembayaran
+            // 4️⃣ Catat transaksi keuangan pembayaran (Debit Kas, Kredit Piutang)
             $this->createTransaksiKeuanganForPembayaran(
                 $pembayaran, 
                 $anggotaMembership, 
@@ -175,9 +175,8 @@ class AnggotaMembershipController extends Controller
             $sisaTagihan = $anggotaMembership->total_biaya - $totalDibayar;
 
             if ($request->jumlah_bayar > $sisaTagihan) {
-                DB::rollBack();
                 return redirect()->back()
-                    ->with('error', "Jumlah pembayaran (Rp " . number_format($request->jumlah_bayar, 0, ',', '.') . 
+                    ->with('warning', "Jumlah pembayaran (Rp " . number_format($request->jumlah_bayar, 0, ',', '.') . 
                            ") melebihi sisa tagihan (Rp " . number_format($sisaTagihan, 0, ',', '.') . ")");
             }
 
@@ -302,9 +301,8 @@ class AnggotaMembershipController extends Controller
             $sisaTagihan = $anggotaMembership->total_biaya - $totalDibayarLain;
 
             if ($request->jumlah_bayar > $sisaTagihan) {
-                DB::rollBack();
                 return redirect()->back()
-                    ->with('error', "Jumlah pembayaran (Rp " . number_format($request->jumlah_bayar, 0, ',', '.') . 
+                    ->with('warning', "Jumlah pembayaran (Rp " . number_format($request->jumlah_bayar, 0, ',', '.') . 
                            ") melebihi sisa tagihan (Rp " . number_format($sisaTagihan, 0, ',', '.') . ")");
             }
 
@@ -351,20 +349,11 @@ class AnggotaMembershipController extends Controller
     // =====================================================
 
     /**
-     * ⚠️ MASALAH DI SINI: Menggunakan MOD003 (Modal) padahal seharusnya Kewajiban
-     * 
-     * PILIHAN 1: Tetap gunakan MOD003 (tidak ideal tapi neraca seimbang)
-     * PILIHAN 2: Tambah akun KEW003 untuk Pendapatan Diterima Dimuka (recommended)
-     * 
-     * Saya akan gunakan PILIHAN 1 dulu sesuai struktur akun yang ada,
-     * tapi dengan CATATAN PENTING di bawah
+     * Catat piutang awal saat membership dibuat
+     * Jurnal: Debit Piutang, Kredit Pendapatan
      */
     protected function createPiutangAwalMembership($anggotaMembership)
     {
-        // ⚠️ CATATAN: MOD003 digunakan sebagai Pendapatan langsung
-        // Ini adalah pendekatan CASH BASIS (langsung akui pendapatan)
-        // Bukan accrual basis (pendapatan diterima dimuka)
-        
         $akunPendapatan = AkunKeuangan::where('kode', 'MOD003')->first(); // Pendapatan Membership
         $akunPiutang = AkunKeuangan::where('kode', 'AST002')->first(); // Piutang Usaha
 
@@ -372,13 +361,12 @@ class AnggotaMembershipController extends Controller
             Log::error('Akun keuangan tidak ditemukan untuk pencatatan piutang membership', [
                 'anggota_membership_id' => $anggotaMembership->id
             ]);
-            throw new \Exception('Konfigurasi akun keuangan tidak lengkap. Pastikan akun MOD003 dan AST002 tersedia.');
+            throw new \Exception('Konfigurasi akun keuangan tidak lengkap');
         }
 
         // Cek apakah sudah pernah dicatat (avoid duplicate)
         $sudahDicatat = TransaksiKeuangan::where('referensi_id', $anggotaMembership->id)
             ->where('referensi_tabel', 'anggota_memberships')
-            ->where('akun_id', $akunPiutang->id)
             ->exists();
 
         if ($sudahDicatat) {
@@ -390,9 +378,9 @@ class AnggotaMembershipController extends Controller
 
         $totalBiaya = $anggotaMembership->total_biaya;
         $namaAnggota = $anggotaMembership->anggota->nama ?? 'Member';
-        $tanggal = $anggotaMembership->tgl_mulai;
+        $tanggal = $anggotaMembership->created_at ?? now();
 
-        // DEBIT: Piutang Usaha (Aset bertambah)
+        // DEBIT: Piutang Usaha (bertambah)
         TransaksiKeuangan::create([
             'akun_id' => $akunPiutang->id,
             'deskripsi' => "Piutang membership dari {$namaAnggota}",
@@ -403,7 +391,7 @@ class AnggotaMembershipController extends Controller
             'referensi_tabel' => 'anggota_memberships',
         ]);
 
-        // KREDIT: Pendapatan Membership (Modal/Pendapatan bertambah)
+        // KREDIT: Pendapatan Membership (bertambah)
         TransaksiKeuangan::create([
             'akun_id' => $akunPendapatan->id,
             'deskripsi' => "Pendapatan membership dari {$namaAnggota}",
@@ -414,7 +402,7 @@ class AnggotaMembershipController extends Controller
             'referensi_tabel' => 'anggota_memberships',
         ]);
 
-        Log::info('Piutang dan pendapatan membership berhasil dicatat', [
+        Log::info('Piutang membership berhasil dicatat', [
             'anggota_membership_id' => $anggotaMembership->id,
             'jumlah' => $totalBiaya
         ]);
@@ -423,8 +411,6 @@ class AnggotaMembershipController extends Controller
     /**
      * Catat transaksi keuangan untuk setiap pembayaran
      * Jurnal: Debit Kas, Kredit Piutang
-     * 
-     * Semua pembayaran masuk ke Kas (AST001) tanpa melihat metode pembayaran
      */
     protected function createTransaksiKeuanganForPembayaran($pembayaran, $anggotaMembership, $jumlah, $tanggal, $keteranganPrefix = 'Pembayaran membership')
     {
@@ -435,19 +421,19 @@ class AnggotaMembershipController extends Controller
             Log::error('Akun keuangan tidak ditemukan untuk pembayaran membership', [
                 'pembayaran_id' => $pembayaran->id
             ]);
-            throw new \Exception('Konfigurasi akun keuangan tidak lengkap. Pastikan akun AST001 dan AST002 tersedia.');
+            throw new \Exception('Konfigurasi akun keuangan tidak lengkap');
         }
 
         $namaAnggota = $anggotaMembership->anggota->nama ?? 'Member';
-        $metodePembayaran = $pembayaran->metode_pembayaran ?? 'Tunai';
+        $tanggalTransaksi = $tanggal ?? now();
 
         // DEBIT: Kas (bertambah karena menerima uang)
         TransaksiKeuangan::create([
             'akun_id' => $akunKas->id,
-            'deskripsi' => "{$keteranganPrefix} dari {$namaAnggota} via {$metodePembayaran}",
+            'deskripsi' => "{$keteranganPrefix} dari {$namaAnggota}",
             'debit' => $jumlah,
             'kredit' => 0,
-            'tanggal' => $tanggal,
+            'tanggal' => $tanggalTransaksi,
             'referensi_id' => $pembayaran->id,
             'referensi_tabel' => 'pembayaran_memberships',
         ]);
@@ -458,7 +444,7 @@ class AnggotaMembershipController extends Controller
             'deskripsi' => "{$keteranganPrefix} dari {$namaAnggota}",
             'debit' => 0,
             'kredit' => $jumlah,
-            'tanggal' => $tanggal,
+            'tanggal' => $tanggalTransaksi,
             'referensi_id' => $pembayaran->id,
             'referensi_tabel' => 'pembayaran_memberships',
         ]);
@@ -466,7 +452,6 @@ class AnggotaMembershipController extends Controller
         Log::info('Pembayaran membership berhasil dicatat', [
             'pembayaran_id' => $pembayaran->id,
             'anggota_membership_id' => $anggotaMembership->id,
-            'metode' => $metodePembayaran,
             'jumlah' => $jumlah
         ]);
     }

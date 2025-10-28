@@ -11,7 +11,9 @@ $script='<script src="' . asset('assets/js/data-table.js') . '"></script>';
         <div class="card border-0 overflow-hidden">
             <div class="card-header flex items-center justify-between">
                 <h6 class="card-title mb-0 text-lg">Riwayat Pembayaran</h6>
+                @role('admin')
                 <button type="button" data-modal-target="popup-modal" data-modal-toggle="popup-modal" class="text-primary-600 focus:bg-primary-600 hover:bg-primary-700 border border-primary-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center dark:text-primary-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-primary-800">+ Tambah Data</button>
+                @endrole
             </div>
             <div class="card-body">
                 <table id="selection-table" class="border border-neutral-200 rounded-lg border-separate w-full">
@@ -21,7 +23,9 @@ $script='<script src="' . asset('assets/js/data-table.js') . '"></script>';
                             <th>Tanggal Bayar</th>
                             <th>Jumlah Bayar</th>
                             <th>Metode Pembayaran</th>
+                            @role('admin')
                             <th>Aksi</th>
+                            @endrole
                         </tr>
                     </thead>
                     <tbody>
@@ -31,6 +35,7 @@ $script='<script src="' . asset('assets/js/data-table.js') . '"></script>';
                                 <td class="whitespace-nowrap">{{ \Carbon\Carbon::parse($pembayaran->tgl_bayar)->format('d-m-Y') }}</td>
                                 <td class="whitespace-nowrap">Rp {{ number_format($pembayaran->jumlah_bayar, 0, ',', '.') }}</td>
                                 <td class="whitespace-nowrap">{{ $pembayaran->metode_pembayaran }}</td>
+                                @role('admin')
                                 <td class="whitespace-nowrap flex gap-2">
                                     <form action="{{ route('pembayaran_trainer.destroy', $pembayaran->id) }}" method="POST" class="inline-block delete-form">
                                         @csrf
@@ -40,6 +45,7 @@ $script='<script src="' . asset('assets/js/data-table.js') . '"></script>';
                                         </button>
                                     </form>
                                 </td>
+                                @endrole
                             </tr>
                         @empty
                             <tr>

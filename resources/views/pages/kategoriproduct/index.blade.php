@@ -39,6 +39,7 @@
         <div class="card border-0 overflow-hidden">
             <div class="card-header flex items-center justify-between">
                 <h6 class="card-title mb-0 text-lg">Kategori Produk</h6>
+                @role('admin')
                 <button type="button" data-modal-target="add-kategori-modal" data-modal-toggle="add-kategori-modal"
                     class="text-primary-600 focus:bg-primary-600 hover:bg-primary-700 border border-primary-600 
                     hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-primary-300 
@@ -46,6 +47,7 @@
                     dark:text-primary-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-primary-800">
                     + Tambah Data
                 </button>
+                @endrole
             </div>
 
             <div class="card-body">
@@ -55,7 +57,9 @@
                             <th scope="col">No</th>
                             <th scope="col">Nama Kategori</th>
                             <th scope="col">Deskripsi</th>
+                            @role('admin')
                             <th scope="col">Aksi</th>
+                            @endrole
                         </tr>
                     </thead>
                     <tbody>
@@ -64,6 +68,7 @@
                             <td class="whitespace-nowrap">{{ $index + 1 }}</td>
                             <td class="whitespace-nowrap">{{ $category->name }}</td>
                             <td class="whitespace-nowrap">{{ $category->description ?? '-' }}</td>
+                            @role('admin')
                             <td class="whitespace-nowrap">
                                 {{-- Tombol Edit --}}
                                 <button type="button" data-modal-target="edit-kategori-modal-{{ $category->id }}" data-modal-toggle="edit-kategori-modal-{{ $category->id }}"
@@ -80,8 +85,10 @@
                                     </button>
                                 </form>
                             </td>
+                            @endrole
                         </tr>
 
+                        @role('admin')
                         {{-- MODAL EDIT KATEGORI --}}
                         <div id="edit-kategori-modal-{{ $category->id }}" tabindex="-1" 
                             class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 
@@ -135,6 +142,7 @@
                                 </div>
                             </div>
                         </div>
+                        @endrole
                         @endforeach
                     </tbody>
                 </table>

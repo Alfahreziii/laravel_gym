@@ -34,7 +34,9 @@
         <div class="card border-0 overflow-hidden">
             <div class="card-header flex items-center justify-between">
                 <h6 class="card-title mb-0 text-lg">Kategori Membership</h6>
+                @role('admin')
                 <button type="button" data-modal-target="popup-modal" data-modal-toggle="popup-modal" class="text-primary-600 focus:bg-primary-600 hover:bg-primary-700 border border-primary-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center dark:text-primary-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-primary-800">+ Tambah Data</button>
+                @endrole
             </div>
             <div class="card-body">
                 <table id="selection-table" class="border border-neutral-200 rounded-lg border-separate">
@@ -42,7 +44,9 @@
                         <tr>
                             <th scope="col">S.L</th>
                             <th scope="col">Nama Kategori</th>
+                            @role('admin')
                             <th scope="col">Aksi</th>
+                            @endrole
                         </tr>
                     </thead>
                     <tbody>
@@ -50,6 +54,7 @@
                         <tr>
                             <td class="whitespace-nowrap">{{ $index + 1 }}</td>
                             <td class="whitespace-nowrap">{{ $kategori_paket_membership->nama_kategori }}</td>
+                            @role('admin')
                             <td class="whitespace-nowrap">
                                 <!-- Tombol Edit -->
                                 <button type="button" data-modal-target="edit-popup-modal-{{ $kategori_paket_membership->id }}" data-modal-toggle="edit-popup-modal-{{ $kategori_paket_membership->id }}" class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
@@ -65,8 +70,10 @@
                                     </button>
                                 </form>
                             </td>
+                            @endrole
                         </tr>
 
+                        @role('admin')
                         <!-- Modal Edit Kategori -->
                         <div id="edit-popup-modal-{{ $kategori_paket_membership->id }}" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
                             <div class="rounded-2xl bg-white max-w-[800px] w-full">
@@ -105,6 +112,7 @@
                                 </div>
                             </div>
                         </div>
+                        @endrole
                         @endforeach
                     </tbody>
                 </table>
