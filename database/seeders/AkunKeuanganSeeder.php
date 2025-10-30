@@ -31,6 +31,7 @@ class AkunKeuanganSeeder extends Seeder
 
             // Pendapatan (tambahan penting)
             ['kategori_id' => $modal->id, 'nama' => 'Pendapatan Membership', 'kode' => 'MOD003'],
+            ['kategori_id' => $modal->id, 'nama' => 'Pendapatan Personal Trainer', 'kode' => 'MOD004'],
         ];
 
         foreach ($akun as $item) {

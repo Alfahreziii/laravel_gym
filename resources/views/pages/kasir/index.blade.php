@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wowdash - Tailwind CSS Admin Dashboard Laravel-11 Template</title>
+    <title>Kasir</title>
     <link rel="icon" type="image/png') }}" href="{{ asset('assets/images/favicon.png') }}" sizes="16x16">
     <!-- google fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
@@ -84,53 +84,53 @@
         });
     </script>
     <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const moreToggle = document.getElementById('moreToggle');
-        const dropdownMore = document.getElementById('dropdownMore');
-        const chevronMore = document.getElementById('chevronMore');
+        document.addEventListener('DOMContentLoaded', function () {
+            const moreToggle = document.getElementById('moreToggle');
+            const dropdownMore = document.getElementById('dropdownMore');
+            const chevronMore = document.getElementById('chevronMore');
 
-        if (moreToggle && dropdownMore && chevronMore) {
-            moreToggle.addEventListener('click', function (e) {
-                e.stopPropagation();
-                dropdownMore.classList.toggle('hidden');
-                chevronMore.classList.toggle('rotate-180');
+            if (moreToggle && dropdownMore && chevronMore) {
+                moreToggle.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    dropdownMore.classList.toggle('hidden');
+                    chevronMore.classList.toggle('rotate-180');
+                });
+
+                document.addEventListener('click', function (e) {
+                    if (!dropdownMore.contains(e.target) && !moreToggle.contains(e.target)) {
+                        dropdownMore.classList.add('hidden');
+                        chevronMore.classList.remove('rotate-180');
+                    }
+                });
+
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape') {
+                        dropdownMore.classList.add('hidden');
+                        chevronMore.classList.remove('rotate-180');
+                    }
+                });
+            }
+
+            // tombol Hold Items buka modal
+            document.querySelectorAll('.btn-hold-items').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const targetModal = document.getElementById(this.dataset.modalTarget);
+                    if (targetModal) {
+                        targetModal.classList.remove('hidden');
+                    }
+                });
             });
 
-            document.addEventListener('click', function (e) {
-                if (!dropdownMore.contains(e.target) && !moreToggle.contains(e.target)) {
-                    dropdownMore.classList.add('hidden');
-                    chevronMore.classList.remove('rotate-180');
-                }
-            });
-
-            document.addEventListener('keydown', function (e) {
-                if (e.key === 'Escape') {
-                    dropdownMore.classList.add('hidden');
-                    chevronMore.classList.remove('rotate-180');
-                }
-            });
-        }
-
-        // tombol Hold Items buka modal
-        document.querySelectorAll('.btn-hold-items').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const targetModal = document.getElementById(this.dataset.modalTarget);
-                if (targetModal) {
-                    targetModal.classList.remove('hidden');
-                }
+            // tombol close modal
+            document.querySelectorAll('.btn-close-modal').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    this.closest('.hidden')?.classList.add('hidden');
+                    this.closest('[id$="-modal"]')?.classList.add('hidden'); // fallback
+                });
             });
         });
-
-        // tombol close modal
-        document.querySelectorAll('.btn-close-modal').forEach(btn => {
-            btn.addEventListener('click', function () {
-                this.closest('.hidden')?.classList.add('hidden');
-                this.closest('[id$="-modal"]')?.classList.add('hidden'); // fallback
-            });
-        });
-    });
-</script>
-
+    </script>
+<script src="' . asset('assets/js/data-table.js') . '"></script>
 </head>
 <body class="dark:bg-neutral-800 bg-neutral-100">
     <div class="flex">
@@ -573,12 +573,13 @@
         }
 
         // === Fungsi Update Cart UI ===
+        // === Fungsi Update Cart UI (FIXED) ===
         function updateCartUI() {
             if (!cartContainer) return;
             cartContainer.innerHTML = '';
 
             let totalBeforeDiscount = 0;
-            let totalItemDiscount = 0;
+            let totalItemDiscount = 0; // ✅ Ini akan jadi diskonBarang
             let totalItems = 0;
 
             cart.forEach(item => {
@@ -634,6 +635,9 @@
                     </div>
                 `;
             });
+
+            // ✅ UPDATE GLOBAL diskonBarang setiap kali cart berubah
+            diskonBarang = totalItemDiscount;
 
             const totalDiskonAll = totalItemDiscount + (Number(diskon) || 0);
             const finalTotal = Math.max(totalBeforeDiscount - totalDiskonAll, 0);

@@ -10,7 +10,12 @@
   border: none !important;
   color: #fff !important;
 }
-
+.mr-0-custom {
+  margin-right: 0 !important;
+}
+.text-left {
+  text-align: left;
+}
 .swal2-cancel {
   background-color: #6c757d !important; /* abu-abu */
   border: none !important;

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\MemberTrainer;
 use App\Models\PembayaranMemberTrainer;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PembayaranTrainerController extends Controller
 {
@@ -46,5 +47,32 @@ class PembayaranTrainerController extends Controller
 
         return redirect()->route('pembayaran_trainer.index')
             ->with('success', 'Pembayaran baru berhasil ditambahkan.');
+    }
+
+    /**
+     * Export nota transaksi personal trainer ke PDF
+     */
+    public function exportNotaPDF($id)
+    {
+        $memberTrainer = MemberTrainer::with(['anggota', 'paketPersonalTrainer', 'trainer', 'pembayaranMemberTrainers'])
+            ->findOrFail($id);
+
+        // Pastikan statusnya lunas
+        if ($memberTrainer->status_pembayaran !== 'Lunas') {
+            return redirect()->back()->with('danger', 'Nota hanya dapat dicetak untuk transaksi yang sudah lunas.');
+        }
+
+        $data = [
+            'transaksi' => $memberTrainer,
+            'anggota' => $memberTrainer->anggota,
+            'paket' => $memberTrainer->paketPersonalTrainer,
+            'trainer' => $memberTrainer->trainer,
+            'pembayaran' => $memberTrainer->pembayaranMemberTrainers,
+            'totalDibayar' => $memberTrainer->pembayaranMemberTrainers->sum('jumlah_bayar'),
+        ];
+
+        $pdf = Pdf::loadView('pages.pembayarantrainer.nota-pdf', $data);
+        
+        return $pdf->download('Nota-Trainer-' . $memberTrainer->kode_transaksi . '.pdf');
     }
 }

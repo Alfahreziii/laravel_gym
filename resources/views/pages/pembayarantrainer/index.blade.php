@@ -71,8 +71,9 @@
                             </td>
                             <td class="whitespace-nowrap flex gap-2">
                                 @if($item->status_pembayaran === 'Lunas')
-                                <a href="" 
-                                   class="w-8 h-8 bg-warning-100 text-warning-600 rounded-full inline-flex items-center justify-center">
+                                <a href="{{ route('pembayaran_trainer.notaPDF', $item->id) }}" 
+                                class="w-8 h-8 bg-warning-100 text-warning-600 rounded-full inline-flex items-center justify-center"
+                                title="Download Nota PDF">
                                     <iconify-icon icon="hugeicons:money-send-square" class="menu-icon"></iconify-icon>
                                 </a>
                                 @else

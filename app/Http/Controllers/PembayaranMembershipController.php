@@ -8,6 +8,7 @@ use App\Models\PembayaranMembership;
 use App\Models\AkunKeuangan;
 use App\Models\TransaksiKeuangan;
 use Illuminate\Support\Facades\Log;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PembayaranMembershipController extends Controller
 {
@@ -108,5 +109,31 @@ class PembayaranMembershipController extends Controller
 
         return redirect()->route('pembayaran_membership.index')
             ->with('success', 'Pembayaran baru berhasil ditambahkan dan dicatat dalam transaksi keuangan.');
+    }
+
+    /**
+     * Export nota transaksi membership ke PDF
+     */
+    public function exportNotaPDF($id)
+    {
+        $anggotaMembership = AnggotaMembership::with(['anggota', 'paketMembership', 'pembayaranMemberships'])
+            ->findOrFail($id);
+
+        // Pastikan statusnya lunas
+        if ($anggotaMembership->status_pembayaran !== 'Lunas') {
+            return redirect()->back()->with('danger', 'Nota hanya dapat dicetak untuk transaksi yang sudah lunas.');
+        }
+
+        $data = [
+            'transaksi' => $anggotaMembership,
+            'anggota' => $anggotaMembership->anggota,
+            'paket' => $anggotaMembership->paketMembership,
+            'pembayaran' => $anggotaMembership->pembayaranMemberships,
+            'totalDibayar' => $anggotaMembership->pembayaranMemberships->sum('jumlah_bayar'),
+        ];
+
+        $pdf = Pdf::loadView('pages.pembayaranmembership.nota-pdf', $data);
+        
+        return $pdf->download('Nota-' . $anggotaMembership->kode_transaksi . '.pdf');
     }
 }

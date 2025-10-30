@@ -54,7 +54,7 @@
             @hasanyrole('spv|admin')
             <li class="dropdown">
                 <a href="javascript:void(0)">
-                    <iconify-icon icon="solar:document-text-outline" class="menu-icon"></iconify-icon>
+                    <i class="ri-open-arm-fill menu-icon mr-0-custom"></i>
                     <span>Personal Trainer</span>
                 </a>
                 <ul class="sidebar-submenu">
@@ -121,8 +121,8 @@
             <li class="sidebar-menu-group-title">POS</li>
             <li class="dropdown">
                 <a href="javascript:void(0)">
-                    <i class="ri-store-2-line menu-icon"></i>
-                    <span>Mesin Kasir</span>
+                    <i class="ri-store-2-line menu-icon mr-0-custom"></i>
+                    <span >Mesin Kasir</span>
                 </a>
                 <ul class="sidebar-submenu">
                     <li>
@@ -138,7 +138,7 @@
             @hasanyrole('spv|admin')
             <li class="dropdown">
                 <a href="javascript:void(0)">
-                    <i class="ri-inbox-2-line menu-icon"></i>
+                    <i class="ri-inbox-2-line menu-icon mr-0-custom"></i>
                     <span>Product</span>
                 </a>
                 <ul class="sidebar-submenu">
@@ -169,12 +169,12 @@
             @endhasanyrole
 
             @hasanyrole('spv|admin')
-            <li class="sidebar-menu-group-title">Neraca Keuangan</li>
+            <li class="sidebar-menu-group-title">Keuangan</li>
             
             <li class="dropdown">
                 <a href="javascript:void(0)">
-                    <iconify-icon icon="flowbite:users-group-outline" class="menu-icon"></iconify-icon>
-                    <span>Users</span>
+                    <i class="ri-gradienter-line menu-icon mr-0-custom"></i>
+                    <span>Neraca</span>
                 </a>
                 <ul class="sidebar-submenu">
                     <li>

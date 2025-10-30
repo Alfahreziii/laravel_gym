@@ -5,8 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\KategoriProduct;
 use App\Models\ProductQuantityLog;
+use App\Models\AkunKeuangan;
+use App\Models\TransaksiKeuangan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
@@ -33,6 +37,7 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
+        DB::beginTransaction();
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
@@ -69,10 +74,19 @@ class ProductController extends Controller
                     'current_quantity' => $product->quantity,
                     'description' => 'Stok awal produk',
                 ]);
+
+                // 🟢 CATAT TRANSAKSI KEUANGAN PEMBELIAN STOK AWAL
+                $this->catatPembelianProduk(
+                    $product,
+                    $product->quantity,
+                    'Pembelian stok awal produk: ' . $product->name
+                );
             }
 
+            DB::commit();
             return back()->with('success', 'Produk berhasil ditambahkan.');
         } catch (\Exception $e) {
+            DB::rollBack();
             return back()->with('danger', 'Gagal menambahkan produk: ' . $e->getMessage())->withInput();
         }
     }
@@ -153,39 +167,62 @@ class ProductController extends Controller
      */
     public function adjustQuantity(Request $request, Product $product)
     {
-        $validated = $request->validate([
-            'type' => 'required|in:in,out', // in = tambah stok, out = kurangi stok
-            'quantity' => 'required|integer|min:1',
-            'description' => 'nullable|string|max:255',
-        ]);
+        DB::beginTransaction();
+        try {
+            $validated = $request->validate([
+                'type' => 'required|in:in,out', // in = tambah stok, out = kurangi stok
+                'quantity' => 'required|integer|min:1',
+                'description' => 'nullable|string|max:255',
+            ]);
 
-        // Hitung stok baru
-        $change = $validated['type'] === 'in' 
-            ? $validated['quantity'] 
-            : -$validated['quantity'];
+            // Hitung stok baru
+            $change = $validated['type'] === 'in' 
+                ? $validated['quantity'] 
+                : -$validated['quantity'];
 
-        $newQuantity = $product->quantity + $change;
+            $newQuantity = $product->quantity + $change;
 
-        if ($newQuantity < 0) {
-            return back()->with('danger', 'Stok tidak boleh kurang dari 0.');
+            if ($newQuantity < 0) {
+                return back()->with('danger', 'Stok tidak boleh kurang dari 0.');
+            }
+
+            // Simpan log
+            ProductQuantityLog::create([
+                'product_id' => $product->id,
+                'type' => $validated['type'],
+                'quantity' => $validated['quantity'],
+                'current_quantity' => $newQuantity,
+                'description' => $validated['description'] ?? 
+                    ($validated['type'] === 'in' ? 'Barang masuk' : 'Barang keluar'),
+            ]);
+
+            // Update stok di tabel products
+            $product->update(['quantity' => $newQuantity]);
+
+            // 🟢 CATAT TRANSAKSI KEUANGAN
+            if ($validated['type'] === 'in') {
+                // Barang masuk = pembelian
+                $this->catatPembelianProduk(
+                    $product,
+                    $validated['quantity'],
+                    $validated['description'] ?? 'Pembelian barang masuk: ' . $product->name
+                );
+            } else {
+                // Barang keluar = penyesuaian manual (tidak umum, tapi bisa dicatat)
+                $this->catatPenguranganProduk(
+                    $product,
+                    $validated['quantity'],
+                    $validated['description'] ?? 'Penyesuaian barang keluar: ' . $product->name
+                );
+            }
+
+            DB::commit();
+            return back()->with('success', 'Stok produk berhasil diperbarui.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('danger', 'Gagal memperbarui stok: ' . $e->getMessage());
         }
-
-        // Simpan log
-        ProductQuantityLog::create([
-            'product_id' => $product->id,
-            'type' => $validated['type'],
-            'quantity' => $validated['quantity'],
-            'current_quantity' => $newQuantity,
-            'description' => $validated['description'] ?? 
-                ($validated['type'] === 'in' ? 'Barang masuk' : 'Barang keluar'),
-        ]);
-
-        // Update stok di tabel products
-        $product->update(['quantity' => $newQuantity]);
-
-        return back()->with('success', 'Stok produk berhasil diperbarui.');
     }
-
 
     /**
      * Lihat log perubahan stok produk
@@ -198,4 +235,103 @@ class ProductController extends Controller
         return view('pages.products.logs', compact('products', 'logs'));
     }
 
+    // =====================================================
+    // FUNGSI HELPER UNTUK TRANSAKSI KEUANGAN
+    // =====================================================
+
+    /**
+     * Catat transaksi keuangan pembelian produk
+     * 
+     * Jurnal:
+     * Debit: Persediaan/Perlengkapan (AST004) = qty × HPP
+     * Kredit: Kas (AST001) = qty × HPP
+     */
+    protected function catatPembelianProduk(Product $product, int $qty, string $deskripsi)
+    {
+        $akunPersediaan = AkunKeuangan::where('kode', 'AST004')->first(); // Persediaan
+        $akunKas = AkunKeuangan::where('kode', 'AST001')->first(); // Kas
+
+        if (!$akunPersediaan) {
+            Log::warning('Akun Persediaan (AST004) tidak ditemukan');
+            return;
+        }
+        if (!$akunKas) {
+            Log::warning('Akun Kas (AST001) tidak ditemukan');
+            return;
+        }
+
+        $nilaiPembelian = $product->hpp * $qty;
+        $tanggal = now()->format('Y-m-d');
+
+        // Debit Persediaan (aset bertambah)
+        TransaksiKeuangan::create([
+            'akun_id' => $akunPersediaan->id,
+            'deskripsi' => $deskripsi,
+            'debit' => $nilaiPembelian,
+            'kredit' => 0,
+            'tanggal' => $tanggal,
+            'referensi_id' => $product->id,
+            'referensi_tabel' => 'products',
+        ]);
+
+        // Kredit Kas (kas berkurang)
+        TransaksiKeuangan::create([
+            'akun_id' => $akunKas->id,
+            'deskripsi' => $deskripsi,
+            'debit' => 0,
+            'kredit' => $nilaiPembelian,
+            'tanggal' => $tanggal,
+            'referensi_id' => $product->id,
+            'referensi_tabel' => 'products',
+        ]);
+
+        Log::info('Transaksi keuangan pembelian produk tercatat', [
+            'product_id' => $product->id,
+            'quantity' => $qty,
+            'nilai_pembelian' => $nilaiPembelian,
+        ]);
+    }
+
+    /**
+     * Catat pengurangan persediaan (untuk penyesuaian manual)
+     * 
+     * Jurnal:
+     * Debit: Beban Lain-lain (BEB002) = qty × HPP
+     * Kredit: Persediaan (AST004) = qty × HPP
+     */
+    protected function catatPenguranganProduk(Product $product, int $qty, string $deskripsi)
+    {
+        $akunPersediaan = AkunKeuangan::where('kode', 'AST004')->first();
+        $akunBebanLain = AkunKeuangan::where('kode', 'BEB002')->first(); // Beban Lain-lain
+
+        if (!$akunPersediaan || !$akunBebanLain) {
+            Log::warning('Akun untuk pengurangan produk tidak ditemukan');
+            return;
+        }
+
+        $nilaiPengurangan = $product->hpp * $qty;
+        $tanggal = now()->format('Y-m-d');
+
+        // Debit Beban Lain-lain
+        TransaksiKeuangan::create([
+            'akun_id' => $akunBebanLain->id,
+            'deskripsi' => $deskripsi,
+            'debit' => $nilaiPengurangan,
+            'kredit' => 0,
+            'tanggal' => $tanggal,
+            'referensi_id' => $product->id,
+            'referensi_tabel' => 'products',
+        ]);
+
+        // Kredit Persediaan
+        TransaksiKeuangan::create([
+            'akun_id' => $akunPersediaan->id,
+            'deskripsi' => $deskripsi,
+            'debit' => 0,
+            'kredit' => $nilaiPengurangan,
+            'tanggal' => $tanggal,
+            'referensi_id' => $product->id,
+            'referensi_tabel' => 'products',
+        ]);
+    }
 }

@@ -33,6 +33,21 @@ use App\Http\Controllers\KategoriProductController;
 use App\Http\Middleware\RoleMiddleware;
 use App\Http\Middleware\LastActivityMiddleware;
 use App\Http\Controllers\NeracaController;
+use App\Http\Controllers\NoRoleController;
+
+Route::controller(NoRoleController::class)->group(function () {
+    Route::get('/absen', 'index')->name('absen.index');
+    Route::get('/absen/create', 'create')->name('absen.create');
+    Route::post('/absen', 'store')->name('absen.store');
+    Route::delete('/absen/{kehadiranmember}', 'destroy')->name('absen.destroy');
+});
+
+Route::controller(NoRoleController::class)->group(function () {
+    Route::get('/absen-trainer', 'indextrainer')->name('absentrainer.index');
+    Route::get('/absen-trainer/create', 'createtrainer')->name('absentrainer.create');
+    Route::post('/absen-trainer', 'storetrainer')->name('absentrainer.store');
+    Route::delete('/absen-trainer/{kehadirantrainer}', 'destroytrainer')->name('absentrainer.destroy');
+});
 
 // Guest Route
 Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddleware::class . ':guest|admin'])->group(function () {
@@ -55,7 +70,9 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
     Route::get('/neraca', [NeracaController::class, 'index'])->name('neraca.index');
+    Route::post('/neraca/tambah-kas', [NeracaController::class, 'tambahKas'])->name('neraca.tambah-kas');
 
     Route::controller(DashboardController::class)->group(function () {
         Route::get('/', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('dashboard');
@@ -195,6 +212,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
             Route::put('/member-trainer/{id}', 'update')->name('membertrainer.update');
             Route::delete('/member-trainer/{id}', 'destroy')->name('membertrainer.destroy');
 
+            Route::put('/pembayaran-trainer/{id}', 'tambahPembayaran')->name('pembayaran_trainer.tambahPembayaran');
             Route::post('/member-trainer/{id}/tambah-pembayaran', 'tambahPembayaran')->name('membertrainer.tambahPembayaran');
             Route::delete('/pembayaran-trainer/{id}', 'destroyPembayaran')->name('pembayaran_trainer.destroy');
         });
@@ -216,18 +234,12 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     // Route untuk Pembayaran Membership
     Route::controller(PembayaranMembershipController::class)->group(function () {
         Route::get('/pembayaran-membership', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('pembayaran_membership.index');
-
-        // Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
-        //     Route::put('/pembayaran-membership/{id}', 'tambahPembayaran')->name('pembayaran_membership.tambahPembayaran');
-        // });
+        Route::get('/pembayaran-membership/nota-pdf/{id}', 'exportNotaPDF')->middleware(RoleMiddleware::class . ':admin|spv')->name('pembayaran_membership.notaPDF');
     });
 
     Route::controller(PembayaranTrainerController::class)->group(function () {
         Route::get('/pembayaran-trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('pembayaran_trainer.index');
-
-        Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
-            Route::put('/pembayaran-trainer/{id}', 'tambahPembayaran')->name('pembayaran_trainer.tambahPembayaran');
-        });
+        Route::get('/pembayaran-trainer/nota-pdf/{id}', 'exportNotaPDF')->middleware(RoleMiddleware::class . ':admin|spv')->name('pembayaran_trainer.notaPDF');
     });
 
     // Route Untuk Users
