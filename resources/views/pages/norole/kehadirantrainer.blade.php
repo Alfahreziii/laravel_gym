@@ -56,137 +56,118 @@
         </div>
     </div>
 
-@if(session('success'))
-    <div class="alert alert-success bg-success-50 dark:bg-success-600/25 
-        text-success-600 dark:text-success-400 border-success-50 
-        px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
-        <div class="flex items-center gap-4">
-            {{ session('success') }}
-        </div>
-        <button class="remove-button text-success-600 text-2xl">
-            <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
-        </button>
-    </div>
-@endif
-@if(session('danger'))
-    <div class="alert alert-danger bg-danger-100 dark:bg-danger-600/25 
-        text-danger-600 dark:text-danger-400 border-danger-100 
-        px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
-        {{ session('danger') }}
-        <button class="remove-button text-danger-600 text-2xl"> 
-            <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
-        </button>
-    </div>
-@endif
-
-<div class="wrapper w-full p-6">
-    <div class="grid grid-cols-12">
-        <div class="col-span-12">
-            <div class="card border-0 overflow-hidden">
-                <div class="card-header flex items-center justify-between">
-                    <h6 class="card-title mb-0 text-lg">Kehadiran Trainer</h6>
-                    <button type="button" data-modal-target="popup-modal" data-modal-toggle="popup-modal" class="text-primary-600 focus:bg-primary-600 hover:bg-primary-700 border border-primary-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center dark:text-primary-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-primary-800">+ Tambah Data</button>
-                </div>
-                <div class="card-body">
-                    <table id="selection-table" class="border border-neutral-200 rounded-lg border-separate w-full">
-                        <thead>
-                            <tr>
-                                <th>S.L</th>
-                                <th>RFID</th>
-                                <th>Foto</th>
-                                <th>Name</th>
-                                <th>Status</th>
-                                <th>Time</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($kehadirantrainers as $index => $item)
-                            <tr>
-                                <td class="whitespace-nowrap">{{ $index + 1 }}</td>
-                                <td class="whitespace-nowrap">{{ $item->rfid }}</td>
-                                <td class="whitespace-nowrap">
-                                    @if($item->foto)
-                                        <img src="{{ asset('storage/' . $item->foto) }}" 
-                                            alt="Photo {{ $item->trainer->name }}" 
-                                            class="w-10 h-10 rounded-lg object-cover cursor-pointer item-photo"
-                                            data-photo="{{ asset('storage/' . $item->foto) }}">
-                                    @else
-                                        <span class="text-gray-400 italic">No photo</span>
-                                    @endif
-                                </td>
-                                <td class="whitespace-nowrap">{{ $item->trainer->name }}</td>
-                                <td class="whitespace-nowrap">{{ $item->status }}</td>
-                                <td class="whitespace-nowrap">{{ $item->created_at }}</td>
-                                <td class="whitespace-nowrap">
-                                    <!-- Form Delete -->
-                                    <form action="{{ route('kehadirantrainer.destroy', $item->id) }}" method="POST" class="inline-block delete-form">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="button" class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center delete-btn">
-                                            <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Add Kehadiran Trainer -->
-<div id="popup-modal" tabindex="-1"
-    class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-    <div class="rounded-2xl bg-white max-w-[800px] w-full">
-        <div class="py-4 px-6 border-b border-neutral-200 flex items-center justify-between">
-            <h1 class="text-xl">Tambah Kehadiran Trainer</h1>
-            <button data-modal-hide="popup-modal" type="button"
-                class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
-                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                </svg>
-                <span class="sr-only">Close modal</span>
-            </button>
-        </div>
-
-        <div class="p-6">
-            <form id="kehadiranForm" action="{{ route('kehadirantrainer.store') }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                @method('POST')
-
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-                    <div class="col-span-12">
-                        <label for="rfid" class="inline-block font-semibold text-neutral-600 text-sm mb-2">RFID</label>
-                        <input type="text" id="rfid" name="rfid" class="form-control rounded-lg"
-                            placeholder="Masukkan RFID" required>
+<div class="wrapper w-full">
+    <div class="flex">
+        <div class="content-produk">
+            @if(session('success'))
+                <div class="alert alert-success bg-success-50 dark:bg-success-600/25 
+                    text-success-600 dark:text-success-400 border-success-50 
+                    px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        {{ session('success') }}
                     </div>
-
-                    <!-- Live Webcam Preview -->
-                    <div class="col-span-12 flex flex-col items-center">
-                        <label class="inline-block font-semibold text-neutral-600 text-sm mb-2">Kamera</label>
-                        <video id="webcam" autoplay playsinline class="rounded-lg border border-neutral-300 w-64 h-48"></video>
-                        <canvas id="canvas" class="hidden"></canvas>
-                    </div>
-
-                    <div class="col-span-12">
-                        <div class="flex items-center justify-start gap-3 mt-6">
-                            <button type="reset" data-modal-hide="popup-modal"
-                                class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
-                                Cancel
-                            </button>
-                            <button type="submit"
-                                class="btn btn-primary border border-primary-600 text-base px-6 py-3 rounded-lg">
-                                Save
-                            </button>
+                    <button class="remove-button text-success-600 text-2xl">
+                        <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
+                    </button>
+                </div>
+            @endif
+            @if(session('danger'))
+                <div class="alert alert-danger bg-danger-100 dark:bg-danger-600/25 
+                    text-danger-600 dark:text-danger-400 border-danger-100 
+                    px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
+                    {{ session('danger') }}
+                    <button class="remove-button text-danger-600 text-2xl"> 
+                        <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
+                    </button>
+                </div>
+            @endif
+            <div class="grid grid-cols-12">
+                <div class="col-span-12">
+                    <div class="card border-0 overflow-hidden">
+                        <div class="card-header flex items-center justify-between">
+                            <h6 class="card-title mb-0 text-lg">Kehadiran Trainer</h6>
+                        </div>
+                        <div class="card-body">
+                            <table id="selection-table" class="border border-neutral-200 rounded-lg border-separate w-full">
+                                <thead>
+                                    <tr>
+                                        <th>S.L</th>
+                                        <th>RFID</th>
+                                        <th>Foto</th>
+                                        <th>Name</th>
+                                        <th>Status</th>
+                                        <th>Time</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($kehadirantrainers as $index => $item)
+                                    <tr>
+                                        <td class="whitespace-nowrap">{{ $index + 1 }}</td>
+                                        <td class="whitespace-nowrap">{{ $item->rfid }}</td>
+                                        <td class="whitespace-nowrap">
+                                            @if($item->foto)
+                                                <img src="{{ asset('storage/' . $item->foto) }}" 
+                                                    alt="Photo {{ $item->trainer->name }}" 
+                                                    class="w-10 h-10 rounded-lg object-cover cursor-pointer item-photo"
+                                                    data-photo="{{ asset('storage/' . $item->foto) }}">
+                                            @else
+                                                <span class="text-gray-400 italic">No photo</span>
+                                            @endif
+                                        </td>
+                                        <td class="whitespace-nowrap">{{ $item->trainer->name }}</td>
+                                        <td class="whitespace-nowrap">{{ $item->status }}</td>
+                                        <td class="whitespace-nowrap">{{ $item->created_at }}</td>
+                                        <td class="whitespace-nowrap">
+                                            <!-- Form Delete -->
+                                            <form action="{{ route('absentrainer.destroy', $item->id) }}" method="POST" class="inline-block delete-form">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="button" class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center delete-btn">
+                                                    <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
-            </form>
+            </div>
+        </div>
+        <div class="cart-produk wrapper-produk-detail">
+            <div class="">
+                <form id="kehadiranForm" class="" action="{{ route('absentrainer.store') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    @method('POST')
+    
+                    <div class="flex  flex-col justify-between ">
+                        <div>
+                            <div class="">
+                                <label for="rfid" class="inline-block font-semibold text-neutral-600 text-sm mb-2">RFID</label>
+                                <input type="text" id="rfid" name="rfid" class="form-control rounded-lg"
+                                    placeholder="Masukkan RFID" required>
+                            </div>
+
+                            <!-- Live Webcam Preview -->
+                            <div class=" flex flex-col items-center mt-4">
+                                <label class="inline-block font-semibold text-neutral-600 text-sm mb-2">Kamera</label>
+                                <video id="webcam" autoplay playsinline class="rounded-lg border border-neutral-300 w-64 h-48"></video>
+                                <canvas id="canvas" class="hidden"></canvas>
+                            </div>
+                        </div>
+                        <button type="submit"
+                            class="btn btn-primary border border-primary-600 text-base w-full rounded-lg mt-4">
+                            <span class="text-center w-full">
+                                Save
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            
+            </div>
         </div>
     </div>
 </div>
