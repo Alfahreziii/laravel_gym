@@ -34,6 +34,7 @@ use App\Http\Middleware\RoleMiddleware;
 use App\Http\Middleware\LastActivityMiddleware;
 use App\Http\Controllers\NeracaController;
 use App\Http\Controllers\NoRoleController;
+use App\Http\Controllers\TrainerDashboardController;
 
 Route::controller(NoRoleController::class)->group(function () {
     Route::get('/absen', 'index')->name('absen.index');
@@ -47,6 +48,20 @@ Route::controller(NoRoleController::class)->group(function () {
     Route::get('/absen-trainer/create', 'createtrainer')->name('absentrainer.create');
     Route::post('/absen-trainer', 'storetrainer')->name('absentrainer.store');
     Route::delete('/absen-trainer/{kehadirantrainer}', 'destroytrainer')->name('absentrainer.destroy');
+});
+
+Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
+    Route::get('/trainer/dashboard', [TrainerDashboardController::class, 'index'])
+        ->name('trainer.dashboard');
+    
+    Route::post('/trainer/session/start/{memberTrainer}', [TrainerDashboardController::class, 'startSession'])
+        ->name('trainer.session.start');
+    
+    Route::post('/trainer/session/end/{memberTrainer}', [TrainerDashboardController::class, 'endSession'])
+        ->name('trainer.session.end');
+    
+    Route::get('/trainer/session-logs', [TrainerDashboardController::class, 'sessionLogs'])
+        ->name('trainer.session.logs');
 });
 
 // Guest Route
@@ -66,6 +81,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddle
     });
 });
 
+// Admin Route
 Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -80,13 +96,12 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     Route::controller(DashboardController::class)->group(function () {
         Route::get('/dashboard', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('index');
     });
-     
+
     // Route untuk Produk
     Route::controller(ProductController::class)->group(function () {
         // Route index bisa diakses oleh admin & spv
         Route::get('/products', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('products.index');
-        Route::get('/products/{product}/logs', 'logs')->middleware(RoleMiddleware::class . ':admin|spv')->name('products.logs');
-
+        
         // Route CRUD hanya untuk admin
         Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
             Route::get('/products/create', 'create')->name('products.create');
@@ -96,6 +111,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
             Route::delete('/products/{product}', 'destroy')->name('products.destroy');
             Route::post('/products/{product}/adjust','adjustQuantity')->name('products.adjust');
         });
+        Route::get('/products/{product}/logs', 'logs')->middleware(RoleMiddleware::class . ':admin|spv')->name('products.logs');
     });
 
     // Route untuk Kategori Produk
@@ -149,18 +165,18 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     // Route untuk Anggota Membership
     Route::controller(AnggotaMembershipController::class)->group(function () {
         Route::get('/anggota-membership', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('anggota_membership.index');
-        Route::get('/anggota-membership/{id}/edit', 'edit')->middleware(RoleMiddleware::class . ':admin|spv')->name('anggota_membership.edit');
-
+        
         Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
             Route::get('/anggota-membership/create', 'create')->name('anggota_membership.create');
             Route::post('/anggota-membership', 'store')->name('anggota_membership.store');
             Route::put('/anggota-membership/{id}', 'update')->name('anggota_membership.update');
             Route::delete('/anggota-membership/{id}', 'destroy')->name('anggota_membership.destroy');
-
+            
             Route::put('/pembayaran-membership/{id}', 'tambahPembayaran')->name('pembayaran_membership.tambahPembayaran');
             Route::post('/anggota-membership/{id}/tambah-pembayaran', 'tambahPembayaran')->name('anggota_membership.tambahPembayaran');
             Route::delete('/pembayaran-membership/{id}', 'destroyPembayaran')->name('pembayaran_membership.destroy');
         });
+        Route::get('/anggota-membership/{id}/edit', 'edit')->middleware(RoleMiddleware::class . ':admin|spv')->name('anggota_membership.edit');
     });
     
     // Route untuk Spesialisasi Trainer
@@ -190,8 +206,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     // Route untuk Trainer
     Route::controller(TrainerController::class)->group(function () {
         Route::get('/trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('trainer.index');
-        Route::get('/trainer/{trainer}', 'show')->middleware(RoleMiddleware::class . ':admin|spv')->name('trainer.show');
-
+        
         Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
             Route::get('/trainer/create', 'create')->name('trainer.create');
             Route::post('/trainer', 'store')->name('trainer.store');
@@ -199,23 +214,24 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
             Route::put('/trainer/{trainer}', 'update')->name('trainer.update');
             Route::delete('/trainer/{trainer}', 'destroy')->name('trainer.destroy');
         });
+        Route::get('/trainer/{trainer}', 'show')->middleware(RoleMiddleware::class . ':admin|spv')->name('trainer.show');
     });
 
     // Route untuk Trainer Member
     Route::controller(MemberTrainerController::class)->group(function () {
         Route::get('/member-trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('membertrainer.index');
-        Route::get('/member-trainer/{id}/edit', 'edit')->middleware(RoleMiddleware::class . ':admin|spv')->name('membertrainer.edit');
-
+        
         Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
             Route::get('/member-trainer/create', 'create')->name('membertrainer.create');
             Route::post('/member-trainer', 'store')->name('membertrainer.store');
             Route::put('/member-trainer/{id}', 'update')->name('membertrainer.update');
             Route::delete('/member-trainer/{id}', 'destroy')->name('membertrainer.destroy');
-
+            
             Route::put('/pembayaran-trainer/{id}', 'tambahPembayaran')->name('pembayaran_trainer.tambahPembayaran');
             Route::post('/member-trainer/{id}/tambah-pembayaran', 'tambahPembayaran')->name('membertrainer.tambahPembayaran');
             Route::delete('/pembayaran-trainer/{id}', 'destroyPembayaran')->name('pembayaran_trainer.destroy');
         });
+        Route::get('/member-trainer/{id}/edit', 'edit')->middleware(RoleMiddleware::class . ':admin|spv')->name('membertrainer.edit');
     });
 
     // Route untuk Alat Gym

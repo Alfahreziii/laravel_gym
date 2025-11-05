@@ -8,6 +8,8 @@ use App\Models\Anggota;
 use App\Models\PaketPersonalTrainer;
 use App\Models\Trainer;
 use App\Models\PembayaranMemberTrainer;
+use App\Models\SesiMemberTrainer;
+use App\Models\SesiTrainer;
 use App\Models\AkunKeuangan;
 use App\Models\TransaksiKeuangan;
 use Illuminate\Support\Facades\DB;
@@ -46,8 +48,9 @@ class MemberTrainerController extends Controller
         DB::beginTransaction();
         try {
             $kodeTransaksi = 'TRX-' . date('Ymd') . '-' . strtoupper(uniqid());
+            $paket = PaketPersonalTrainer::findOrFail($request->id_paket_personal_trainer);
 
-            // 1️⃣ Simpan member trainer
+            // 1️⃣ Simpan member trainer dengan sesi = jumlah_sesi paket (sisa sesi yang tersedia)
             $memberTrainer = MemberTrainer::create([
                 'kode_transaksi'            => $kodeTransaksi,
                 'id_anggota'                => $request->id_anggota,
@@ -56,12 +59,17 @@ class MemberTrainerController extends Controller
                 'diskon'                    => $request->diskon ?? 0,
                 'total_biaya'               => $request->total_biaya,
                 'status_pembayaran'         => $request->jumlah_bayar >= $request->total_biaya ? 'Lunas' : 'Belum Lunas',
+                'sesi'                      => $paket->jumlah_sesi, // ✅ Sisa sesi yang tersedia = jumlah sesi paket
             ]);
 
-            // 2️⃣ Catat piutang awal (Debit Piutang, Kredit Pendapatan PT)
+            // 2️⃣ Update sesi_belum_dijalani trainer
+            $trainer = Trainer::findOrFail($request->id_trainer);
+            $trainer->increment('sesi_belum_dijalani', $paket->jumlah_sesi);
+
+            // 3️⃣ Catat piutang awal (Debit Piutang, Kredit Pendapatan PT)
             $this->createPiutangAwalPersonalTrainer($memberTrainer);
 
-            // 3️⃣ Simpan pembayaran pertama
+            // 4️⃣ Simpan pembayaran pertama
             $pembayaran = PembayaranMemberTrainer::create([
                 'id_member_trainer' => $memberTrainer->id,
                 'tgl_bayar'         => $request->tgl_bayar,
@@ -69,7 +77,7 @@ class MemberTrainerController extends Controller
                 'metode_pembayaran' => $request->metode_pembayaran,
             ]);
 
-            // 4️⃣ Catat transaksi keuangan pembayaran (Debit Kas, Kredit Piutang)
+            // 5️⃣ Catat transaksi keuangan pembayaran (Debit Kas, Kredit Piutang)
             $this->createTransaksiKeuanganForPembayaran(
                 $pembayaran,
                 $memberTrainer,
@@ -96,7 +104,7 @@ class MemberTrainerController extends Controller
 
     public function show($id)
     {
-        $memberTrainer = MemberTrainer::with('pembayaranMemberTrainers')->findOrFail($id);
+        $memberTrainer = MemberTrainer::with(['pembayaranMemberTrainers', 'sesiLogs'])->findOrFail($id);
         return view('pages.membertrainer.show', compact('memberTrainer'));
     }
 
@@ -221,6 +229,8 @@ class MemberTrainerController extends Controller
         DB::beginTransaction();
         try {
             $memberTrainer = MemberTrainer::findOrFail($id);
+            $trainer = $memberTrainer->trainer;
+            $paket = $memberTrainer->paketPersonalTrainer;
 
             // Hapus semua pembayaran dan transaksi keuangan terkait pembayaran
             foreach ($memberTrainer->pembayaranMemberTrainers as $pembayaran) {
@@ -234,6 +244,23 @@ class MemberTrainerController extends Controller
             TransaksiKeuangan::where('referensi_id', $memberTrainer->id)
                 ->where('referensi_tabel', 'member_trainers')
                 ->delete();
+
+            // Hapus log sesi
+            $memberTrainer->sesiLogs()->delete();
+
+            // ✅ PERBAIKAN: Hitung sesi yang sudah dijalani dan sisa sesi
+            $sesiSudahDijalani = $paket->jumlah_sesi - $memberTrainer->sesi; // Misal: 10 - 7 = 3 sesi sudah dijalani
+            $sisaSesi = $memberTrainer->sesi; // Sisa sesi yang belum dijalani = 7
+
+            // Kurangi sesi_belum_dijalani trainer (kembalikan sesi yang belum dijalani)
+            if ($sisaSesi > 0) {
+                $trainer->decrement('sesi_belum_dijalani', $sisaSesi);
+            }
+            
+            // Kurangi sesi_sudah_dijalani trainer (kembalikan sesi yang sudah dijalani)
+            if ($sesiSudahDijalani > 0) {
+                $trainer->decrement('sesi_sudah_dijalani', $sesiSudahDijalani);
+            }
 
             // Hapus member trainer
             $memberTrainer->delete();
@@ -351,15 +378,10 @@ class MemberTrainerController extends Controller
     // FUNGSI HELPER UNTUK TRANSAKSI KEUANGAN
     // =====================================================
 
-    /**
-     * Catat piutang awal saat member trainer dibuat
-     * Jurnal: Debit Piutang, Kredit Pendapatan Personal Trainer
-     */
     protected function createPiutangAwalPersonalTrainer($memberTrainer)
     {
-        // Gunakan akun pendapatan PT (bisa MOD004 atau buat baru)
-        $akunPendapatan = AkunKeuangan::where('kode', 'MOD004')->first(); // Pendapatan Personal Trainer
-        $akunPiutang = AkunKeuangan::where('kode', 'AST002')->first(); // Piutang Usaha
+        $akunPendapatan = AkunKeuangan::where('kode', 'MOD004')->first();
+        $akunPiutang = AkunKeuangan::where('kode', 'AST002')->first();
 
         if (!$akunPendapatan || !$akunPiutang) {
             Log::error('Akun keuangan tidak ditemukan untuk pencatatan piutang PT', [
@@ -368,7 +390,6 @@ class MemberTrainerController extends Controller
             throw new \Exception('Konfigurasi akun keuangan tidak lengkap. Pastikan akun MOD004 dan AST002 tersedia.');
         }
 
-        // Cek apakah sudah pernah dicatat (avoid duplicate)
         $sudahDicatat = TransaksiKeuangan::where('referensi_id', $memberTrainer->id)
             ->where('referensi_tabel', 'member_trainers')
             ->where('akun_id', $akunPiutang->id)
@@ -386,7 +407,6 @@ class MemberTrainerController extends Controller
         $namaTrainer = $memberTrainer->trainer->name ?? 'Trainer';
         $tanggal = $memberTrainer->created_at ?? now();
 
-        // DEBIT: Piutang Usaha (Aset bertambah)
         TransaksiKeuangan::create([
             'akun_id' => $akunPiutang->id,
             'deskripsi' => "Piutang PT dari {$namaAnggota} dengan trainer {$namaTrainer}",
@@ -397,7 +417,6 @@ class MemberTrainerController extends Controller
             'referensi_tabel' => 'member_trainers',
         ]);
 
-        // KREDIT: Pendapatan Personal Trainer (Modal/Pendapatan bertambah)
         TransaksiKeuangan::create([
             'akun_id' => $akunPendapatan->id,
             'deskripsi' => "Pendapatan PT dari {$namaAnggota} dengan trainer {$namaTrainer}",
@@ -414,14 +433,10 @@ class MemberTrainerController extends Controller
         ]);
     }
 
-    /**
-     * Catat transaksi keuangan untuk setiap pembayaran
-     * Jurnal: Debit Kas, Kredit Piutang
-     */
     protected function createTransaksiKeuanganForPembayaran($pembayaran, $memberTrainer, $jumlah, $tanggal, $keteranganPrefix = 'Pembayaran personal trainer')
     {
-        $akunKas = AkunKeuangan::where('kode', 'AST001')->first(); // Kas
-        $akunPiutang = AkunKeuangan::where('kode', 'AST002')->first(); // Piutang Usaha
+        $akunKas = AkunKeuangan::where('kode', 'AST001')->first();
+        $akunPiutang = AkunKeuangan::where('kode', 'AST002')->first();
 
         if (!$akunKas || !$akunPiutang) {
             Log::error('Akun keuangan tidak ditemukan untuk pembayaran PT', [
@@ -434,7 +449,6 @@ class MemberTrainerController extends Controller
         $namaTrainer = $memberTrainer->trainer->name ?? 'Trainer';
         $metodePembayaran = $pembayaran->metode_pembayaran ?? 'Tunai';
 
-        // DEBIT: Kas (bertambah karena menerima uang)
         TransaksiKeuangan::create([
             'akun_id' => $akunKas->id,
             'deskripsi' => "{$keteranganPrefix} dari {$namaAnggota} (Trainer: {$namaTrainer}) via {$metodePembayaran}",
@@ -445,7 +459,6 @@ class MemberTrainerController extends Controller
             'referensi_tabel' => 'pembayaran_member_trainers',
         ]);
 
-        // KREDIT: Piutang Usaha (berkurang karena dilunasi)
         TransaksiKeuangan::create([
             'akun_id' => $akunPiutang->id,
             'deskripsi' => "{$keteranganPrefix} dari {$namaAnggota} (Trainer: {$namaTrainer})",
@@ -464,9 +477,6 @@ class MemberTrainerController extends Controller
         ]);
     }
 
-    /**
-     * Update transaksi piutang dan pendapatan saat total biaya berubah
-     */
     protected function updatePiutangDanPendapatan($memberTrainer, $totalBiayaLama, $totalBiayaBaru)
     {
         $akunPendapatan = AkunKeuangan::where('kode', 'MOD004')->first();
@@ -482,7 +492,6 @@ class MemberTrainerController extends Controller
         $namaTrainer = $memberTrainer->trainer->name ?? 'Trainer';
 
         if ($selisih > 0) {
-            // Total biaya bertambah: tambah piutang dan pendapatan
             TransaksiKeuangan::create([
                 'akun_id' => $akunPiutang->id,
                 'deskripsi' => "Penyesuaian piutang PT {$namaAnggota} (Trainer: {$namaTrainer}) - naik",
@@ -503,7 +512,6 @@ class MemberTrainerController extends Controller
                 'referensi_tabel' => 'member_trainers',
             ]);
         } elseif ($selisih < 0) {
-            // Total biaya berkurang: kurangi piutang dan pendapatan
             $selisihAbs = abs($selisih);
 
             TransaksiKeuangan::create([

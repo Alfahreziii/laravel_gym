@@ -55,6 +55,8 @@
                             <th scope="col">Nama</th>
                             <th scope="col">No Telp</th>
                             <th scope="col">Spesialisasi</th>
+                            <th scope="col">Sesi Belum Dijalani</th>
+                            <th scope="col">Sesi Sudah Dijalani</th>
                             <th scope="col">Experience</th>
                             <th scope="col">Tanggal Gabung</th>
                             <th scope="col">Status</th>
@@ -81,6 +83,8 @@
                             <td class="whitespace-nowrap">
                                 {{ $trainer->specialisasi ? $trainer->specialisasi->nama_specialisasi : '-' }}
                             </td>
+                            <td class="whitespace-nowrap">{{ $trainer->sesi_belum_dijalani }}</td>
+                            <td class="whitespace-nowrap">{{ $trainer->sesi_sudah_dijalani }}</td>
                             <td class="whitespace-nowrap">{{ $trainer->experience }}</td>
                             <td class="whitespace-nowrap">{{ $trainer->tgl_gabung->format('d-m-Y') }}</td>
                             <td class="whitespace-nowrap">

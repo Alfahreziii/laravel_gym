@@ -49,6 +49,7 @@
                             <th>Kode Transaksi</th>
                             <th>Nama Anggota</th>
                             <th>Nama Trainer</th>
+                            <th>Sesi</th>
                             <th>Paket</th>
                             <th>Status Pembayaran</th>
                             <th>Total Biaya</th>
@@ -64,6 +65,7 @@
                             <td class="whitespace-nowrap"><a class="text-primary-600" href="{{ route('membertrainer.edit', $item->id) }}">{{ $item->kode_transaksi }}</a></td>
                             <td class="whitespace-nowrap">{{ $item->anggota->name ?? '-' }}</td>
                             <td class="whitespace-nowrap">{{ $item->trainer->name ?? '-' }}</td>
+                            <td class="whitespace-nowrap">{{ $item->sesi }} / {{ $item->paketPersonalTrainer->jumlah_sesi }}</td>
                             <td class="whitespace-nowrap">{{ $item->PaketPersonalTrainer->nama_paket ?? '-' }}</td>
                             <td class="whitespace-nowrap">
                                 @if($item->status_pembayaran === 'Lunas')
