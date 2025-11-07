@@ -2,17 +2,16 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable, HasRoles;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -20,9 +19,10 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $fillable = [
         'name',
-        'trainer_id',
         'email',
         'password',
+        'trainer_id',
+        'photo',
         'last_activity',
     ];
 
@@ -41,8 +41,6 @@ class User extends Authenticatable implements MustVerifyEmail
      *
      * @return array<string, string>
      */
-    protected $dates = ['last_activity']; // Laravel otomatis konversi ke Carbon
-
     protected function casts(): array
     {
         return [
@@ -50,5 +48,106 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'last_activity' => 'datetime',
         ];
+    }
+
+    /**
+     * Relasi ke Trainer (One to One)
+     */
+    public function trainer()
+    {
+        return $this->belongsTo(Trainer::class, 'trainer_id');
+    }
+
+    /**
+     * Check if user is a trainer
+     */
+    public function isTrainer()
+    {
+        return $this->hasRole('trainer') && $this->trainer_id !== null;
+    }
+
+    /**
+     * Check if user is admin
+     */
+    public function isAdmin()
+    {
+        return $this->hasRole('admin');
+    }
+
+    /**
+     * Check if user is supervisor
+     */
+    public function isSupervisor()
+    {
+        return $this->hasRole('spv');
+    }
+
+    /**
+     * Check if user is guest
+     */
+    public function isGuest()
+    {
+        return $this->hasRole('guest');
+    }
+
+    /**
+     * Get trainer data if user is trainer
+     */
+    public function getTrainerDataAttribute()
+    {
+        return $this->isTrainer() ? $this->trainer : null;
+    }
+
+    /**
+     * Get photo URL
+     */
+    public function getPhotoUrlAttribute()
+    {
+        if ($this->photo) {
+            return asset('storage/' . $this->photo);
+        }
+        
+        // Default avatar
+        return asset('assets/images/user-grid/user-grid-img14.png');
+    }
+
+    /**
+     * Get initials from name
+     */
+    public function getInitialsAttribute()
+    {
+        $words = explode(' ', $this->name);
+        $initials = '';
+        
+        foreach ($words as $word) {
+            $initials .= strtoupper(substr($word, 0, 1));
+        }
+        
+        return substr($initials, 0, 2);
+    }
+
+    /**
+     * Get role name
+     */
+    public function getRoleNameAttribute()
+    {
+        $role = $this->roles->first();
+        return $role ? ucfirst($role->name) : 'No Role';
+    }
+
+    /**
+     * Get formatted created date
+     */
+    public function getJoinedDateAttribute()
+    {
+        return $this->created_at->format('d M Y');
+    }
+
+    /**
+     * Get last activity human readable
+     */
+    public function getLastActivityHumanAttribute()
+    {
+        return $this->last_activity ? $this->last_activity->diffForHumans() : 'Never';
     }
 }

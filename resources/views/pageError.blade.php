@@ -17,6 +17,7 @@
                     if($roles->contains('guest')) $homeRoute = route('kehadiranmember.index');
                     elseif($roles->contains('admin')) $homeRoute = route('dashboard');
                     elseif($roles->contains('spv')) $homeRoute = route('dashboard');
+                    elseif($roles->contains('trainer')) $homeRoute = route('trainer.dashboard');
                 }
             @endphp
 

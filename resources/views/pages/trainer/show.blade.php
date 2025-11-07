@@ -17,9 +17,9 @@
                     {{-- Foto --}}
                     <div class="col-span-12">
                         <label class="form-label">Foto</label>
-                        @if($trainer->photo)
+                        @if($trainer->user->photo)
                             <div class="mb-2">
-                                <img src="{{ asset('storage/'.$trainer->photo) }}" alt="Foto Trainer" class="h-24 rounded-md">
+                                <img src="{{ asset('storage/'.$trainer->user->photo) }}" alt="Foto Trainer" class="h-24 rounded-md">
                             </div>
                         @else
                             <p>Tidak ada foto</p>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use App\Helpers\RoleRedirectHelper;
 
 class EmailVerificationNotificationController extends Controller
 {
@@ -13,11 +14,14 @@ class EmailVerificationNotificationController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->intended(route('dashboard', absolute: false));
+        $user = $request->user();
+
+        if ($user->hasVerifiedEmail()) {
+            // ✅ Gunakan helper agar redirect sesuai role
+            return redirect()->intended(RoleRedirectHelper::redirectBasedOnRole($user));
         }
 
-        $request->user()->sendEmailVerificationNotification();
+        $user->sendEmailVerificationNotification();
 
         return back()->with('status', 'verification-link-sent');
     }

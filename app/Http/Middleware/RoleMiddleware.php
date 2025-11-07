@@ -14,8 +14,9 @@ class RoleMiddleware
             return redirect()->route('login');
         }
 
+        // Cegah akses jika email belum diverifikasi
         if (!Auth::user()->hasVerifiedEmail()) {
-            return $next($request);
+            return redirect()->route('verification.notice');
         }
 
         // Bisa menerima beberapa role, pisahkan dengan '|'
@@ -30,4 +31,3 @@ class RoleMiddleware
         abort(403, 'Anda tidak memiliki akses.');
     }
 }
-

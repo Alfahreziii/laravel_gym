@@ -15,6 +15,7 @@ class RoleRedirectHelper
             'admin' => route('dashboard'),
             'guest' => route('kehadiranmember.index'),
             'spv'   => route('dashboard'),
+            'trainer'   => route('trainer.dashboard'),
         ];
 
         foreach ($user->getRoleNames() as $role) {

@@ -14,8 +14,6 @@ class Trainer extends Model
     protected $fillable = [
         'id_specialisasi',
         'rfid',
-        'photo',
-        'name',
         'no_telp',
         'experience',
         'tgl_gabung',
@@ -34,7 +32,18 @@ class Trainer extends Model
         'tgl_lahir' => 'date',
     ];
 
-    protected $appends = ['training_status'];
+    protected $appends = ['training_status', 'name', 'status_label'];
+
+    // Status constants
+    const STATUS_PENDING = 'pending';
+    const STATUS_NONAKTIF = 'nonaktif';
+    const STATUS_AKTIF = 'aktif';
+
+    // Relasi ke User
+    public function user()
+    {
+        return $this->hasOne(User::class, 'trainer_id', 'id');
+    }
 
     // Relasi ke Specialisasi
     public function specialisasi()
@@ -64,7 +73,38 @@ class Trainer extends Model
     }
 
     /**
-     * Get active training session (dinamis, tidak disimpan di database)
+     * Get trainer name from user relationship
+     */
+    public function getNameAttribute()
+    {
+        return $this->user ? $this->user->name : 'N/A';
+    }
+
+    /**
+     * Get status label with badge color
+     */
+    public function getStatusLabelAttribute()
+    {
+        $labels = [
+            self::STATUS_PENDING => [
+                'text' => 'Menunggu Verifikasi Email',
+                'class' => 'bg-warning-600 text-danger-600 px-4 py-1.5 rounded-full font-medium text-sm'
+            ],
+            self::STATUS_NONAKTIF => [
+                'text' => 'Tidak Aktif',
+                'class' => 'bg-danger-100 text-danger-600 px-4 py-1.5 rounded-full font-medium text-sm'
+            ],
+            self::STATUS_AKTIF => [
+                'text' => 'Aktif',
+                'class' => 'bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm'
+            ],
+        ];
+
+        return $labels[$this->status] ?? $labels[self::STATUS_PENDING];
+    }
+
+    /**
+     * Get active training session
      */
     public function getActiveSessionAttribute()
     {
@@ -75,8 +115,7 @@ class Trainer extends Model
     }
 
     /**
-     * Get training status (dinamis)
-     * Returns: 'open' (sedang melatih), 'available' (tidak sedang melatih)
+     * Get training status
      */
     public function getTrainingStatusAttribute()
     {
@@ -89,5 +128,23 @@ class Trainer extends Model
     public function isTraining()
     {
         return $this->training_status === 'open';
+    }
+
+    /**
+     * Scope untuk trainer yang sudah verifikasi email
+     */
+    public function scopeVerified($query)
+    {
+        return $query->whereHas('user', function($q) {
+            $q->whereNotNull('email_verified_at');
+        });
+    }
+
+    /**
+     * Scope untuk trainer yang aktif
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('status', self::STATUS_AKTIF);
     }
 }

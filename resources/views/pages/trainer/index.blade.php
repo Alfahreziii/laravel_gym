@@ -49,6 +49,7 @@
                 <table id="selection-table" class="border border-neutral-200 rounded-lg border-separate">
                     <thead>
                         <tr>
+                            <th hidden>Status Text</th>
                             <th scope="col">S.L</th>
                             <th scope="col">RFID</th>
                             <th scope="col">Foto</th>
@@ -60,20 +61,22 @@
                             <th scope="col">Experience</th>
                             <th scope="col">Tanggal Gabung</th>
                             <th scope="col">Status</th>
+                            <th scope="col"></th>
                             <th scope="col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($trainers as $index => $trainer)
                         <tr>
+                            <td hidden>{{ $trainer->status }}</td>
                             <td class="whitespace-nowrap">{{ $index + 1 }}</td>
                             <td class="whitespace-nowrap">{{ $trainer->rfid }}</td>
                             <td class="whitespace-nowrap">
-                                @if($trainer->photo)
-                                    <img src="{{ asset('storage/' . $trainer->photo) }}" 
+                                @if($trainer->user->photo)
+                                    <img src="{{ asset('storage/' . $trainer->user->photo) }}" 
                                         alt="Photo {{ $trainer->name }}" 
                                         class="w-10 h-10 rounded-full object-cover cursor-pointer trainer-photo"
-                                        data-photo="{{ asset('storage/' . $trainer->photo) }}">
+                                        data-photo="{{ asset('storage/' . $trainer->user->photo) }}">
                                 @else
                                     <span class="text-gray-400 italic">No photo</span>
                                 @endif
@@ -88,12 +91,43 @@
                             <td class="whitespace-nowrap">{{ $trainer->experience }}</td>
                             <td class="whitespace-nowrap">{{ $trainer->tgl_gabung->format('d-m-Y') }}</td>
                             <td class="whitespace-nowrap">
-                                @if($trainer->status === 'aktif')
-                                    <span class="bg-success-100 text-success-600 px-6 py-1.5 rounded-full font-medium text-sm">Aktif</span>
-                                @elseif($trainer->status === 'nonaktif')
-                                    <span class="bg-warning-100 text-warning-600 px-6 py-1.5 rounded-full font-medium text-sm">Tidak Aktif</span>
-                                @endif
+                                {{-- Status label --}}
+                                <span class="{{ $trainer->status_label['class'] }}">
+                                    {{ $trainer->status_label['text'] }}
+                                </span>
+
+                                {{-- ✅ Tambahkan teks status tersembunyi agar bisa di-search --}}
+                                <span class="hidden">
+                                    {{ $trainer->status }}
+                                </span>
                             </td>
+                            <td class="whitespace-nowrap">
+                                {{-- Tombol Update Status --}}
+                                @role('spv|admin')
+                                    @if($trainer->status !== 'aktif')
+                                        <form action="{{ route('trainer.update-status', $trainer) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            @method('PATCH')
+                                            <input type="hidden" name="status" value="aktif">
+                                            <button type="submit" class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm">
+                                                Izinkan Akses
+                                            </button>
+                                        </form>
+                                    @endif
+                                    
+                                    @if($trainer->status === 'aktif')
+                                        <form action="{{ route('trainer.update-status', $trainer) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            @method('PATCH')
+                                            <input type="hidden" name="status" value="nonaktif">
+                                            <button type="submit" class="bg-danger-100 text-danger-600 px-4 py-1.5 rounded-full font-medium text-sm">
+                                                Batasi Akses
+                                            </button>
+                                        </form>
+                                    @endif
+                                @endrole
+                            </td>
+
                             <td class="whitespace-nowrap">
                                 @role('spv|admin')
                                 <a href="{{ route('trainer.show', $trainer->id) }}" class="btn-view-detail w-8 h-8 bg-primary-50 text-primary-600 rounded-full inline-flex items-center justify-center">
@@ -181,6 +215,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 });
             });
         });
+
+        $('#selection-table').DataTable({
+            columnDefs: [
+                { targets: [0], visible: false, searchable: true },
+                { targets: [12], searchable: false } 
+            ]
+        });
+
     });
 </script>
 @endsection

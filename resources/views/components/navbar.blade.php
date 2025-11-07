@@ -17,18 +17,34 @@
         </div>
         <div class="col-auto">
             <div class="flex flex-wrap items-center gap-3">
-                <!-- Notification Start  -->
-                <button data-dropdown-toggle="dropdownNotification" class="has-indicator relative w-10 h-10 flex justify-center items-center" type="button">
-                    <iconify-icon icon="iconoir:bell" class="text-neutral-900 text-xl"></iconify-icon>
-                    @if($lowStockProducts->count() > 0)
-                        <span class="indicator bg-danger-600 border-2 border-white dark:border-neutral-700 absolute rounded-full w-4 h-4 top-0 right-0 text-white text-xs">{{ $lowStockProducts->count() }}</span>
-                    @else
-                        <span class="indicator hidden bg-danger-600 border-2 border-white dark:border-neutral-700 absolute rounded-full w-4 h-4 top-0 right-0 text-white text-xs">{{ $lowStockProducts->count() }}</span>
-                    @endif    
-                </button>
-                <div id="dropdownNotification" class="z-10 hidden bg-white dark:bg-neutral-700 rounded-2xl overflow-hidden shadow-lg max-w-[394px] w-full">
-                    <div class="scroll-sm !border-t-0">
-                        <div class="max-h-[400px] overflow-y-auto">
+            <!-- Notification Start -->
+            <button data-dropdown-toggle="dropdownNotification" class="has-indicator relative w-10 h-10 flex justify-center items-center" type="button">
+                <iconify-icon icon="iconoir:bell" class="text-neutral-900 text-xl"></iconify-icon>
+                
+                @php
+                    $totalNotifications = 0;
+                    
+                    // Hitung notifikasi berdasarkan role
+                    if(Auth::user()->hasRole(['admin', 'spv'])) {
+                        $totalNotifications = $lowStockProducts->count();
+                    } elseif(Auth::user()->hasRole('trainer')) {
+                        $totalNotifications = $trainerNotifications->count();
+                    }
+                @endphp
+                
+                @if($totalNotifications > 0)
+                    <span class="indicator bg-danger-600 border-2 border-white dark:border-neutral-700 absolute rounded-full w-4 h-4 top-0 right-0 text-white text-xs">
+                        {{ $totalNotifications }}
+                    </span>
+                @endif
+            </button>
+
+            <div id="dropdownNotification" class="z-10 hidden bg-white dark:bg-neutral-700 rounded-2xl overflow-hidden shadow-lg max-w-[394px] w-full">
+                <div class="scroll-sm !border-t-0">
+                    <div class="max-h-[400px] overflow-y-auto">
+                        
+                        {{-- Notifikasi untuk Admin & SPV --}}
+                        @if(Auth::user()->hasRole(['admin', 'spv']))
                             @forelse($lowStockProducts as $product)
                                 <a href="javascript:void(0)" class="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-600 justify-between gap-1">
                                     <div class="flex items-center gap-3">
@@ -51,10 +67,33 @@
                                     Semua stok aman ✅
                                 </div>
                             @endforelse
-                        </div>
+                        @endif
+
+                        {{-- Notifikasi untuk Trainer --}}
+                        @if(Auth::user()->hasRole('trainer'))
+                            @forelse($trainerNotifications as $notif)
+                                <a href="{{ $notif['url'] }}" class="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-600 justify-between gap-1">
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex-shrink-0 relative w-11 h-11 bg-{{ $notif['color'] }}-100 text-{{ $notif['color'] }}-600 flex justify-center items-center rounded-full">
+                                            <iconify-icon icon="{{ $notif['icon'] }}" class="text-2xl"></iconify-icon>
+                                        </div>
+                                        <div>
+                                            <h6 class="text-sm fw-semibold mb-1">{{ $notif['title'] }}</h6>
+                                            <p class="mb-0 text-sm line-clamp-1">{{ $notif['message'] }}</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            @empty
+                                <div class="text-center py-3 text-sm text-neutral-500">
+                                    Tidak ada notifikasi 🎉
+                                </div>
+                            @endforelse
+                        @endif
+
                     </div>
                 </div>
-                <!-- Notification End  -->
+            </div>
+            <!-- Notification End -->
 
                 <button data-dropdown-toggle="dropdownProfile" id="profileToggle"
                     class="flex justify-center items-center rounded-full gap-1" type="button">

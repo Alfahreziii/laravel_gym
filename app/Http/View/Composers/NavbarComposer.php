@@ -4,19 +4,25 @@ namespace App\Http\View\Composers;
 
 use Illuminate\View\View;
 use App\Models\Product;
+use Illuminate\Support\Facades\Auth;
 
 class NavbarComposer
 {
     public function compose(View $view)
     {
-        // Ambil produk yang stok-nya di bawah reorder level
-        $lowStockProducts = Product::whereColumn('quantity', '<', 'reorder')
-            ->where('is_active', true) // hanya produk aktif (opsional)
-            ->orderBy('quantity', 'asc')
-            ->take(5)
-            ->get();
+        $user = Auth::user();
+        
+        // Hanya SPV dan Admin yang bisa lihat notifikasi stok
+        if ($user && ($user->hasRole('spv') || $user->hasRole('admin'))) {
+            $lowStockProducts = Product::whereColumn('quantity', '<', 'reorder')
+                ->where('is_active', true)
+                ->orderBy('quantity', 'asc')
+                ->take(5)
+                ->get();
+        } else {
+            $lowStockProducts = collect([]);
+        }
 
-        // Kirim ke view navbar
         $view->with('lowStockProducts', $lowStockProducts);
     }
 }

@@ -20,9 +20,9 @@
             </li>  
             @endhasanyrole
 
+            @hasanyrole('spv|admin')
             <li class="sidebar-menu-group-title">Membership / GYM</li>
 
-            @hasanyrole('spv|admin')
             <li>
                 <a href="{{ route('anggota.index') }}">
                     <iconify-icon icon="flowbite:users-group-outline" class="menu-icon"></iconify-icon>
@@ -179,6 +179,22 @@
                 <ul class="sidebar-submenu">
                     <li>
                         <a href="{{ route('neraca.index') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Neraca</a>
+                    </li>
+                </ul>
+            </li>
+            @endhasanyrole
+
+            @hasanyrole('trainer')
+            <li class="sidebar-menu-group-title">Trainer Dashboard</li>
+            
+            <li class="dropdown">
+                <a href="javascript:void(0)">
+                    <iconify-icon icon="solar:home-smile-angle-outline" class="menu-icon"></iconify-icon>
+                    <span>Dashboard</span>
+                </a>
+                <ul class="sidebar-submenu">
+                    <li>
+                        <a href="{{ route('trainer.dashboard') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Dashboard</a>
                     </li>
                 </ul>
             </li>

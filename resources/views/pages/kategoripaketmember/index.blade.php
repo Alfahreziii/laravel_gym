@@ -14,7 +14,7 @@
         <div class="flex items-center gap-4">
             {{ session('success') }}
         </div>
-        <button class="remove-button text-success-600 text-2xl">                                         <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
+        <button class="remove-button text-success-600 text-2xl"><iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
         </button>
     </div>
 @endif

@@ -50,7 +50,8 @@ Route::controller(NoRoleController::class)->group(function () {
     Route::delete('/absen-trainer/{kehadirantrainer}', 'destroytrainer')->name('absentrainer.destroy');
 });
 
-Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
+// Trainer Route
+Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddleware::class . ':trainer'])->group(function () {
     Route::get('/trainer/dashboard', [TrainerDashboardController::class, 'index'])
         ->name('trainer.dashboard');
     
@@ -206,7 +207,6 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     // Route untuk Trainer
     Route::controller(TrainerController::class)->group(function () {
         Route::get('/trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('trainer.index');
-        
         Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
             Route::get('/trainer/create', 'create')->name('trainer.create');
             Route::post('/trainer', 'store')->name('trainer.store');
@@ -214,6 +214,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
             Route::put('/trainer/{trainer}', 'update')->name('trainer.update');
             Route::delete('/trainer/{trainer}', 'destroy')->name('trainer.destroy');
         });
+        Route::patch('/trainer/{trainer}/update-status', 'updateStatus')->name('trainer.update-status')->middleware(RoleMiddleware::class . ':admin'); // Sesuaikan middleware
         Route::get('/trainer/{trainer}', 'show')->middleware(RoleMiddleware::class . ':admin|spv')->name('trainer.show');
     });
 
@@ -261,12 +262,26 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     // Route Untuk Users
     Route::prefix('users')->group(function () {
         Route::controller(UsersController::class)->group(function () {
-            Route::get('/users-list', 'usersList')->middleware(RoleMiddleware::class . ':admin|spv')->name('usersList');
-            Route::get('/view-profile', 'viewProfile')->middleware(RoleMiddleware::class . ':admin|spv')->name('viewProfile');
+            // Public untuk semua user yang login
+            Route::middleware(['auth'])->group(function () {
+                Route::get('/view-profile', 'viewProfile')->name('viewProfile');
+                Route::patch('/profile/update', 'updateProfile')->name('users.profile.update');
+                Route::patch('/profile/password/update', 'updatePassword')->name('users.profile.password.update');
+                Route::delete('/profile/photo/delete', 'deletePhoto')->name('users.profile.photo.delete');
+
+                Route::patch('/trainer/profile/update', 'updateTrainerProfile')
+                    ->name('users.trainer.profile.update')
+                    ->middleware(RoleMiddleware::class . ':trainer');
+            });
+            
+            // Admin & SPV only
+            Route::middleware([RoleMiddleware::class . ':admin|spv'])->group(function () {
+                Route::get('/users-list', 'usersList')->name('usersList');
+            });
         
+            // Admin only
             Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
                 Route::put('/role/update/{id}', 'update')->name('role.update');
-                // Optional: Bulk update
                 Route::post('/role/bulk-update', 'bulkUpdate')->name('role.bulk-update');
             });
         });
