@@ -35,6 +35,10 @@ use App\Http\Middleware\LastActivityMiddleware;
 use App\Http\Controllers\NeracaController;
 use App\Http\Controllers\NoRoleController;
 use App\Http\Controllers\TrainerDashboardController;
+use App\Http\Controllers\TrainerRegisterController;
+
+Route::get('/register/trainer', [TrainerRegisterController::class, 'showForm'])->name('register.trainer');
+Route::post('/register/trainer', [TrainerRegisterController::class, 'register'])->name('register.trainer.submit');
 
 Route::controller(NoRoleController::class)->group(function () {
     Route::get('/absen', 'index')->name('absen.index');

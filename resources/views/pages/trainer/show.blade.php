@@ -27,9 +27,14 @@
                     </div>
 
                     {{-- RFID --}}
-                    <div class="col-span-12">
+                    <div class="col-span-12 md:col-span-6">
                         <label class="form-label">RFID</label>
                         <p class="form-control bg-gray-100">{{ $trainer->rfid }}</p>
+                    </div>
+                    {{-- Email --}}
+                    <div class="col-span-12 md:col-span-6">
+                        <label class="form-label">Email</label>
+                        <p class="form-control bg-gray-100">{{ $trainer->user->email }}</p>
                     </div>
 
                     {{-- Nama --}}

@@ -472,10 +472,73 @@
                                 </form>
                             @endif
                         </div>
-                        
                         {{-- Change Password Tab --}}
                         <div class="hidden" id="change-password" role="tabpanel" aria-labelledby="change-password-tab">
-                            {{-- Form change password tetap sama --}}
+                            <form action="{{ route('users.profile.password.update') }}" method="POST">
+                                @csrf
+                                @method('PUT')
+                                
+                                <div class="mb-5">
+                                    <label for="current-password" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
+                                        Current Password <span class="text-danger-600">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        <input type="password" 
+                                               class="form-control rounded-lg @error('current_password') border-danger-600 @enderror" 
+                                               id="current-password" 
+                                               name="current_password"
+                                               placeholder="Enter Current Password"
+                                               required>
+                                        <span class="toggle-password ri-eye-line cursor-pointer absolute end-0 top-1/2 -translate-y-1/2 me-4 text-secondary-light" data-toggle="#current-password"></span>
+                                    </div>
+                                    @error('current_password')
+                                        <span class="text-danger-600 text-sm">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                                
+                                <div class="mb-5">
+                                    <label for="password" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
+                                        New Password <span class="text-danger-600">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        <input type="password" 
+                                               class="form-control rounded-lg @error('password') border-danger-600 @enderror" 
+                                               id="password" 
+                                               name="password"
+                                               placeholder="Enter New Password"
+                                               required>
+                                        <span class="toggle-password ri-eye-line cursor-pointer absolute end-0 top-1/2 -translate-y-1/2 me-4 text-secondary-light" data-toggle="#password"></span>
+                                    </div>
+                                    @error('password')
+                                        <span class="text-danger-600 text-sm">{{ $message }}</span>
+                                    @enderror
+                                    <small class="text-secondary-light">Minimal 8 karakter</small>
+                                </div>
+                                
+                                <div class="mb-5">
+                                    <label for="password_confirmation" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
+                                        Confirm New Password <span class="text-danger-600">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        <input type="password" 
+                                               class="form-control rounded-lg" 
+                                               id="password_confirmation" 
+                                               name="password_confirmation"
+                                               placeholder="Confirm New Password"
+                                               required>
+                                        <span class="toggle-password ri-eye-line cursor-pointer absolute end-0 top-1/2 -translate-y-1/2 me-4 text-secondary-light" data-toggle="#password_confirmation"></span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center justify-center gap-3">
+                                    <button type="reset" class="border border-danger-600 bg-hover-danger-200 text-danger-600 text-base px-14 py-[11px] rounded-lg">
+                                        Reset
+                                    </button>
+                                    <button type="submit" class="btn btn-primary border border-primary-600 text-base px-14 py-3 rounded-lg">
+                                        Update Password
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>

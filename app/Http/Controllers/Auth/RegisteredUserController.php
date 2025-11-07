@@ -47,6 +47,6 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect(RoleRedirectHelper::redirectBasedOnRole($user));
+        return redirect()->route('verification.notice')->with('status', 'verification-link-sent');
     }
 }

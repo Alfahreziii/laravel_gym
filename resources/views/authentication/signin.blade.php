@@ -75,6 +75,7 @@
 
                     <div class="mt-8 text-center text-sm">
                         <p class="mb-0">Don't have an account? <a href="{{ route('register') }}" class="text-primary-600 font-semibold hover:underline">Sign Up</a></p>
+                        <p class="mb-0 mt-2">Ingin bergabung sebagai trainer? <a href="{{ route('register.trainer') }}" class="text-primary-600 font-semibold hover:underline">Daftar di sini</a></p>
                     </div>
                 </form>
 
