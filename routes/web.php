@@ -56,6 +56,9 @@ Route::controller(NoRoleController::class)->group(function () {
 
 // Trainer Route
 Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddleware::class . ':trainer'])->group(function () {
+    Route::get('/trainer/waiting-approval', [TrainerDashboardController::class, 'waiting'])
+        ->name('trainer.waiting.approval');
+
     Route::get('/trainer/dashboard', [TrainerDashboardController::class, 'index'])
         ->name('trainer.dashboard');
     

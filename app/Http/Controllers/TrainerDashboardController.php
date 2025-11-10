@@ -31,11 +31,15 @@ class TrainerDashboardController extends Controller
 
         // Ambil semua member yang dilatih trainer ini
         $memberTrainers = MemberTrainer::with(['anggota', 'paketPersonalTrainer', 'sesiLogs'])
-            ->where('id_trainer', $trainer->id)
-            ->where('status_pembayaran', 'Lunas') // Hanya yang sudah lunas
+            ->where('id_trainer', $trainer->id) // Hanya yang sudah lunas
             ->get();
 
         return view('pages.trainer.dashboard', compact('trainer', 'memberTrainers'));
+    }
+
+    public function waiting()
+    {
+        return view('pages.trainer.waiting');
     }
 
     /**

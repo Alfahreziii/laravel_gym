@@ -24,10 +24,39 @@ class RoleMiddleware
 
         foreach ($rolesArray as $role) {
             if (Auth::user()->hasRole($role)) {
+
+                // ==== LOGIKA KHUSUS UNTUK TRAINER ====
+                if ($role === 'trainer') {
+                    $trainer = Auth::user()->trainer;
+
+                    // Pastikan data relasi trainer ada
+                    if (!$trainer) {
+                        abort(403, 'Data trainer tidak ditemukan.');
+                    }
+
+                    // Jika belum aktif → arahkan ke halaman waiting approval
+                    if ($trainer->status !== \App\Models\Trainer::STATUS_AKTIF) {
+                        // Hindari loop
+                        if (!$request->routeIs('trainer.waiting.approval')) {
+                            return redirect()->route('trainer.waiting.approval');
+                        }
+                    }
+
+                    // Jika sudah aktif dan saat ini bukan di dashboard → arahkan ke dashboard
+                    if (
+                        $trainer->status === \App\Models\Trainer::STATUS_AKTIF &&
+                        !$request->routeIs('trainer.dashboard')
+                    ) {
+                        return redirect()->route('trainer.dashboard');
+                    }
+                }
+
+                // Role cocok → lanjutkan request
                 return $next($request);
             }
         }
 
+        // Jika tidak punya role yang sesuai
         abort(403, 'Anda tidak memiliki akses.');
     }
 }
