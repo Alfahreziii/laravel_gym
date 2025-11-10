@@ -8,6 +8,29 @@
 
 @section('content')
 
+@if(session('success'))
+    <div class="alert alert-success bg-success-50 dark:bg-success-600/25 
+        text-success-600 dark:text-success-400 border-success-50 
+        px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            {{ session('success') }}
+        </div>
+        <button class="remove-button text-success-600 text-2xl">                                         
+            <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
+        </button>
+    </div>
+@endif
+@if(session('error'))
+    <div class="alert alert-danger bg-danger-100 dark:bg-danger-600/25 
+        text-danger-600 dark:text-danger-400 border-danger-100 
+        px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
+        {{ session('error') }}
+        <button class="remove-button text-danger-600 text-2xl"> 
+            <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
+        </button>
+    </div>
+@endif
+
     <!-- Status Training -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-4 3xl:grid-cols-4 gap-6 mx-auto">
         <div class="card shadow-none border border-gray-200 rounded-lg h-full bg-gradient-to-r from-cyan-600/10 to-bg-white">
@@ -95,6 +118,7 @@
                                 <th scope="col">Paket</th>
                                 <th scope="col">Sesi Selesai</th>
                                 <th scope="col">Sisa Sesi</th>
+                                <th scope="col">Status Kehadiran</th>
                                 <th scope="col">Status Sesi</th>
                                 <th scope="col">Aksi</th>
                             </tr>
@@ -102,18 +126,25 @@
                         <tbody>
                             @foreach($memberTrainers as $mt)
                             <tr class="{{ $mt->is_session_active ? 'table-warning' : '' }}">
-                                <td >
+                                <td>
                                     <strong>{{ $mt->anggota->name }}</strong><br>
                                     <small class="text-muted">{{ $mt->anggota->no_telp }}</small>
                                 </td>
-                                <td >{{ $mt->paketPersonalTrainer->nama_paket }}</td>
-                                <td >{{ $mt->sesi }} / {{ $mt->paketPersonalTrainer->jumlah_sesi }}</td>
-                                <td >
+                                <td>{{ $mt->paketPersonalTrainer->nama_paket }}</td>
+                                <td>{{ $mt->sesi }} / {{ $mt->paketPersonalTrainer->jumlah_sesi }}</td>
+                                <td>
                                     <span class="badge {{ $mt->sisa_sesi > 0 ? 'bg-info' : 'bg-secondary' }}">
                                         {{ $mt->sisa_sesi }} sesi
                                     </span>
                                 </td>
-                                <td >
+                                <td>
+                                    @if($mt->is_checked_in)
+                                        <span class="badge bg-success">✅ Hadir</span>
+                                    @else
+                                        <span class="badge bg-secondary">❌ Belum Check-in</span>
+                                    @endif
+                                </td>
+                                <td>
                                     @if($mt->is_session_active)
                                         <span class="badge bg-warning">⏳ Sedang Training</span><br>
                                         <small>Mulai: {{ $mt->session_started_at->format('H:i') }}</small>
@@ -121,19 +152,25 @@
                                         <span class="badge bg-secondary">Tidak Aktif</span>
                                     @endif
                                 </td>
-                                <td >
+                                <td>
                                     @if($mt->sisa_sesi > 0)
                                         @if(!$mt->is_session_active)
                                             @if(!$trainer->isTraining())
-                                                <!-- Tombol buka modal -->
-                                                <button type="button"
-                                                    data-modal-target="start-session-modal"
-                                                    data-modal-toggle="start-session-modal"
-                                                    data-member="{{ $mt->anggota->name }}"
-                                                    data-action="{{ route('trainer.session.start', $mt->id) }}"
-                                                    class="btn btn-sm btn-success open-start-session-modal">
-                                                    ▶️ Mulai Sesi
-                                                </button>
+                                                @if($mt->is_checked_in)
+                                                    <!-- Tombol buka modal -->
+                                                    <button type="button"
+                                                        data-modal-target="start-session-modal"
+                                                        data-modal-toggle="start-session-modal"
+                                                        data-member="{{ $mt->anggota->name }}"
+                                                        data-action="{{ route('trainer.session.start', $mt->id) }}"
+                                                        class="btn btn-sm btn-success open-start-session-modal">
+                                                        ▶️ Mulai Sesi
+                                                    </button>
+                                                @else
+                                                    <button class="btn btn-sm btn-secondary" disabled>
+                                                        Belum Check-in
+                                                    </button>
+                                                @endif
                                             @else
                                                 <button class="btn btn-sm btn-secondary" disabled>
                                                     Sedang Melatih Lainnya

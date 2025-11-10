@@ -7,6 +7,7 @@ use App\Models\Trainer;
 use App\Models\MemberTrainer;
 use App\Models\SesiMemberTrainer;
 use App\Models\SesiTrainer;
+use App\Models\KehadiranMember;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -29,10 +30,27 @@ class TrainerDashboardController extends Controller
             return redirect()->back()->with('error', 'Anda tidak terdaftar sebagai trainer.');
         }
 
+        // Ambil member yang hadir hari ini dengan status 'in'
+        $memberInGymToday = KehadiranMember::with('anggota')
+            ->whereDate('created_at', now()->toDateString())
+            ->latest()
+            ->get()
+            ->groupBy('rfid')
+            ->map(fn($items) => $items->first())
+            ->filter(fn($item) => strtolower($item->status) === 'in')
+            ->pluck('rfid')
+            ->toArray();
+
         // Ambil semua member yang dilatih trainer ini
         $memberTrainers = MemberTrainer::with(['anggota', 'paketPersonalTrainer', 'sesiLogs'])
-            ->where('id_trainer', $trainer->id) // Hanya yang sudah lunas
-            ->get();
+            ->where('id_trainer', $trainer->id)
+            ->get()
+            ->map(function($mt) use ($memberInGymToday) {
+                // Tambahkan properti is_checked_in untuk setiap member
+                // Kolom di anggota: id_kartu, kolom di kehadiran_member: rfid
+                $mt->is_checked_in = in_array($mt->anggota->id_kartu ?? null, $memberInGymToday);
+                return $mt;
+            });
 
         return view('pages.trainer.dashboard', compact('trainer', 'memberTrainers'));
     }
@@ -49,8 +67,34 @@ class TrainerDashboardController extends Controller
     {
         DB::beginTransaction();
         try {
-            $memberTrainer = MemberTrainer::with('trainer')->findOrFail($memberTrainerId);
+            $memberTrainer = MemberTrainer::with('trainer', 'anggota')->findOrFail($memberTrainerId);
             $trainer = $memberTrainer->trainer;
+
+            // Cek apakah member sudah check-in hari ini dengan status 'in'
+            // Kolom di anggota: id_kartu, kolom di kehadiran_member: rfid
+            $latestKehadiran = KehadiranMember::where('rfid', $memberTrainer->anggota->id_kartu)
+                ->whereDate('created_at', now()->toDateString())
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            // Debug log untuk melihat hasil pengecekan
+            Log::info('Check-in validation', [
+                'member_id' => $memberTrainer->anggota->id,
+                'member_name' => $memberTrainer->anggota->name,
+                'id_kartu' => $memberTrainer->anggota->id_kartu,
+                'kehadiran_found' => $latestKehadiran ? 'yes' : 'no',
+                'status' => $latestKehadiran ? $latestKehadiran->status : 'N/A'
+            ]);
+
+            if (!$latestKehadiran) {
+                DB::rollBack();
+                return redirect()->back()->with('error', 'Member belum melakukan check-in hari ini.');
+            }
+
+            if (strtolower(trim($latestKehadiran->status)) !== 'in') {
+                DB::rollBack();
+                return redirect()->back()->with('error', 'Status kehadiran member bukan "in". Status saat ini: ' . $latestKehadiran->status);
+            }
 
             // Cek apakah trainer sedang melatih member lain
             if ($trainer->isTraining()) {
