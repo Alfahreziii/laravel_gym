@@ -14,9 +14,75 @@ use App\Models\AkunKeuangan;
 use App\Models\TransaksiKeuangan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 
 class MemberTrainerController extends Controller
 {
+    public function exportPdf(Request $request)
+    {
+        try {
+            $statusFilter = $request->input('status_filter', 'all');
+            
+            // Hitung statistik dari SEMUA data (tidak terfilter)
+            $allMemberTrainers = MemberTrainer::with(['anggota', 'paketPersonalTrainer', 'trainer'])->get();
+            
+            $totalMemberTrainer = $allMemberTrainers->count();
+            $totalLunas = $allMemberTrainers->where('status_pembayaran', 'Lunas')->count();
+            $totalBelumLunas = $allMemberTrainers->where('status_pembayaran', 'Belum Lunas')->count();
+            
+            // Hitung total biaya
+            $totalPendapatan = $allMemberTrainers->sum('total_biaya');
+            $totalTerbayar = $allMemberTrainers->sum(function($item) {
+                return $item->pembayaranMemberTrainers()->sum('jumlah_bayar');
+            });
+            $totalPiutang = $totalPendapatan - $totalTerbayar;
+            
+            // Query untuk data yang akan ditampilkan (terfilter)
+            $query = MemberTrainer::with(['anggota', 'paketPersonalTrainer', 'trainer', 'pembayaranMemberTrainers']);
+            
+            // Filter berdasarkan status
+            if ($statusFilter === 'lunas') {
+                $query->where('status_pembayaran', 'Lunas');
+                $title = 'Laporan Member Trainer - Lunas';
+            } elseif ($statusFilter === 'belum_lunas') {
+                $query->where('status_pembayaran', 'Belum Lunas');
+                $title = 'Laporan Member Trainer - Belum Lunas';
+            } else {
+                $title = 'Laporan Member Trainer - Semua Data';
+            }
+            
+            $memberTrainers = $query->orderBy('created_at', 'desc')->get();
+
+            $pdf = Pdf::loadView('pages.membertrainer.pdf', compact(
+                'memberTrainers',
+                'totalMemberTrainer',
+                'totalLunas',
+                'totalBelumLunas',
+                'totalPendapatan',
+                'totalTerbayar',
+                'totalPiutang',
+                'title',
+                'statusFilter'
+            ));
+
+            $pdf->setPaper('a4', 'landscape');
+            
+            // Generate filename dengan status filter
+            $filename = 'Laporan_Member_Trainer_' . ucfirst($statusFilter) . '_' . date('Y-m-d_His') . '.pdf';
+            
+            return $pdf->download($filename);
+
+        } catch (\Exception $e) {
+            Log::error('Gagal export PDF member trainer', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->back()
+                ->with('danger', 'Gagal export PDF: ' . $e->getMessage());
+        }
+    }
     public function index()
     {
         $memberTrainers = MemberTrainer::with(['anggota', 'paketPersonalTrainer', 'trainer', 'pembayaranMemberTrainers'])

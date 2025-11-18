@@ -12,7 +12,7 @@
     <div class="sidebar-menu-area">
         <ul class="sidebar-menu" id="sidebar-menu">
             @hasanyrole('spv|admin')
-            <li>
+            <li class="{{ request()->routeIs('index') || request()->routeIs('dashboard') ? 'active' : '' }}">
                 <a href="{{ route('index') }}">
                     <iconify-icon icon="solar:home-smile-angle-outline" class="menu-icon"></iconify-icon>
                     <span>Dashboard</span>
@@ -23,7 +23,7 @@
             @hasanyrole('spv|admin')
             <li class="sidebar-menu-group-title">Membership / GYM</li>
 
-            <li>
+            <li class="{{ request()->routeIs('anggota.*') && !request()->routeIs('laporan.anggota') ? 'active' : '' }}">
                 <a href="{{ route('anggota.index') }}">
                     <iconify-icon icon="flowbite:users-group-outline" class="menu-icon"></iconify-icon>
                     <span>Member</span>
@@ -32,50 +32,64 @@
             @endhasanyrole
             
             @hasanyrole('spv|admin')
-            <li class="dropdown">
+            <li class="dropdown {{ request()->routeIs('kategori_paket_membership.*') || request()->routeIs('paket_membership.*') || (request()->routeIs('anggota_membership.*') && !request()->routeIs('laporan.membership')) ? 'open' : '' }}">
                 <a href="javascript:void(0)">
                     <iconify-icon icon="fe:vector" class="menu-icon"></iconify-icon>
                     <span>Paket Member</span>
                 </a>
                 <ul class="sidebar-submenu">
                     <li>
-                        <a class="sidebar-menu-text" href="{{ route('kategori_paket_membership.index') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Kategori Paket</a>
+                        <a class="sidebar-menu-text {{ request()->routeIs('kategori_paket_membership.*') ? 'active-page' : '' }}" href="{{ route('kategori_paket_membership.index') }}">
+                            <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Kategori Paket
+                        </a>
                     </li>
                     <li>
-                        <a class="sidebar-menu-text" href="{{ route('paket_membership.index') }}"><i class="ri-circle-fill circle-icon text-warning-600 w-auto"></i> Paket Member</a>
+                        <a class="sidebar-menu-text {{ request()->routeIs('paket_membership.*') ? 'active-page' : '' }}" href="{{ route('paket_membership.index') }}">
+                            <i class="ri-circle-fill circle-icon text-warning-600 w-auto"></i> Paket Member
+                        </a>
                     </li>
                     <li>
-                        <a class="sidebar-menu-text" href="{{ route('anggota_membership.index') }}"><i class="ri-circle-fill circle-icon text-success-600 w-auto"></i> Anggota Member</a>
+                        <a class="sidebar-menu-text {{ request()->routeIs('anggota_membership.*') && !request()->routeIs('laporan.membership') ? 'active-page' : '' }}" href="{{ route('anggota_membership.index') }}">
+                            <i class="ri-circle-fill circle-icon text-success-600 w-auto"></i> Anggota Member
+                        </a>
                     </li>
                 </ul>
             </li>    
             @endhasanyrole
 
             @hasanyrole('spv|admin')
-            <li class="dropdown">
+            <li class="dropdown {{ request()->routeIs('specialisasi.*') || request()->routeIs('paket_personal_trainer.*') || (request()->routeIs('trainer.*') && !request()->routeIs('laporan.trainer') && !request()->routeIs('trainer.dashboard') && !request()->routeIs('trainer.waiting.approval')) || (request()->routeIs('membertrainer.*') && !request()->routeIs('laporan.membertrainer')) ? 'open' : '' }}">
                 <a href="javascript:void(0)">
                     <i class="ri-open-arm-fill menu-icon mr-0-custom"></i>
                     <span>Personal Trainer</span>
                 </a>
                 <ul class="sidebar-submenu">
                     <li>
-                        <a class="sidebar-menu-text" href="{{ route('specialisasi.index') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Specialisasi</a>
+                        <a class="sidebar-menu-text {{ request()->routeIs('specialisasi.*') ? 'active-page' : '' }}" href="{{ route('specialisasi.index') }}">
+                            <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Specialisasi
+                        </a>
                     </li>
                     <li>
-                        <a class="sidebar-menu-text" href="{{ route('paket_personal_trainer.index') }}"><i class="ri-circle-fill circle-icon text-warning-600 w-auto"></i> Paket Trainer</a>
+                        <a class="sidebar-menu-text {{ request()->routeIs('paket_personal_trainer.*') ? 'active-page' : '' }}" href="{{ route('paket_personal_trainer.index') }}">
+                            <i class="ri-circle-fill circle-icon text-warning-600 w-auto"></i> Paket Trainer
+                        </a>
                     </li>
                     <li>
-                        <a class="sidebar-menu-text" href="{{ route('trainer.index') }}"><i class="ri-circle-fill circle-icon text-success-600 w-auto"></i> Trainers</a>
+                        <a class="sidebar-menu-text {{ request()->routeIs('trainer.*') && !request()->routeIs('laporan.trainer') && !request()->routeIs('trainer.dashboard') && !request()->routeIs('trainer.waiting.approval') ? 'active-page' : '' }}" href="{{ route('trainer.index') }}">
+                            <i class="ri-circle-fill circle-icon text-success-600 w-auto"></i> Trainers
+                        </a>
                     </li>
                     <li>
-                        <a class="sidebar-menu-text" href="{{ route('membertrainer.index') }}"><i class="ri-circle-fill circle-icon text-danger-600 w-auto"></i> Member Trainer</a>
+                        <a class="sidebar-menu-text {{ request()->routeIs('membertrainer.*') && !request()->routeIs('laporan.membertrainer') ? 'active-page' : '' }}" href="{{ route('membertrainer.index') }}">
+                            <i class="ri-circle-fill circle-icon text-danger-600 w-auto"></i> Member Trainer
+                        </a>
                     </li>
                 </ul>
             </li>
             @endhasanyrole
             
             @hasanyrole('spv|admin')
-            <li>
+            <li class="{{ request()->routeIs('alat_gym.*') && !request()->routeIs('laporan.alat_gym') ? 'active' : '' }}">
                 <a href="{{ route('alat_gym.index') }}">
                     <iconify-icon icon="simple-line-icons:vector" class="menu-icon"></iconify-icon>
                     <span>Alat Gym</span>
@@ -84,34 +98,93 @@
             @endhasanyrole
 
             @hasanyrole('guest|admin')
-            <li class="dropdown">
+            <li class="dropdown {{ (request()->routeIs('kehadiranmember.*') && !request()->routeIs('laporan.kehadiran')) || request()->routeIs('kehadirantrainer.*') ? 'open' : '' }}">
                 <a href="javascript:void(0)">
                     <iconify-icon icon="solar:document-text-outline" class="menu-icon"></iconify-icon>
                     <span>Kehadiran</span>
                 </a>
                 <ul class="sidebar-submenu">
                     <li>
-                        <a class="sidebar-menu-text" href="{{ route('kehadiranmember.index') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i>Member</a>
+                        <a class="sidebar-menu-text {{ request()->routeIs('kehadiranmember.*') && !request()->routeIs('laporan.kehadiran') ? 'active-page' : '' }}" href="{{ route('kehadiranmember.index') }}">
+                            <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i>Member
+                        </a>
                     </li>
                     <li>
-                        <a class="sidebar-menu-text" href="{{ route('kehadirantrainer.index') }}"><i class="ri-circle-fill circle-icon text-warning-600 w-auto"></i>Trainer</a>
+                        <a class="sidebar-menu-text {{ request()->routeIs('kehadirantrainer.*') ? 'active-page' : '' }}" href="{{ route('kehadirantrainer.index') }}">
+                            <i class="ri-circle-fill circle-icon text-warning-600 w-auto"></i>Trainer
+                        </a>
                     </li>
                 </ul>
             </li>   
             @endhasanyrole
 
             @hasanyrole('spv|admin')
-            <li class="dropdown">
+            <li class="dropdown {{ request()->routeIs('pembayaran_membership.*') || request()->routeIs('pembayaran_trainer.*') ? 'open' : '' }}">
                 <a href="javascript:void(0)">
                     <iconify-icon icon="hugeicons:invoice-03" class="menu-icon"></iconify-icon>
                     <span>Pembayaran</span>
                 </a>
                 <ul class="sidebar-submenu">
                     <li>
-                        <a class="sidebar-menu-text" href="{{ route('pembayaran_membership.index') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i>Membership</a>
+                        <a class="sidebar-menu-text {{ request()->routeIs('pembayaran_membership.*') ? 'active-page' : '' }}" href="{{ route('pembayaran_membership.index') }}">
+                            <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i>Membership
+                        </a>
                     </li>
                     <li>
-                        <a class="sidebar-menu-text" href="{{ route('pembayaran_trainer.index') }}"><i class="ri-circle-fill circle-icon text-warning-600 w-auto"></i>Trainer</a>
+                        <a class="sidebar-menu-text {{ request()->routeIs('pembayaran_trainer.*') ? 'active-page' : '' }}" href="{{ route('pembayaran_trainer.index') }}">
+                            <i class="ri-circle-fill circle-icon text-warning-600 w-auto"></i>Trainer
+                        </a>
+                    </li>
+                </ul>
+            </li>   
+            @endhasanyrole
+
+            @hasanyrole('spv|admin')
+            <li class="dropdown {{ request()->routeIs('laporan.*') ? 'open' : '' }}">
+                <a href="javascript:void(0)">
+                    <i class="ri-file-line menu-icon mr-0-custom"></i>
+                    <span>Laporan</span>
+                </a>
+                <ul class="sidebar-submenu">
+                    <li>
+                        <a class="sidebar-menu-text {{ request()->routeIs('laporan.anggota') ? 'active-page' : '' }}" href="{{ route('laporan.anggota') }}">
+                            <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i>Anggota GYM
+                        </a>
+                    </li>
+                    <li>
+                        <a class="sidebar-menu-text {{ request()->routeIs('laporan.membership') ? 'active-page' : '' }}" href="{{ route('laporan.membership') }}">
+                            <i class="ri-circle-fill circle-icon text-warning-600 w-auto"></i>Membership
+                        </a>
+                    </li>
+                    <li>
+                        <a class="sidebar-menu-text {{ request()->routeIs('laporan.trainer') ? 'active-page' : '' }}" href="{{ route('laporan.trainer') }}">
+                            <i class="ri-circle-fill circle-icon text-info-600 w-auto"></i>Trainer
+                        </a>
+                    </li>
+                    <li>
+                        <a class="sidebar-menu-text {{ request()->routeIs('laporan.membertrainer') ? 'active-page' : '' }}" href="{{ route('laporan.membertrainer') }}">
+                            <i class="ri-circle-fill circle-icon text-danger-600 w-auto"></i>Member Trainer
+                        </a>
+                    </li>
+                    <li>
+                        <a class="sidebar-menu-text {{ request()->routeIs('laporan.alat_gym') ? 'active-page' : '' }}" href="{{ route('laporan.alat_gym') }}">
+                            <i class="ri-circle-fill circle-icon text-success-600 w-auto"></i>Alat GYM
+                        </a>
+                    </li>
+                    <li>
+                        <a class="sidebar-menu-text {{ request()->routeIs('laporan.kehadiran') ? 'active-page' : '' }}" href="{{ route('laporan.kehadiran') }}">
+                            <i class="ri-circle-fill circle-icon text-purple-600 w-auto"></i>Absensi
+                        </a>
+                    </li>
+                    <li>
+                        <a class="sidebar-menu-text {{ request()->routeIs('laporan.penjualan') ? 'active-page' : '' }}" href="{{ route('laporan.penjualan') }}">
+                            <i class="ri-circle-fill circle-icon text-info-600 w-auto"></i>Penjualan Product
+                        </a>
+                    </li>
+                    <li>
+                        <a class="sidebar-menu-text {{ request()->routeIs('laporan.products') ? 'active-page' : '' }}" href="{{ route('laporan.products') }}">
+                            <i class="ri-circle-fill circle-icon text-danger-600 w-auto"></i>Product
+                        </a>
                     </li>
                 </ul>
             </li>   
@@ -119,34 +192,42 @@
 
             @hasanyrole('spv|admin')
             <li class="sidebar-menu-group-title">POS</li>
-            <li class="dropdown">
+            <li class="dropdown {{ (request()->routeIs('kasir.*') && !request()->routeIs('laporan.penjualan')) ? 'open' : '' }}">
                 <a href="javascript:void(0)">
                     <i class="ri-store-2-line menu-icon mr-0-custom"></i>
                     <span >Mesin Kasir</span>
                 </a>
                 <ul class="sidebar-submenu">
                     <li>
-                        <a class="sidebar-menu-text" href="{{ route('kasir.index') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i>POS</a>
+                        <a class="sidebar-menu-text {{ request()->routeIs('kasir.index') ? 'active-page' : '' }}" href="{{ route('kasir.index') }}">
+                            <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i>POS
+                        </a>
                     </li>
                     <li>
-                        <a class="sidebar-menu-text" href="{{ route('kasir.riwayat') }}"><i class="ri-circle-fill circle-icon text-warning-600 w-auto"></i> Penjualan</a>
+                        <a class="sidebar-menu-text {{ request()->routeIs('kasir.riwayat') && !request()->routeIs('laporan.penjualan') ? 'active-page' : '' }}" href="{{ route('kasir.riwayat') }}">
+                            <i class="ri-circle-fill circle-icon text-warning-600 w-auto"></i> Penjualan
+                        </a>
                     </li>
                 </ul>
             </li>   
             @endhasanyrole
 
             @hasanyrole('spv|admin')
-            <li class="dropdown">
+            <li class="dropdown {{ request()->routeIs('kategori_products.*') || (request()->routeIs('products.*') && !request()->routeIs('laporan.products')) ? 'open' : '' }}">
                 <a href="javascript:void(0)">
                     <i class="ri-inbox-2-line menu-icon mr-0-custom"></i>
                     <span>Product</span>
                 </a>
                 <ul class="sidebar-submenu">
                     <li>
-                        <a class="sidebar-menu-text" href="{{ route('kategori_products.index') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i>Kategori</a>
+                        <a class="sidebar-menu-text {{ request()->routeIs('kategori_products.*') ? 'active-page' : '' }}" href="{{ route('kategori_products.index') }}">
+                            <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i>Kategori
+                        </a>
                     </li>
                     <li>
-                        <a class="sidebar-menu-text" href="{{ route('products.index') }}"><i class="ri-circle-fill circle-icon text-warning-600 w-auto"></i>Product</a>
+                        <a class="sidebar-menu-text {{ request()->routeIs('products.*') && !request()->routeIs('laporan.products') ? 'active-page' : '' }}" href="{{ route('products.index') }}">
+                            <i class="ri-circle-fill circle-icon text-warning-600 w-auto"></i>Product
+                        </a>
                     </li>
                 </ul>
             </li>   
@@ -155,14 +236,16 @@
             @hasanyrole('spv|admin')
             <li class="sidebar-menu-group-title">Parameter</li>
             
-            <li class="dropdown">
+            <li class="dropdown {{ request()->routeIs('usersList') ? 'open' : '' }}">
                 <a href="javascript:void(0)">
                     <iconify-icon icon="flowbite:users-group-outline" class="menu-icon"></iconify-icon>
                     <span>Users</span>
                 </a>
                 <ul class="sidebar-submenu">
                     <li>
-                        <a href="{{ route('usersList') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Users List</a>
+                        <a class="sidebar-menu-text {{ request()->routeIs('usersList') ? 'active-page' : '' }}" href="{{ route('usersList') }}">
+                            <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Users List
+                        </a>
                     </li>
                 </ul>
             </li>
@@ -171,14 +254,16 @@
             @hasanyrole('spv|admin')
             <li class="sidebar-menu-group-title">Keuangan</li>
             
-            <li class="dropdown">
+            <li class="dropdown {{ request()->routeIs('neraca.*') ? 'open' : '' }}">
                 <a href="javascript:void(0)">
                     <i class="ri-gradienter-line menu-icon mr-0-custom"></i>
                     <span>Neraca</span>
                 </a>
                 <ul class="sidebar-submenu">
                     <li>
-                        <a href="{{ route('neraca.index') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Neraca</a>
+                        <a class="sidebar-menu-text {{ request()->routeIs('neraca.*') ? 'active-page' : '' }}" href="{{ route('neraca.index') }}">
+                            <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Neraca
+                        </a>
                     </li>
                 </ul>
             </li>
@@ -187,14 +272,16 @@
             @hasanyrole('trainer')
             <li class="sidebar-menu-group-title">Trainer Dashboard</li>
             
-            <li class="dropdown">
+            <li class="dropdown {{ request()->routeIs('trainer.dashboard') || request()->routeIs('trainer.session.logs') || request()->routeIs('trainer.waiting.approval') ? 'open' : '' }}">
                 <a href="javascript:void(0)">
                     <iconify-icon icon="solar:home-smile-angle-outline" class="menu-icon"></iconify-icon>
                     <span>Dashboard</span>
                 </a>
                 <ul class="sidebar-submenu">
                     <li>
-                        <a href="{{ route('trainer.dashboard') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Dashboard</a>
+                        <a class="sidebar-menu-text {{ request()->routeIs('trainer.dashboard') ? 'active-page' : '' }}" href="{{ route('trainer.dashboard') }}">
+                            <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Dashboard
+                        </a>
                     </li>
                 </ul>
             </li>

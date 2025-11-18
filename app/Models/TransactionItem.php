@@ -28,4 +28,12 @@ class TransactionItem extends Model
     {
         return $this->belongsTo(Transaction::class);
     }
+    
+    /**
+     * Relasi ke Product
+     */
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'product_id');
+}
 }

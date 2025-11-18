@@ -75,6 +75,8 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddle
 // Guest Route
 Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddleware::class . ':guest|admin'])->group(function () {
     Route::controller(KehadiranMemberController::class)->group(function () {
+        Route::get('/laporan/kehadiran', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('laporan.kehadiran');
+        Route::post('/kehadiranmember/export-pdf', 'exportPdf')->name('kehadiranmember.export_pdf');
         Route::get('/kehadiran-member', 'index')->name('kehadiranmember.index');
         Route::get('/kehadiran-member/create', 'create')->name('kehadiranmember.create');
         Route::post('/kehadiran-member', 'store')->name('kehadiranmember.store');
@@ -109,7 +111,8 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     Route::controller(ProductController::class)->group(function () {
         // Route index bisa diakses oleh admin & spv
         Route::get('/products', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('products.index');
-        
+        Route::get('/laporan/products', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('laporan.products');
+        Route::post('/products/export-pdf', 'exportPdf')->middleware(RoleMiddleware::class . ':admin|spv')->name('products.export_pdf');
         // Route CRUD hanya untuk admin
         Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
             Route::get('/products/create', 'create')->name('products.create');
@@ -136,7 +139,8 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     // Route untuk Anggota
     Route::controller(AnggotaController::class)->group(function () {
         Route::get('/anggota', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('anggota.index');
-
+        Route::get('/laporan/anggota', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('laporan.anggota');
+        Route::post('/anggota/export-pdf', 'exportPdf')->middleware(RoleMiddleware::class . ':admin|spv')->name('anggota.export_pdf');
         Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
             Route::get('/anggota/create', 'create')->name('anggota.create');
             Route::post('/anggota', 'store')->name('anggota.store');
@@ -173,7 +177,8 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     // Route untuk Anggota Membership
     Route::controller(AnggotaMembershipController::class)->group(function () {
         Route::get('/anggota-membership', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('anggota_membership.index');
-        
+        Route::get('/laporan/anggota-membership', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('laporan.membership');
+        Route::post('/anggota-membership/export-pdf', 'exportPdf')->middleware(RoleMiddleware::class . ':admin|spv')->name('anggota_membership.export_pdf');
         Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
             Route::get('/anggota-membership/create', 'create')->name('anggota_membership.create');
             Route::post('/anggota-membership', 'store')->name('anggota_membership.store');
@@ -214,6 +219,8 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     // Route untuk Trainer
     Route::controller(TrainerController::class)->group(function () {
         Route::get('/trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('trainer.index');
+        Route::get('/laporan/trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('laporan.trainer');
+        Route::post('/trainer/export-pdf', 'exportPdf')->middleware(RoleMiddleware::class . ':admin|spv')->name('trainer.export_pdf');
         Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
             Route::get('/trainer/create', 'create')->name('trainer.create');
             Route::post('/trainer', 'store')->name('trainer.store');
@@ -228,7 +235,8 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     // Route untuk Trainer Member
     Route::controller(MemberTrainerController::class)->group(function () {
         Route::get('/member-trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('membertrainer.index');
-        
+        Route::get('/laporan/member-trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('laporan.membertrainer');
+        Route::post('/membertrainer/export-pdf', 'exportPdf')->middleware(RoleMiddleware::class . ':admin|spv')->name('membertrainer.export_pdf');
         Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
             Route::get('/member-trainer/create', 'create')->name('membertrainer.create');
             Route::post('/member-trainer', 'store')->name('membertrainer.store');
@@ -245,7 +253,8 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     // Route untuk Alat Gym
     Route::controller(AlatGymController::class)->group(function () {
         Route::get('/alat-gym', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('alat_gym.index');
-
+        Route::get('/laporan/alat-gym', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('laporan.alat_gym');
+        Route::post('/alat-gym/export-pdf', 'exportPdf')->middleware(RoleMiddleware::class . ':admin|spv')->name('alat_gym.export_pdf');
         Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
             Route::get('/alat-gym/create', 'create')->name('alat_gym.create');
             Route::post('/alat-gym', 'store')->name('alat_gym.store');
@@ -300,11 +309,14 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
 Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddleware::class . ':admin|spv'])->group(function () {
 
     Route::controller(KasirController::class)->group(function () {
+        Route::post('/kasir/export-pdf', 'exportPdf')->name('kasir.export_pdf');
         Route::get('/kasir', 'index')->name('kasir.index');
+        Route::get('/laporan/penjualan', 'riwayat')->middleware(RoleMiddleware::class . ':admin|spv')->name('laporan.penjualan');
         Route::get('/riwayat-transaksi-kasir', 'riwayat')->name('kasir.riwayat');
         Route::post('/kasir/bayar', 'bayar')->name('kasirbayar');
         Route::post('/kasir/hold', 'hold')->name('kasir.hold');
         Route::get('/held-transactions', 'getHeldTransactions')->name('getHeldTransactions');
+        Route::get('/kasir/print-nota/{transactionId}', 'printNota')->name('kasir.print-nota');
     });
 
 });

@@ -53,10 +53,19 @@
                             <label class="form-label">Nama</label>
                             <input type="text" name="name" class="form-control" value="{{ old('name') }}" required>
                         </div>
+                        {{-- Jenis Kelamin --}}
                         <div class="col-span-12">
                             <label class="form-label">Jenis Kelamin</label>
-                            <input type="text" name="jenis_kelamin" class="form-control" value="{{ old('jenis_kelamin') }}" required>
+                            <select name="jenis_kelamin" class="form-control" required>
+                                <option value="">-- Pilih Jenis Kelamin --</option>
+                                <option value="Laki-laki" {{ old('jenis_kelamin') == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
+                                <option value="Perempuan" {{ old('jenis_kelamin') == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
+                            </select>
                         </div>
+                        <!-- <div class="col-span-12">
+                            <label class="form-label">Jenis Kelamin</label>
+                            <input type="text" name="jenis_kelamin" class="form-control" value="{{ old('jenis_kelamin') }}" required>
+                        </div> -->
                         <div class="col-span-12">
                             <label class="form-label">Telepon</label>
                             <input type="text" name="no_telp" class="form-control" value="{{ old('no_telp') }}">

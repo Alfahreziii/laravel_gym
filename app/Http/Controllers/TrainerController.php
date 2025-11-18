@@ -12,9 +12,72 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Notifications\VerifyEmail;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 
 class TrainerController extends Controller
 {
+    public function exportPdf(Request $request)
+    {
+        try {
+            $statusFilter = $request->input('status_filter', 'all');
+            
+            // Hitung statistik dari SEMUA data (tidak terfilter)
+            $allTrainers = Trainer::all();
+            $totalTrainer = $allTrainers->count();
+            $totalAktif = $allTrainers->where('status', Trainer::STATUS_AKTIF)->count();
+            $totalNonaktif = $allTrainers->where('status', Trainer::STATUS_NONAKTIF)->count();
+            $totalPending = $allTrainers->where('status', Trainer::STATUS_PENDING)->count();
+            
+            // Query dengan join dan filter untuk data yang akan ditampilkan
+            $query = Trainer::with(['specialisasi', 'user', 'schedules'])
+                ->join('users', 'trainers.id', '=', 'users.trainer_id')
+                ->select('trainers.*');
+            
+            // Filter berdasarkan status
+            if ($statusFilter === 'aktif') {
+                $query->where('trainers.status', Trainer::STATUS_AKTIF);
+                $title = 'Laporan Trainer Aktif';
+            } elseif ($statusFilter === 'nonaktif') {
+                $query->where('trainers.status', Trainer::STATUS_NONAKTIF);
+                $title = 'Laporan Trainer Non-Aktif';
+            } elseif ($statusFilter === 'pending') {
+                $query->where('trainers.status', Trainer::STATUS_PENDING);
+                $title = 'Laporan Trainer Pending';
+            } else {
+                $title = 'Laporan Semua Trainer';
+            }
+            
+            $trainers = $query->orderBy('users.name', 'asc')->get();
+
+            $pdf = Pdf::loadView('pages.trainer.pdf', compact(
+                'trainers',
+                'totalTrainer',
+                'totalAktif',
+                'totalNonaktif',
+                'totalPending',
+                'title',
+                'statusFilter'
+            ));
+
+            $pdf->setPaper('a4', 'landscape');
+            
+            // Generate filename dengan status filter
+            $filename = 'Laporan_Trainer_' . ucfirst($statusFilter) . '_' . date('Y-m-d_His') . '.pdf';
+            
+            return $pdf->download($filename);
+
+        } catch (\Exception $e) {
+            Log::error('Gagal export PDF trainer', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Gagal export PDF: ' . $e->getMessage());
+        }
+    }
+
     public function index()
     {
         $trainers = Trainer::with(['specialisasi', 'user'])->latest()->paginate(10);

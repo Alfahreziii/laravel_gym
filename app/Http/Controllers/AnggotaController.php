@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Anggota;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class AnggotaController extends Controller
 {
@@ -133,4 +134,65 @@ class AnggotaController extends Controller
         }
     }
 
+    /**
+     * Export PDF dengan filter status
+     */
+    public function exportPdf(Request $request)
+    {
+        try {
+            $statusFilter = $request->input('status_filter', 'all');
+            
+            // Ambil semua anggota dengan relasi untuk statistik keseluruhan
+            $allAnggotas = Anggota::with(['anggotaMemberships' => function($query) {
+                $query->latest('tgl_selesai');
+            }])->get();
+            
+            // Hitung statistik dari SEMUA data (tidak terfilter)
+            $totalAnggota = $allAnggotas->count();
+            $totalAktif = $allAnggotas->filter(function($anggota) {
+                return $anggota->status_keanggotaan === true;
+            })->count();
+            $totalTidakAktif = $allAnggotas->filter(function($anggota) {
+                return $anggota->status_keanggotaan === false;
+            })->count();
+            
+            // Filter data untuk ditampilkan di tabel
+            if ($statusFilter === 'aktif') {
+                $anggotas = $allAnggotas->filter(function($anggota) {
+                    return $anggota->status_keanggotaan === true;
+                });
+                $title = 'Data Anggota Aktif';
+            } elseif ($statusFilter === 'tidak_aktif') {
+                $anggotas = $allAnggotas->filter(function($anggota) {
+                    return $anggota->status_keanggotaan === false;
+                });
+                $title = 'Data Anggota Tidak Aktif';
+            } else {
+                $anggotas = $allAnggotas;
+                $title = 'Data Semua Anggota';
+            }
+            
+            // Generate PDF
+            $pdf = Pdf::loadView('pages.anggota.pdf', [
+                'anggotas' => $anggotas,
+                'title' => $title,
+                'statusFilter' => $statusFilter,
+                'totalAnggota' => $totalAnggota,
+                'totalAktif' => $totalAktif,
+                'totalTidakAktif' => $totalTidakAktif,
+            ]);
+            
+            // Set paper dan orientasi
+            $pdf->setPaper('a4', 'landscape');
+            
+            // Generate filename
+            $filename = 'Anggota_' . ucfirst($statusFilter) . '_' . date('Y-m-d_His') . '.pdf';
+            
+            return $pdf->download($filename);
+            
+        } catch (\Exception $e) {
+            return redirect()->back()
+                            ->with('danger', 'Gagal mengekspor PDF: ' . $e->getMessage());
+        }
+    }
 }

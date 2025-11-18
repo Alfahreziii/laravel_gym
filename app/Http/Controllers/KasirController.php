@@ -12,9 +12,177 @@ use App\Models\AkunKeuangan;
 use App\Models\TransaksiKeuangan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 class KasirController extends Controller
 {
+    public function printNota($transactionId)
+    {
+        try {
+            // 🟢 Hapus 'user' dari with()
+            $transaction = Transaction::with(['items'])
+                ->findOrFail($transactionId);
+
+            // Data untuk PDF
+            $data = [
+                'transaction' => $transaction,
+                'items' => $transaction->items,
+                'tanggal' => Carbon::parse($transaction->transaction_date ?? $transaction->created_at)
+                    ->locale('id')
+                    ->isoFormat('dddd, D MMMM YYYY HH:mm'),
+                'kasir' => Auth::user()->name ?? 'Kasir', // 🟢 Pakai user yang sedang login
+            ];
+
+            // Generate PDF
+            $pdf = Pdf::loadView('pages.kasir.nota-pdf', $data);
+            
+            // Ukuran kertas thermal 80mm x custom height
+            $pdf->setPaper([0, 0, 226.77, 566.93], 'portrait');
+
+            $filename = 'Nota_' . $transaction->transaction_code . '.pdf';
+
+            return $pdf->download($filename);
+
+        } catch (\Exception $e) {
+            Log::error('Gagal generate nota PDF', [
+                'transaction_id' => $transactionId,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal generate nota: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $request->validate([
+            'filter_type' => 'required|in:all,range',
+            'tanggal_mulai' => 'nullable|required_if:filter_type,range|date',
+            'tanggal_selesai' => 'nullable|required_if:filter_type,range|date|after_or_equal:tanggal_mulai',
+        ]);
+
+        try {
+            $filterType = $request->filter_type;
+            
+            // Hitung statistik dari SEMUA data (tidak terfilter)
+            $allTransactions = Transaction::with('items')
+                ->where('status', 'completed')
+                ->get();
+            
+            $totalTransaksi = $allTransactions->count();
+            $totalPendapatan = $allTransactions->sum('total_amount');
+            $totalDiskonBarang = $allTransactions->sum('diskon_barang');
+            $totalDiskonManual = $allTransactions->sum('diskon');
+            $totalSebelumDiskon = $allTransactions->sum('harga_sebelum_diskon');
+            
+            // Hitung total HPP dari semua transaksi
+            $totalHPP = 0;
+            foreach ($allTransactions as $transaction) {
+                foreach ($transaction->items as $item) {
+                    $product = Product::find($item->product_id);
+                    if ($product) {
+                        $totalHPP += ($product->hpp * $item->qty);
+                    }
+                }
+            }
+            
+            // Query untuk data yang akan ditampilkan
+            $query = Transaction::with('items')
+                ->where('status', 'completed');
+            
+            // Filter berdasarkan tanggal
+            $filterInfo = '';
+            if ($filterType === 'range') {
+                $tanggalMulai = Carbon::parse($request->tanggal_mulai)->startOfDay();
+                $tanggalSelesai = Carbon::parse($request->tanggal_selesai)->endOfDay();
+                
+                $query->whereBetween('created_at', [$tanggalMulai, $tanggalSelesai]);
+                
+                $filterInfo = $tanggalMulai->locale('id')->isoFormat('D MMMM YYYY') . ' - ' . 
+                            $tanggalSelesai->locale('id')->isoFormat('D MMMM YYYY');
+            } else {
+                $filterInfo = 'Semua Periode';
+            }
+            
+            $transactions = $query->orderBy('created_at', 'desc')->get();
+            
+            // Hitung statistik data yang terfilter
+            $filteredTotalTransaksi = $transactions->count();
+            $filteredTotalPendapatan = $transactions->sum('total_amount');
+            $filteredTotalDiskonBarang = $transactions->sum('diskon_barang');
+            $filteredTotalDiskonManual = $transactions->sum('diskon');
+            $filteredTotalSebelumDiskon = $transactions->sum('harga_sebelum_diskon');
+            
+            // Hitung total HPP untuk data terfilter
+            $filteredTotalHPP = 0;
+            foreach ($transactions as $transaction) {
+                foreach ($transaction->items as $item) {
+                    $product = Product::find($item->product_id);
+                    if ($product) {
+                        $filteredTotalHPP += ($product->hpp * $item->qty);
+                    }
+                }
+            }
+            
+            // Tambahkan HPP ke setiap transaction item untuk ditampilkan di PDF
+            foreach ($transactions as $transaction) {
+                foreach ($transaction->items as $item) {
+                    $product = Product::find($item->product_id);
+                    $item->hpp = $product ? $product->hpp : 0;
+                    $item->total_hpp = $item->hpp * $item->qty;
+                }
+                
+                // Hitung total HPP per transaksi
+                $transaction->total_hpp_transaction = $transaction->items->sum('total_hpp');
+            }
+            
+            // Buat title dinamis
+            $title = 'Laporan Riwayat Penjualan';
+            if ($filterType !== 'all') {
+                $title .= ' - ' . $filterInfo;
+            }
+
+            $pdf = Pdf::loadView('pages.kasir.pdf', compact(
+                'transactions',
+                'totalTransaksi',
+                'totalPendapatan',
+                'totalDiskonBarang',
+                'totalDiskonManual',
+                'totalSebelumDiskon',
+                'totalHPP',
+                'filteredTotalTransaksi',
+                'filteredTotalPendapatan',
+                'filteredTotalDiskonBarang',
+                'filteredTotalDiskonManual',
+                'filteredTotalSebelumDiskon',
+                'filteredTotalHPP',
+                'title',
+                'filterInfo',
+                'filterType'
+            ));
+
+            $pdf->setPaper('a4', 'landscape');
+            
+            $filename = 'Laporan_Penjualan_' . date('Y-m-d_His') . '.pdf';
+            
+            return $pdf->download($filename);
+            
+        } catch (\Exception $e) {
+            Log::error('Gagal export PDF penjualan', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->back()
+                ->with('danger', 'Gagal export PDF: ' . $e->getMessage());
+        }
+    }
+
     public function riwayat()
     {
         $transactions = Transaction::with('items')
@@ -121,10 +289,10 @@ class KasirController extends Controller
             // Nilai penerimaan bersih (yang masuk kas)
             $netBayar = max($dibayarkan - $kembalian, 0);
 
-            // 🟢 CATAT TRANSAKSI KEUANGAN dengan netBayar
+            // Catat transaksi keuangan dengan netBayar
             $this->catatTransaksiKeuanganPenjualan(
                 $transaction,
-                $netBayar,           // <- gunakan uang diterima (dibayarkan - kembalian)
+                $netBayar,
                 $totalHPP,
                 $metode_pembayaran
             );
@@ -249,8 +417,6 @@ class KasirController extends Controller
      * 2) HPP
      *    - Debit: Beban HPP (BEB001) = totalHPP
      *    - Kredit: Persediaan/Perlengkapan (AST004) = totalHPP
-     *
-     * (Tanpa piutang—pendapatan diakui sebesar uang yang benar-benar diterima.)
      */
     protected function catatTransaksiKeuanganPenjualan($transaction, float $netBayar, float $totalHPP, ?string $metodePembayaran)
     {
@@ -319,7 +485,7 @@ class KasirController extends Controller
             ]);
         }
 
-        Log::info('Transaksi keuangan penjualan (pakai dibayarkan - kembalian) tercatat', [
+        Log::info('Transaksi keuangan penjualan tercatat', [
             'transaction_id'   => $transaction->id,
             'transaction_code' => $trxCode,
             'net_bayar'        => $netBayar,

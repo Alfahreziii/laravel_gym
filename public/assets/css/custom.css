@@ -195,3 +195,7 @@ input[type="time"]::after {
         height: 150px;
     }
 }
+
+.ml-2 {
+    margin-left: 0.5rem !important;
+}

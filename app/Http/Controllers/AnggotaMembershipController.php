@@ -11,9 +11,128 @@ use App\Models\TransaksiKeuangan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 
 class AnggotaMembershipController extends Controller
 {
+    public function exportPdf(Request $request)
+    {
+        $request->validate([
+            'status_filter' => 'required|in:all,lunas,belum_lunas',
+            'filter_type' => 'required|in:all,single,range',
+            'bulan' => 'nullable|required_if:filter_type,single|integer|between:1,12',
+            'tahun' => 'nullable|required_if:filter_type,single|integer|min:2000',
+            'bulan_dari' => 'nullable|required_if:filter_type,range|integer|between:1,12',
+            'tahun_dari' => 'nullable|required_if:filter_type,range|integer|min:2000',
+            'bulan_sampai' => 'nullable|required_if:filter_type,range|integer|between:1,12',
+            'tahun_sampai' => 'nullable|required_if:filter_type,range|integer|min:2000',
+        ]);
+
+        try {
+            $statusFilter = $request->status_filter;
+            $filterType = $request->filter_type;
+            
+            // Hitung statistik dari SEMUA data (tidak terfilter)
+            $allMemberships = AnggotaMembership::with(['anggota', 'paketMembership', 'pembayaranMemberships'])->get();
+            
+            $totalMembership = $allMemberships->count();
+            $totalLunas = $allMemberships->where('status_pembayaran', 'Lunas')->count();
+            $totalBelumLunas = $allMemberships->where('status_pembayaran', 'Belum Lunas')->count();
+            
+            // Hitung total keuangan keseluruhan
+            $totalPendapatan = $allMemberships->sum('total_biaya');
+            $totalTerbayar = $allMemberships->sum(function($item) {
+                return $item->pembayaranMemberships->sum('jumlah_bayar');
+            });
+            $totalPiutang = $totalPendapatan - $totalTerbayar;
+            
+            // Query untuk data yang akan ditampilkan
+            $query = AnggotaMembership::with(['anggota', 'paketMembership', 'pembayaranMemberships']);
+            
+            // Filter berdasarkan status pembayaran
+            if ($statusFilter === 'lunas') {
+                $query->where('status_pembayaran', 'Lunas');
+            } elseif ($statusFilter === 'belum_lunas') {
+                $query->where('status_pembayaran', 'Belum Lunas');
+            }
+            
+            // Filter berdasarkan tanggal
+            $filterInfo = '';
+            if ($filterType === 'single') {
+                $bulan = $request->bulan;
+                $tahun = $request->tahun;
+                
+                $query->whereYear('tgl_mulai', $tahun)
+                    ->whereMonth('tgl_mulai', $bulan);
+                
+                $filterInfo = Carbon::create($tahun, $bulan)->locale('id')->isoFormat('MMMM YYYY');
+            } elseif ($filterType === 'range') {
+                $dariTanggal = Carbon::create($request->tahun_dari, $request->bulan_dari, 1)->startOfMonth();
+                $sampaiTanggal = Carbon::create($request->tahun_sampai, $request->bulan_sampai, 1)->endOfMonth();
+                
+                $query->whereBetween('tgl_mulai', [$dariTanggal, $sampaiTanggal]);
+                
+                $filterInfo = $dariTanggal->locale('id')->isoFormat('MMMM YYYY') . ' - ' . 
+                            $sampaiTanggal->locale('id')->isoFormat('MMMM YYYY');
+            } else {
+                $filterInfo = 'Semua Periode';
+            }
+            
+            // Status filter info
+            $statusInfo = 'Semua Status';
+            if ($statusFilter === 'lunas') {
+                $statusInfo = 'Lunas';
+            } elseif ($statusFilter === 'belum_lunas') {
+                $statusInfo = 'Belum Lunas';
+            }
+            
+            $anggotaMemberships = $query->orderBy('tgl_mulai', 'desc')->get();
+            
+            // Buat title dinamis
+            $title = 'Laporan Anggota Membership';
+            if ($statusFilter !== 'all' || $filterType !== 'all') {
+                $title .= ' - ';
+                if ($statusFilter !== 'all') {
+                    $title .= $statusInfo;
+                }
+                if ($filterType !== 'all') {
+                    $title .= ($statusFilter !== 'all' ? ' - ' : '') . $filterInfo;
+                }
+            }
+
+            $pdf = Pdf::loadView('pages.anggotapaketmember.pdf', compact(
+                'anggotaMemberships',
+                'totalMembership',
+                'totalLunas',
+                'totalBelumLunas',
+                'totalPendapatan',
+                'totalTerbayar',
+                'totalPiutang',
+                'title',
+                'statusInfo',
+                'filterInfo',
+                'statusFilter',
+                'filterType'
+            ));
+
+            $pdf->setPaper('a4', 'landscape');
+            
+            $filename = 'Laporan_Membership_' . ucfirst($statusFilter) . '_' . date('Y-m-d_His') . '.pdf';
+            
+            return $pdf->download($filename);
+            
+        } catch (\Exception $e) {
+            Log::error('Gagal export PDF membership', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->back()
+                ->with('danger', 'Gagal export PDF: ' . $e->getMessage());
+        }
+    }
+
     public function index()
     {
         $anggotaMemberships = AnggotaMembership::with(['anggota', 'paketMembership'])->latest()->get();

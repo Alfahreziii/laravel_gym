@@ -11,9 +11,73 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 
 class ProductController extends Controller
 {
+    public function exportPdf()
+    {
+        try {
+            // Ambil semua produk dengan kategori
+            $products = Product::with('kategori')->get();
+            
+            // Hitung statistik
+            $totalProduk = $products->count();
+            
+            // Total nilai stok (HPP × Quantity)
+            $totalNilaiStok = $products->sum(function($product) {
+                return $product->hpp * $product->quantity;
+            });
+            
+            // Total nilai jual (Harga setelah diskon × Quantity)
+            $totalNilaiJual = $products->sum(function($product) {
+                $hargaSetelahDiskon = $product->price;
+                
+                if ($product->discount > 0) {
+                    if ($product->discount_type == 'percent') {
+                        $hargaSetelahDiskon = $product->price - ($product->price * $product->discount / 100);
+                    } else {
+                        $hargaSetelahDiskon = $product->price - $product->discount;
+                    }
+                }
+                
+                return $hargaSetelahDiskon * $product->quantity;
+            });
+            
+            $produkAktif = $products->where('is_active', 1)->count();
+            $produkNonaktif = $products->where('is_active', 0)->count();
+            $totalStok = $products->sum('quantity');
+            
+            $title = 'Laporan Data Produk';
+            
+            $pdf = Pdf::loadView('pages.products.pdf', compact(
+                'products',
+                'totalProduk',
+                'totalNilaiStok',
+                'totalNilaiJual',
+                'produkAktif',
+                'produkNonaktif',
+                'totalStok',
+                'title'
+            ));
+
+            $pdf->setPaper('a4', 'landscape');
+            
+            $filename = 'Laporan_Produk_' . date('Y-m-d_His') . '.pdf';
+            
+            return $pdf->download($filename);
+            
+        } catch (\Exception $e) {
+            Log::error('Gagal export PDF produk', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->back()
+                ->with('danger', 'Gagal export PDF: ' . $e->getMessage());
+        }
+    }
     /**
      * Tampilkan semua produk
      */
