@@ -64,7 +64,9 @@
                             <th scope="col">Name</th>
                             <th scope="col">Status</th>
                             <th scope="col">Time</th>
+                            @if(!$isLaporanMode)
                             <th scope="col">Aksi</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody>
@@ -85,6 +87,7 @@
                             <td class="whitespace-nowrap">{{ $item->anggota->name }}</td>
                             <td class="whitespace-nowrap">{{ $item->status }}</td>
                             <td class="whitespace-nowrap">{{ $item->created_at }}</td>
+                            @if(!$isLaporanMode)
                             <td class="whitespace-nowrap">
                                 <!-- Form Delete -->
                                 <form action="{{ route('kehadiranmember.destroy', $item->id) }}" method="POST" class="inline-block delete-form">
@@ -95,6 +98,7 @@
                                     </button>
                                 </form>
                             </td>
+                            @endif
                         </tr>
                         @endforeach
                     </tbody>
@@ -104,7 +108,8 @@
     </div>
 </div>
 
-<!-- Modal Add Kehadiran -->
+{{-- Modal Add Kehadiran - HANYA TAMPIL jika BUKAN mode laporan --}}
+@if(!$isLaporanMode)
 <div id="popup-modal" tabindex="-1"
     class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
     <div class="rounded-2xl bg-white max-w-[800px] w-full">
@@ -156,6 +161,7 @@
         </div>
     </div>
 </div>
+@endif
 
 <!-- Modal Export PDF -->
 <div id="export-pdf-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
@@ -220,6 +226,8 @@
     </div>
 </div>
 
+{{-- Webcam Script - HANYA JALAN jika BUKAN mode laporan --}}
+@if(!$isLaporanMode)
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const video = document.getElementById('webcam');
@@ -265,14 +273,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 </script>
+@endif
 
 @endsection
 
 @section('scripts')
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+    @if(!$isLaporanMode)
+    // Delete functionality - hanya aktif jika bukan mode laporan
     const deleteForms = document.querySelectorAll('.delete-form');
-
     deleteForms.forEach(form => {
         const btn = form.querySelector('.delete-btn');
         btn.addEventListener('click', function (e) {
@@ -294,6 +304,7 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         });
     });
+    @endif
     
     // Remove alert button
     const removeButtons = document.querySelectorAll('.remove-button');

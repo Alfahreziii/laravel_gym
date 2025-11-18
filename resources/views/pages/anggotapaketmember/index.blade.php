@@ -62,6 +62,11 @@
                     <thead>
                         <tr>
                             <th>S.L</th>
+                            @if(!$isLaporanMode)
+                            @role('admin')
+                            <th>Aksi</th>
+                            @endrole
+                            @endif
                             <th>Kode Transaksi</th>
                             <th>Nama Anggota</th>
                             <th>Paket</th>
@@ -69,15 +74,30 @@
                             <th>Tgl Selesai</th>
                             <th>Status Pembayaran</th>
                             <th>Total Biaya</th>
-                            @role('admin')
-                            <th>Aksi</th>
-                            @endrole
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($anggotaMemberships as $index => $item)
                         <tr>
                             <td class="whitespace-nowrap">{{ $index + 1 }}</td>
+                            @if(!$isLaporanMode)
+                            @role('admin')
+                            <td class="whitespace-nowrap flex gap-2">
+                                <a href="{{ route('anggota_membership.edit', $item->id) }}" title="Edit Item"
+                                   class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
+                                    <iconify-icon icon="lucide:edit"></iconify-icon>
+                                </a>
+                                <form action="{{ route('anggota_membership.destroy', $item->id) }}" method="POST" class="inline-block delete-form">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="button" title="Hapus Item" 
+                                            class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center delete-btn">
+                                        <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
+                                    </button>
+                                </form>
+                            </td>
+                            @endrole
+                            @endif
                             <td class="whitespace-nowrap"><a class="text-primary-600" href="{{ route('anggota_membership.edit', $item->id) }}">{{ $item->kode_transaksi }}</a></td>
                             <td class="whitespace-nowrap">{{ $item->anggota->name ?? '-' }}</td>
                             <td class="whitespace-nowrap">{{ $item->paketMembership->nama_paket ?? '-' }}</td>
@@ -95,22 +115,6 @@
                                 @endif
                             </td>
                             <td class="whitespace-nowrap">Rp {{ number_format($item->total_biaya, 0, ',', '.') }}</td>
-                            @role('admin')
-                            <td class="whitespace-nowrap flex gap-2">
-                                <a href="{{ route('anggota_membership.edit', $item->id) }}" 
-                                   class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
-                                    <iconify-icon icon="lucide:edit"></iconify-icon>
-                                </a>
-                                <form action="{{ route('anggota_membership.destroy', $item->id) }}" method="POST" class="inline-block delete-form">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="button" 
-                                            class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center delete-btn">
-                                        <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
-                                    </button>
-                                </form>
-                            </td>
-                            @endrole
                         </tr>
                         @endforeach
                     </tbody>

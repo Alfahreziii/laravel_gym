@@ -62,21 +62,39 @@
                     <thead>
                         <tr>
                             <th scope="col">S.L</th>
+                            @if(!$isLaporanMode)
+                                @role('admin')
+                                <th scope="col">Aksi</th>
+                                @endrole
+                            @endif
                             <th scope="col">ID Kartu</th>
                             <th scope="col">Photo</th>
                             <th scope="col">Nama</th>
                             <th scope="col">Tanggal Lahir</th>
                             <th scope="col">No. Telp</th>
                             <th scope="col">Status</th>
-                            @role('admin')
-                            <th scope="col">Aksi</th>
-                            @endrole
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($anggotas as $index => $anggota)
                         <tr>
                             <td class="whitespace-nowrap">{{ $index + 1 }}</td>
+                            @if(!$isLaporanMode)
+                            @role('admin')
+                            <td class="whitespace-nowrap">
+                                <a href="{{ route('anggota.edit', $anggota->id) }}" title="Edit Item" class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
+                                    <iconify-icon icon="lucide:edit"></iconify-icon>
+                                </a>
+                                <form action="{{ route('anggota.destroy', $anggota->id) }}" method="POST" class="inline-block delete-form">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button title="Hapus Item" type="button" class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center delete-btn">
+                                        <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
+                                    </button>
+                                </form>
+                            </td>
+                            @endrole
+                            @endif
                             <td class="whitespace-nowrap">{{ $anggota->id_kartu }}</td>
                             <td class="whitespace-nowrap">
                                 @if($anggota->photo)
@@ -98,20 +116,6 @@
                                     <span class="bg-warning-100 text-warning-600 px-6 py-1.5 rounded-full font-medium text-sm">Tidak Aktif</span>
                                 @endif
                             </td>
-                            @role('admin')
-                            <td class="whitespace-nowrap">
-                                <a href="{{ route('anggota.edit', $anggota->id) }}" class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
-                                    <iconify-icon icon="lucide:edit"></iconify-icon>
-                                </a>
-                                <form action="{{ route('anggota.destroy', $anggota->id) }}" method="POST" class="inline-block delete-form">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="button" class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center delete-btn">
-                                        <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
-                                    </button>
-                                </form>
-                            </td>
-                            @endrole
                         </tr>
                         @endforeach
                     </tbody>

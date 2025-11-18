@@ -40,6 +40,7 @@
                     <thead>
                         <tr>
                             <th>S.L</th>
+                            <th>Aksi</th>
                             <th>Kode Transaksi</th>
                             <th>Nama Anggota</th>
                             <th>Paket</th>
@@ -48,13 +49,31 @@
                             <th>Total Biaya</th>
                             <th>Total Dibayarkan</th>
                             <th>Status</th>
-                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($memberTrainers as $index => $item)
                         <tr>
                             <td class="whitespace-nowrap">{{ $index + 1 }}</td>
+                            <td class="whitespace-nowrap flex gap-2">
+                                @if($item->status_pembayaran === 'Lunas')
+                                <a href="{{ route('pembayaran_trainer.notaPDF', $item->id) }}" 
+                                class="w-8 h-8 bg-warning-100 text-warning-600 rounded-full inline-flex items-center justify-center"
+                                title="Download Nota PDF">
+                                    <iconify-icon icon="hugeicons:money-send-square" class="menu-icon"></iconify-icon>
+                                </a>
+                                @else
+                                @role('admin')
+                                <button type="button" title="Bayar" data-modal-target="edit-popup-modal-{{ $item->id }}" data-modal-toggle="edit-popup-modal-{{ $item->id }}" 
+                                   class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
+                                    <iconify-icon icon="hugeicons:invoice-03" class="menu-icon"></iconify-icon>
+                                </button>
+                                @endrole
+                                @role('spv')
+                                -
+                                @endrole
+                                @endif
+                            </td>
                             <td class="whitespace-nowrap"><a class="text-primary-600 cursor-pointer" href="{{ route('membertrainer.edit', $item->id) }}">{{ $item->kode_transaksi }}</a></td>
                             <td class="whitespace-nowrap">{{ $item->anggota->name ?? '-' }}</td>
                             <td class="whitespace-nowrap">{{ $item->paketPersonalTrainer->nama_paket ?? '-' }}</td>
@@ -67,25 +86,6 @@
                                     <span class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm">Lunas</span>
                                 @else
                                     <span class="bg-warning-100 text-warning-600 px-4 py-1.5 rounded-full font-medium text-sm">Belum Lunas</span>
-                                @endif
-                            </td>
-                            <td class="whitespace-nowrap flex gap-2">
-                                @if($item->status_pembayaran === 'Lunas')
-                                <a href="{{ route('pembayaran_trainer.notaPDF', $item->id) }}" 
-                                class="w-8 h-8 bg-warning-100 text-warning-600 rounded-full inline-flex items-center justify-center"
-                                title="Download Nota PDF">
-                                    <iconify-icon icon="hugeicons:money-send-square" class="menu-icon"></iconify-icon>
-                                </a>
-                                @else
-                                @role('admin')
-                                <button type="button" data-modal-target="edit-popup-modal-{{ $item->id }}" data-modal-toggle="edit-popup-modal-{{ $item->id }}" 
-                                   class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
-                                    <iconify-icon icon="hugeicons:invoice-03" class="menu-icon"></iconify-icon>
-                                </button>
-                                @endrole
-                                @role('spv')
-                                -
-                                @endrole
                                 @endif
                             </td>
                         </tr>

@@ -43,37 +43,37 @@
                     <thead>
                         <tr>
                             <th scope="col">S.L</th>
+                            @role('admin')
+                            <th scope="col">Aksi</th>
+                            @endrole
                             <th scope="col">Nama Paket</th>
                             <th scope="col">Durasi</th>
                             <th scope="col">Jumlah Sesi</th>
                             <th scope="col">Biaya</th>
-                            @role('admin')
-                            <th scope="col">Aksi</th>
-                            @endrole
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($paketPersonalTrainers as $index => $paket)
                         <tr>
                             <td class="whitespace-nowrap">{{ $index + 1 }}</td>
-                            <td class="whitespace-nowrap">{{ $paket->nama_paket }}</td>
-                            <td class="whitespace-nowrap">{{ $paket->durasi }}</td>
-                            <td class="whitespace-nowrap">{{ $paket->jumlah_sesi ?? '-' }}</td>
-                            <td class="whitespace-nowrap">Rp {{ number_format($paket->biaya, 0, ',', '.') }}</td>
                             @role('admin')
                             <td class="whitespace-nowrap">
-                                <a href="{{ route('paket_personal_trainer.edit', $paket->id) }}" class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
+                                <a href="{{ route('paket_personal_trainer.edit', $paket->id) }}" title="Edit Item" class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
                                     <iconify-icon icon="lucide:edit"></iconify-icon>
                                 </a>
                                 <form action="{{ route('paket_personal_trainer.destroy', $paket->id) }}" method="POST" class="inline-block delete-form">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="button" class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center delete-btn">
+                                    <button type="button" title="Hapus Item" class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center delete-btn">
                                         <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
                                     </button>
                                 </form>
                             </td>
                             @endrole
+                            <td class="whitespace-nowrap">{{ $paket->nama_paket }}</td>
+                            <td class="whitespace-nowrap">{{ $paket->durasi }}</td>
+                            <td class="whitespace-nowrap">{{ $paket->jumlah_sesi ?? '-' }}</td>
+                            <td class="whitespace-nowrap">Rp {{ number_format($paket->biaya, 0, ',', '.') }}</td>
                         </tr>
                         @endforeach
                     </tbody>

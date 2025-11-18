@@ -64,6 +64,12 @@
                     <thead>
                         <tr>
                             <th>S.L</th>
+                            {{-- Kolom Aksi hanya tampil jika BUKAN mode laporan --}}
+                            @if(!$isLaporanMode)
+                                @role('admin')
+                                <th>Aksi</th>
+                                @endrole
+                            @endif
                             <th>Barcode</th>
                             <th>Nama Alat Gym</th>
                             <th>Jumlah</th>
@@ -73,18 +79,31 @@
                             <th>Kondisi Alat</th>
                             <th>Vendor</th>
                             <th>Kontak</th>
-                            {{-- Kolom Aksi hanya tampil jika BUKAN mode laporan --}}
-                            @if(!$isLaporanMode)
-                                @role('admin')
-                                <th>Aksi</th>
-                                @endrole
-                            @endif
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($alatGyms as $index => $item)
                         <tr>
                             <td class="whitespace-nowrap">{{ $index + 1 }}</td>
+                            {{-- Tombol Aksi hanya tampil jika BUKAN mode laporan --}}
+                            @if(!$isLaporanMode)
+                                @role('admin')
+                                <td class="whitespace-nowrap flex gap-2">
+                                    <a href="{{ route('alat_gym.edit', $item->id) }}" title="Edit Item"
+                                       class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
+                                        <iconify-icon icon="lucide:edit"></iconify-icon>
+                                    </a>
+                                    <form action="{{ route('alat_gym.destroy', $item->id) }}" method="POST" class="inline-block delete-form">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="button" title="Hapus Item"
+                                                class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center delete-btn">
+                                            <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
+                                        </button>
+                                    </form>
+                                </td>
+                                @endrole
+                            @endif
                             @if(!$isLaporanMode)
                                 @role('admin')
                                 <td class="whitespace-nowrap"><a class="text-primary-600" href="{{ route('alat_gym.edit', $item->id) }}">{{ $item->barcode }}</a></td>
@@ -113,25 +132,6 @@
                             </td>
                             <td class="whitespace-nowrap">{{ $item->vendor ?? '-' }}</td>
                             <td class="whitespace-nowrap">{{ $item->kontak ?? '-' }}</td>
-                            {{-- Tombol Aksi hanya tampil jika BUKAN mode laporan --}}
-                            @if(!$isLaporanMode)
-                                @role('admin')
-                                <td class="whitespace-nowrap flex gap-2">
-                                    <a href="{{ route('alat_gym.edit', $item->id) }}" 
-                                       class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
-                                        <iconify-icon icon="lucide:edit"></iconify-icon>
-                                    </a>
-                                    <form action="{{ route('alat_gym.destroy', $item->id) }}" method="POST" class="inline-block delete-form">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="button" 
-                                                class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center delete-btn">
-                                            <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
-                                        </button>
-                                    </form>
-                                </td>
-                                @endrole
-                            @endif
                         </tr>
                         @endforeach
                     </tbody>

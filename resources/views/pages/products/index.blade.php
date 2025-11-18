@@ -63,22 +63,58 @@
                     <thead>
                         <tr>
                             <th>No</th>
+                            @if(!$isLaporanMode)
+                            <th>Aksi</th>
+                            @endif
                             <th>Foto Produk</th>
                             <th>Nama Produk</th>
+                            <th>
+                                @role('admin')
+                                <span>Stok <br>(Ubah Stok Klik Angka Stok)</span>
+                                @endrole
+                                @role('spv')
+                                Stok
+                                @endrole
+                            </th>
+                            <th>Status</th>
                             <th>Kategori</th>
                             <th>HPP</th>
                             <th>Harga</th>
                             <th>Diskon</th>
                             <th>Reorder</th>
-                            <th>Stok</th>
-                            <th>Status</th>
-                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($products as $index => $product)
                         <tr>
                             <td class="whitespace-nowrap">{{ $index + 1 }}</td>
+                            @if(!$isLaporanMode)
+                            <td class="whitespace-nowrap flex gap-2">
+                                @role('admin')
+                                <a href="{{ route('products.edit', $product->id) }}" title="Edit Item"
+                                   class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
+                                    <iconify-icon icon="lucide:edit"></iconify-icon>
+                                </a>
+                                @endrole
+
+                                <a href="{{ route('products.logs', $product->id) }}" title="Riwayat Stok"
+                                   class="w-8 h-8 bg-warning-100 text-warning-600 rounded-full inline-flex items-center justify-center">
+                                    <i class="ri-calendar-schedule-line"></i>
+                                </a>
+
+                                @role('admin')
+                                <form action="{{ route('products.destroy', $product->id) }}" 
+                                      method="POST" class="inline-block delete-form">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="button" title="Hapus Item"
+                                            class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center delete-btn">
+                                        <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
+                                    </button>
+                                </form>
+                                @endrole
+                            </td>
+                            @endif
                             <td class="whitespace-nowrap">
                                 @if($product->image)
                                     <img src="{{ asset('storage/' . $product->image) }}" 
@@ -92,6 +128,23 @@
                             </td>
                             <td class="whitespace-nowrap">
                                 {{ $product->name }}
+                            </td>
+                            <td class="whitespace-nowrap">
+                                @role('admin')
+                                <button type="button" class="text-primary-600 font-bold" title="Ubah Stok" data-modal-target="edit-quantity-modal-{{ $product->id }}" data-modal-toggle="edit-quantity-modal-{{ $product->id }}">
+                                    {{ $product->quantity }}
+                                </button>
+                                @endrole
+                                @role('spv')
+                                {{ $product->quantity }}
+                                @endrole
+                            </td>
+                            <td class="whitespace-nowrap">
+                                @if($product->is_active)
+                                    <span class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm">Aktif</span>
+                                @else
+                                    <span class="bg-danger-100 text-danger-600 px-4 py-1.5 rounded-full font-medium text-sm">Nonaktif</span>
+                                @endif
                             </td>
                             <td class="whitespace-nowrap">
                                 {{ $product->kategori->name ?? '-' }}
@@ -111,48 +164,6 @@
                                 @endif
                             </td>
                             <td class="whitespace-nowrap">{{ $product->reorder }}</td>
-                            <td class="whitespace-nowrap">
-                                @role('admin')
-                                <button type="button" class="text-primary-600" data-modal-target="edit-quantity-modal-{{ $product->id }}" data-modal-toggle="edit-quantity-modal-{{ $product->id }}">
-                                    {{ $product->quantity }}
-                                </button>
-                                @endrole
-                                @role('spv')
-                                {{ $product->quantity }}
-                                @endrole
-                            </td>
-                            <td class="whitespace-nowrap">
-                                @if($product->is_active)
-                                    <span class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm">Aktif</span>
-                                @else
-                                    <span class="bg-danger-100 text-danger-600 px-4 py-1.5 rounded-full font-medium text-sm">Nonaktif</span>
-                                @endif
-                            </td>
-                            <td class="whitespace-nowrap flex gap-2">
-                                @role('admin')
-                                <a href="{{ route('products.edit', $product->id) }}" 
-                                   class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
-                                    <iconify-icon icon="lucide:edit"></iconify-icon>
-                                </a>
-                                @endrole
-
-                                <a href="{{ route('products.logs', $product->id) }}" 
-                                   class="w-8 h-8 bg-warning-100 text-warning-600 rounded-full inline-flex items-center justify-center">
-                                    <i class="ri-calendar-schedule-line"></i>
-                                </a>
-
-                                @role('admin')
-                                <form action="{{ route('products.destroy', $product->id) }}" 
-                                      method="POST" class="inline-block delete-form">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="button" 
-                                            class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center delete-btn">
-                                        <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
-                                    </button>
-                                </form>
-                                @endrole
-                            </td>
                         </tr>
 
                         {{-- MODAL EDIT Quantity --}}

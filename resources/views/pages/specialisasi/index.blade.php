@@ -57,7 +57,7 @@
                             @role('admin')
                             <td class="whitespace-nowrap">
                                 <!-- Tombol Edit -->
-                                <button type="button" data-modal-target="edit-popup-modal-{{ $specialisasi->id }}" data-modal-toggle="edit-popup-modal-{{ $specialisasi->id }}" class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
+                                <button type="button" title="Edit Item" data-modal-target="edit-popup-modal-{{ $specialisasi->id }}" data-modal-toggle="edit-popup-modal-{{ $specialisasi->id }}" class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
                                     <iconify-icon icon="lucide:edit"></iconify-icon>
                                 </button>
 
@@ -65,7 +65,7 @@
                                 <form action="{{ route('specialisasi.destroy', $specialisasi->id) }}" method="POST" class="inline-block delete-form">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="button" class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center delete-btn">
+                                    <button type="button" title="Hapus Item" class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center delete-btn">
                                         <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
                                     </button>
                                 </form>

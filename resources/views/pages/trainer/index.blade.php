@@ -63,6 +63,9 @@
                         <tr>
                             <th hidden>Status Text</th>
                             <th scope="col">S.L</th>
+                            @if(!$isLaporanMode)
+                            <th scope="col">Aksi</th>
+                            @endif
                             <th scope="col">RFID</th>
                             <th scope="col">Foto</th>
                             <th scope="col">Nama</th>
@@ -74,7 +77,6 @@
                             <th scope="col">Tanggal Gabung</th>
                             <th scope="col">Status</th>
                             <th scope="col"></th>
-                            <th scope="col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -82,6 +84,27 @@
                         <tr>
                             <td hidden>{{ $trainer->status }}</td>
                             <td class="whitespace-nowrap">{{ $index + 1 }}</td>
+                            @if(!$isLaporanMode)
+                            <td class="whitespace-nowrap">
+                                @role('spv|admin')
+                                <a href="{{ route('trainer.show', $trainer->id) }}" title="Lihat detail" class="btn-view-detail w-8 h-8 bg-primary-50 text-primary-600 rounded-full inline-flex items-center justify-center">
+                                    <iconify-icon icon="iconamoon:eye-light"></iconify-icon>
+                                </a>
+                                @endrole
+                                @role('admin')
+                                <a href="{{ route('trainer.edit', $trainer->id) }}" title="Edit Item" class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
+                                    <iconify-icon icon="lucide:edit"></iconify-icon>
+                                </a>
+                                <form action="{{ route('trainer.destroy', $trainer->id) }}" method="POST" class="inline-block delete-form">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="button" title="Hapus item" class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center delete-btn">
+                                        <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
+                                    </button>
+                                </form>
+                                @endrole
+                            </td>
+                            @endif
                             <td class="whitespace-nowrap">{{ $trainer->rfid }}</td>
                             <td class="whitespace-nowrap">
                                 @if($trainer->user->photo)
@@ -137,26 +160,6 @@
                                             </button>
                                         </form>
                                     @endif
-                                @endrole
-                            </td>
-
-                            <td class="whitespace-nowrap">
-                                @role('spv|admin')
-                                <a href="{{ route('trainer.show', $trainer->id) }}" class="btn-view-detail w-8 h-8 bg-primary-50 text-primary-600 rounded-full inline-flex items-center justify-center">
-                                    <iconify-icon icon="iconamoon:eye-light"></iconify-icon>
-                                </a>
-                                @endrole
-                                @role('admin')
-                                <a href="{{ route('trainer.edit', $trainer->id) }}" class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
-                                    <iconify-icon icon="lucide:edit"></iconify-icon>
-                                </a>
-                                <form action="{{ route('trainer.destroy', $trainer->id) }}" method="POST" class="inline-block delete-form">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="button" class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center delete-btn">
-                                        <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
-                                    </button>
-                                </form>
                                 @endrole
                             </td>
                         </tr>
