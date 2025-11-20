@@ -24,6 +24,9 @@
 .whitespace-nowrap {
   white-space: nowrap;
 }
+.h-modal {
+  height: 90%;
+}
 .mx-auto {
   margin-inline: auto;
 }

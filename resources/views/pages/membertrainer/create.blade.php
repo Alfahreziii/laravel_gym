@@ -21,23 +21,43 @@
                         {{-- Alert success / danger --}}
                         <div class="col-span-12">
                             @if(session('success'))
-                                <div class="alert alert-success">
-                                    {{ session('success') }}
-                                    <a href="{{ route('membertrainer.index') }}" class="btn btn-success">Kembali</a>
+                                <div class="alert alert-success bg-success-50 dark:bg-success-600/25 
+                                    text-success-600 dark:text-success-400 border-success-50 
+                                    px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
+                                    <div class="flex items-center gap-4">
+                                        {{ session('success') }}
+                                        <a href="{{ route('membertrainer.index') }}" class="text-success-600 focus:bg-success-600 hover:bg-success-700 border border-success-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-success-300 rounded-lg text-sm px-4 py-1">Kembali</a>
+                                    </div>
+                                    <button class="remove-button text-success-600 text-2xl"> 
+                                        <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
+                                    </button>
                                 </div>
                             @endif
 
                             @if(session('danger'))
-                                <div class="alert alert-danger">
+                                <div class="alert alert-danger bg-danger-100 dark:bg-danger-600/25 
+                                    text-danger-600 dark:text-danger-400 border-danger-100 
+                                    px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
                                     {{ session('danger') }}
+                                    <button class="remove-button text-danger-600 text-2xl"> 
+                                        <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
+                                    </button>
                                 </div>
                             @endif
                         </div>
 
-                        {{-- Anggota --}}
+                        {{-- Anggota dengan Searchable Dropdown --}}
                         <div class="col-span-12">
                             <label class="form-label">Anggota</label>
-                            <select name="id_anggota" class="form-control" required>
+                            <select 
+                                name="id_anggota" 
+                                id="select-anggota"
+                                class="form-control" 
+                                required
+                                data-searchable="true"
+                                data-placeholder="-- Pilih Anggota --"
+                                data-search-placeholder="Cari anggota..."
+                                data-no-results="Anggota tidak ditemukan">
                                 <option value="">-- Pilih Anggota --</option>
                                 @foreach($anggotas as $anggota)
                                     <option value="{{ $anggota->id }}" {{ old('id_anggota') == $anggota->id ? 'selected' : '' }}>
@@ -47,10 +67,18 @@
                             </select>
                         </div>
 
-                        {{-- Trainer --}}
+                        {{-- Trainer dengan Searchable Dropdown --}}
                         <div class="col-span-12">
                             <label class="form-label">Trainer</label>
-                            <select name="id_trainer" class="form-control" required>
+                            <select 
+                                name="id_trainer" 
+                                id="select-trainer"
+                                class="form-control" 
+                                required
+                                data-searchable="true"
+                                data-placeholder="-- Pilih Trainer --"
+                                data-search-placeholder="Cari trainer..."
+                                data-no-results="Trainer tidak ditemukan">
                                 <option value="">-- Pilih Trainer --</option>
                                 @foreach($trainers as $trainer)
                                     <option value="{{ $trainer->id }}" {{ old('id_trainer') == $trainer->id ? 'selected' : '' }}>
@@ -60,10 +88,18 @@
                             </select>
                         </div>
 
-                        {{-- Paket Personal Trainer --}}
+                        {{-- Paket Personal Trainer dengan Searchable Dropdown --}}
                         <div class="col-span-12">
                             <label class="form-label">Pilih Paket Personal Trainer</label>
-                            <select name="id_paket_personal_trainer" id="paket" class="form-control" required>
+                            <select 
+                                name="id_paket_personal_trainer" 
+                                id="paket" 
+                                class="form-control" 
+                                required
+                                data-searchable="true"
+                                data-placeholder="-- Pilih Paket --"
+                                data-search-placeholder="Cari paket..."
+                                data-no-results="Paket tidak ditemukan">
                                 <option value="">-- Pilih Paket --</option>
                                 @foreach($pakets as $paket)
                                     <option value="{{ $paket->id }}"
@@ -93,6 +129,8 @@
                                 <option value="">-- Pilih Metode --</option>
                                 <option value="cash" {{ old('metode_pembayaran') == 'cash' ? 'selected' : '' }}>Cash</option>
                                 <option value="transfer" {{ old('metode_pembayaran') == 'transfer' ? 'selected' : '' }}>Transfer</option>
+                                <option value="qris" {{ old('metode_pembayaran') == 'qris' ? 'selected' : '' }}>QRIS</option>
+                                <option value="debit" {{ old('metode_pembayaran') == 'debit' ? 'selected' : '' }}>Debit Card</option>
                                 <option value="ewallet" {{ old('metode_pembayaran') == 'ewallet' ? 'selected' : '' }}>E-Wallet</option>
                             </select>
                         </div>
@@ -104,7 +142,8 @@
                         </div>
                         <div class="col-span-12 md:col-span-6">
                             <label class="form-label">Total Dibayarkan Diawal</label>
-                            <input type="number" name="jumlah_bayar" id="jumlah_bayar" class="form-control" value="0">
+                            <input type="number" name="jumlah_bayar" id="jumlah_bayar" class="form-control" value="0" min="0">
+                            <small class="text-muted" id="warning_text" style="display: none; color: #dc3545; margin-top: 4px;"></small>
                         </div>
                         
                         {{-- Status Pembayaran (readonly) --}}
@@ -129,6 +168,10 @@
 @endsection
 
 @section('scripts')
+<!-- Include Searchable Dropdown Component -->
+<link rel="stylesheet" href="{{ asset('assets/css/searchable-dropdown.css') }}">
+<script src="{{ asset('assets/js/searchable-dropdown.js') }}"></script>
+
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const paketSelect = document.getElementById('paket');
@@ -136,13 +179,42 @@ document.addEventListener("DOMContentLoaded", function() {
     const totalBiaya = document.getElementById('total_biaya');
     const totalDibayarkan = document.getElementById('jumlah_bayar');
     const statusPembayaran = document.getElementById('status_pembayaran');
+    const warningText = document.getElementById('warning_text');
 
     let biaya = 0;
 
     function hitungTotalBiaya() {
         let diskon = parseInt(diskonInput.value) || 0;
         totalBiaya.value = Math.max(biaya - diskon, 0);
+        
+        // Update max attribute untuk jumlah_bayar
+        totalDibayarkan.setAttribute('max', totalBiaya.value);
+        
+        // Validasi ulang jumlah yang dibayar
+        validateJumlahBayar();
+        
         hitungStatusPembayaran();
+    }
+
+    function validateJumlahBayar() {
+        let dibayar = parseInt(totalDibayarkan.value) || 0;
+        let maxBiaya = parseInt(totalBiaya.value) || 0;
+
+        if (dibayar > maxBiaya && maxBiaya > 0) {
+            // Jika melebihi, set ke nilai maksimal
+            totalDibayarkan.value = maxBiaya;
+            
+            // Tampilkan peringatan
+            warningText.textContent = `⚠️ Pembayaran tidak boleh melebihi total biaya (Rp ${formatRupiah(maxBiaya)})`;
+            warningText.style.display = 'block';
+            
+            // Sembunyikan peringatan setelah 3 detik
+            setTimeout(() => {
+                warningText.style.display = 'none';
+            }, 3000);
+        } else {
+            warningText.style.display = 'none';
+        }
     }
 
     function hitungStatusPembayaran() {
@@ -156,14 +228,42 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
+    function formatRupiah(angka) {
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0
+        }).format(angka);
+    }
+
+    // Event pilih paket
     paketSelect.addEventListener('change', function() {
         let selected = this.options[this.selectedIndex];
         biaya = parseInt(selected.dataset.biaya || 0);
         hitungTotalBiaya();
     });
 
+    // Event diskon
     diskonInput.addEventListener('input', hitungTotalBiaya);
-    totalDibayarkan.addEventListener('input', hitungStatusPembayaran);
+
+    // Event jumlah dibayar dengan validasi real-time
+    totalDibayarkan.addEventListener('input', function() {
+        validateJumlahBayar();
+        hitungStatusPembayaran();
+    });
+
+    // Validasi sebelum submit form
+    document.querySelector('form').addEventListener('submit', function(e) {
+        let dibayar = parseInt(totalDibayarkan.value) || 0;
+        let maxBiaya = parseInt(totalBiaya.value) || 0;
+
+        if (dibayar > maxBiaya && maxBiaya > 0) {
+            e.preventDefault();
+            alert(`Pembayaran tidak boleh melebihi total biaya!\n\nTotal Biaya: ${formatRupiah(maxBiaya)}\nYang Anda input: ${formatRupiah(dibayar)}`);
+            totalDibayarkan.focus();
+            return false;
+        }
+    });
 });
 </script>
 @endsection

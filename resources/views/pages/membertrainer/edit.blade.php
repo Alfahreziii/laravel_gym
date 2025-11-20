@@ -34,7 +34,7 @@ $script='<script src="' . asset('assets/js/data-table.js') . '"></script>';
                                 <td class="whitespace-nowrap">{{ $index + 1 }}</td>
                                 <td class="whitespace-nowrap">{{ \Carbon\Carbon::parse($pembayaran->tgl_bayar)->format('d-m-Y') }}</td>
                                 <td class="whitespace-nowrap">Rp {{ number_format($pembayaran->jumlah_bayar, 0, ',', '.') }}</td>
-                                <td class="whitespace-nowrap">{{ $pembayaran->metode_pembayaran }}</td>
+                                <td class="whitespace-nowrap">{{ ucfirst($pembayaran->metode_pembayaran) }}</td>
                                 @role('admin')
                                 <td class="whitespace-nowrap flex gap-2">
                                     <form action="{{ route('pembayaran_trainer.destroy', $pembayaran->id) }}" method="POST" class="inline-block delete-form">
@@ -118,6 +118,13 @@ $script='<script src="' . asset('assets/js/data-table.js') . '"></script>';
                             <input type="number" id="total_dibayarkan" class="form-control" 
                                 value="{{ $memberTrainer->pembayaranMemberTrainers->sum('jumlah_bayar') }}" readonly>
                         </div>
+
+                        {{-- Sisa Tagihan --}}
+                        <div class="col-span-12">
+                            <label class="form-label">Sisa Tagihan</label>
+                            <input type="number" id="sisa_tagihan" class="form-control" 
+                                value="{{ $memberTrainer->total_biaya - $memberTrainer->pembayaranMemberTrainers->sum('jumlah_bayar') }}" readonly>
+                        </div>
                                                 
                         {{-- Status Pembayaran --}}
                         <div class="col-span-12">
@@ -134,10 +141,10 @@ $script='<script src="' . asset('assets/js/data-table.js') . '"></script>';
 </div>
 
 <!-- Modal Add Riwayat Pembayaran -->
-<div id="popup-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-    <div class="rounded-2xl bg-white max-w-[800px] w-full">
+<div id="popup-modal" tabindex="-1" class="hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0">
+    <div class="rounded-2xl bg-white max-w-[800px] w-full h-modal overflow-y-auto overflow-x-hidden">
         <div class="py-4 px-6 border-b border-neutral-200 flex items-center justify-between">
-            <h1 class="text-xl">Add New Pembayaran</h1>
+            <h1 class="text-xl">Tambah Pembayaran</h1>
             <button data-modal-hide="popup-modal" type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
                 <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"></path>
@@ -146,7 +153,7 @@ $script='<script src="' . asset('assets/js/data-table.js') . '"></script>';
             </button>
         </div>
         <div class="p-6">
-            <form action="{{ route('membertrainer.tambahPembayaran', $memberTrainer->id) }}" method="POST">
+            <form action="{{ route('membertrainer.tambahPembayaran', $memberTrainer->id) }}" method="POST" id="form-pembayaran">
             @csrf
             @method('POST')
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
@@ -155,6 +162,33 @@ $script='<script src="' . asset('assets/js/data-table.js') . '"></script>';
                         <label class="form-label">Kode Transaksi</label>
                         <input type="text" class="form-control" value="{{ $memberTrainer->kode_transaksi }}" readonly>
                     </div>
+
+                    {{-- Info Total Biaya --}}
+                    <div class="col-span-12 md:col-span-6">
+                        <label class="form-label">Total Biaya</label>
+                        <input type="text" id="modal_total_biaya" class="form-control bg-gray-50" 
+                            value="Rp {{ number_format($memberTrainer->total_biaya, 0, ',', '.') }}" readonly>
+                    </div>
+
+                    {{-- Info Total Sudah Dibayar --}}
+                    <div class="col-span-12 md:col-span-6">
+                        <label class="form-label">Sudah Dibayar</label>
+                        <input type="text" id="modal_sudah_dibayar" class="form-control bg-gray-50" 
+                            value="Rp {{ number_format($memberTrainer->pembayaranMemberTrainers->sum('jumlah_bayar'), 0, ',', '.') }}" readonly>
+                    </div>
+
+                    {{-- Info Sisa Tagihan --}}
+                    <div class="col-span-12">
+                        <label class="form-label font-semibold text-danger-600">Sisa Tagihan</label>
+                        <input type="text" id="modal_sisa_tagihan" class="form-control bg-danger-50 border-danger-200 text-danger-600 font-bold text-lg" 
+                            value="Rp {{ number_format($memberTrainer->total_biaya - $memberTrainer->pembayaranMemberTrainers->sum('jumlah_bayar'), 0, ',', '.') }}" readonly>
+                        <input type="hidden" id="sisa_tagihan_value" value="{{ $memberTrainer->total_biaya - $memberTrainer->pembayaranMemberTrainers->sum('jumlah_bayar') }}">
+                    </div>
+
+                    <div class="col-span-12">
+                        <hr class="my-2">
+                    </div>
+
                    {{-- Metode Pembayaran --}}
                     <div class="col-span-12">
                         <label class="form-label">Metode Pembayaran</label>
@@ -162,25 +196,37 @@ $script='<script src="' . asset('assets/js/data-table.js') . '"></script>';
                             <option value="">-- Pilih Metode --</option>
                             <option value="cash" {{ old('metode_pembayaran') == 'cash' ? 'selected' : '' }}>Cash</option>
                             <option value="transfer" {{ old('metode_pembayaran') == 'transfer' ? 'selected' : '' }}>Transfer</option>
+                            <option value="qris" {{ old('metode_pembayaran') == 'qris' ? 'selected' : '' }}>QRIS</option>
+                            <option value="debit" {{ old('metode_pembayaran') == 'debit' ? 'selected' : '' }}>Debit Card</option>
                             <option value="ewallet" {{ old('metode_pembayaran') == 'ewallet' ? 'selected' : '' }}>E-Wallet</option>
                         </select>
                     </div>
 
-                    {{-- Tanggal Bayar & Total Dibayarkan --}}
+                    {{-- Tanggal Bayar --}}
                     <div class="col-span-12">
                         <label class="form-label">Tanggal Bayar</label>
-                        <input type="date" name="tgl_bayar" class="form-control" value="{{ old('tgl_bayar') }}">
+                        <input type="date" name="tgl_bayar" class="form-control" value="{{ old('tgl_bayar', date('Y-m-d')) }}" required>
                     </div>
+
+                    {{-- Jumlah Bayar --}}
                     <div class="col-span-12">
-                        <label class="form-label">Total Dibayarkan</label>
-                        <input type="number" name="jumlah_bayar" id="jumlah_bayar" class="form-control" value="0">
+                        <label class="form-label">Jumlah Dibayarkan</label>
+                        <input type="number" name="jumlah_bayar" id="modal_jumlah_bayar" class="form-control" value="0" min="0" required>
+                        <small class="text-muted" id="modal_warning_text" style="display: none; color: #dc3545; margin-top: 4px;"></small>
                     </div>
+
+                    {{-- Sisa Setelah Pembayaran Ini --}}
+                    <div class="col-span-12">
+                        <label class="form-label">Sisa Setelah Pembayaran Ini</label>
+                        <input type="text" id="modal_sisa_setelah" class="form-control bg-success-50 border-success-200 text-success-600 font-semibold" readonly>
+                    </div>
+
                     <div class="flex items-center justify-start gap-3 mt-6">
                         <button type="reset" data-modal-hide="popup-modal" class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
                             Cancel
                         </button>
-                        <button type="submit" class="btn btn-primary border border-primary-600 text-base px-6 py-3 rounded-lg">
-                            Save
+                        <button type="submit" id="btn-submit-pembayaran" class="btn btn-primary border border-primary-600 text-base px-6 py-3 whitespace-nowrap text-white rounded-lg">
+                            Simpan Pembayaran
                         </button>
                     </div>
                 </div>  
@@ -194,15 +240,9 @@ $script='<script src="' . asset('assets/js/data-table.js') . '"></script>';
 @section('scripts')
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    const paketSelect = document.getElementById('paket');
-    const tglMulai = document.getElementById('tgl_mulai');
-    const tglSelesai = document.getElementById('tgl_selesai');
-    const diskonInput = document.getElementById('diskon');
-    const totalBiaya = document.getElementById('total_biaya');
-    const totalDibayarkan = document.getElementById('total_dibayarkan');
-    const statusPembayaran = document.getElementById('status_pembayaran');
     const deleteForms = document.querySelectorAll('.delete-form');
 
+    // Delete confirmation
     deleteForms.forEach(form => {
         const btn = form.querySelector('.delete-btn');
         btn.addEventListener('click', function (e) {
@@ -210,7 +250,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
             Swal.fire({
                 title: 'Apakah kamu yakin?',
-                text: "Data Member Trainer yang dihapus tidak bisa dikembalikan!",
+                text: "Data pembayaran yang dihapus tidak bisa dikembalikan!",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#e3342f',
@@ -225,70 +265,149 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 
-    let biaya = 0;
-    let durasi = 0;
-    let periode = 'bulan';
+    // Modal Pembayaran Logic
+    const modalJumlahBayar = document.getElementById('modal_jumlah_bayar');
+    const modalSisaSetelah = document.getElementById('modal_sisa_setelah');
+    const modalWarningText = document.getElementById('modal_warning_text');
+    const sisaTagihanValue = document.getElementById('sisa_tagihan_value');
+    const formPembayaran = document.getElementById('form-pembayaran');
+    const btnSubmitPembayaran = document.getElementById('btn-submit-pembayaran');
 
-    function hitungTanggalSelesai() {
-        if (tglMulai.value && durasi > 0) {
-            let mulai = new Date(tglMulai.value);
-            let selesai = new Date(mulai);
-
-            if (periode.toLowerCase() === 'hari') selesai.setDate(mulai.getDate() + durasi);
-            if (periode.toLowerCase() === 'minggu') selesai.setDate(mulai.getDate() + (durasi * 7));
-            if (periode.toLowerCase() === 'bulan') selesai.setMonth(mulai.getMonth() + durasi);
-            if (periode.toLowerCase() === 'tahun') selesai.setFullYear(mulai.getFullYear() + durasi);
-
-            let yyyy = selesai.getFullYear();
-            let mm = String(selesai.getMonth() + 1).padStart(2, '0');
-            let dd = String(selesai.getDate()).padStart(2, '0');
-
-            tglSelesai.value = `${yyyy}-${mm}-${dd}`;
-        }
+    function formatRupiah(angka) {
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0
+        }).format(angka);
     }
 
-    function hitungTotalBiaya() {
-        let diskon = parseInt(diskonInput.value) || 0;
-        totalBiaya.value = Math.max(biaya - diskon, 0);
-        hitungStatusPembayaran();
-    }
+    function updateSisaSetelahPembayaran() {
+        let sisaTagihan = parseInt(sisaTagihanValue.value) || 0;
+        let jumlahBayar = parseInt(modalJumlahBayar.value) || 0;
+        let sisaSetelah = sisaTagihan - jumlahBayar;
 
-    function hitungStatusPembayaran() {
-        let dibayar = parseInt(totalDibayarkan.value) || 0;
-        let biaya = parseInt(totalBiaya.value) || 0;
-
-        if (dibayar >= biaya && biaya > 0) {
-            statusPembayaran.value = "Lunas";
+        // Update display sisa setelah pembayaran
+        if (sisaSetelah < 0) {
+            modalSisaSetelah.value = formatRupiah(0);
+            modalSisaSetelah.classList.remove('bg-success-50', 'border-success-200', 'text-success-600');
+            modalSisaSetelah.classList.add('bg-warning-50', 'border-warning-200', 'text-warning-600');
+            
+            // Tombol tetap normal
+            btnSubmitPembayaran.disabled = false;
+            btnSubmitPembayaran.textContent = 'Simpan Pembayaran';
+            btnSubmitPembayaran.classList.remove('bg-success-600', 'border-success-600', 'cursor-not-allowed', 'opacity-60');
+            btnSubmitPembayaran.classList.add('btn-primary', 'border-primary-600');
+        } else if (sisaSetelah === 0 && jumlahBayar > 0) {
+            // User memasukkan nominal yang pas untuk melunasi
+            modalSisaSetelah.value = formatRupiah(0) + " (AKAN LUNAS)";
+            modalSisaSetelah.classList.remove('bg-warning-50', 'border-warning-200', 'text-warning-600');
+            modalSisaSetelah.classList.add('bg-success-50', 'border-success-200', 'text-success-600');
+            
+            // Tombol TETAP AKTIF agar bisa submit pembayaran pelunasan
+            btnSubmitPembayaran.disabled = false;
+            btnSubmitPembayaran.textContent = '✓ Simpan & Lunasi';
+            btnSubmitPembayaran.classList.remove('cursor-not-allowed', 'opacity-60');
+            btnSubmitPembayaran.classList.remove('btn-primary', 'border-primary-600');
+            btnSubmitPembayaran.classList.add('bg-success-600', 'border-success-600');
         } else {
-            statusPembayaran.value = "Belum Lunas";
+            modalSisaSetelah.value = formatRupiah(sisaSetelah);
+            modalSisaSetelah.classList.remove('bg-warning-50', 'border-warning-200', 'text-warning-600');
+            modalSisaSetelah.classList.add('bg-success-50', 'border-success-200', 'text-success-600');
+            
+            // Tombol normal
+            btnSubmitPembayaran.disabled = false;
+            btnSubmitPembayaran.textContent = 'Simpan Pembayaran';
+            btnSubmitPembayaran.classList.remove('bg-success-600', 'border-success-600', 'cursor-not-allowed', 'opacity-60');
+            btnSubmitPembayaran.classList.add('btn-primary', 'border-primary-600');
+        }
+
+        // Validasi jika melebihi sisa tagihan
+        if (jumlahBayar > sisaTagihan && sisaTagihan > 0) {
+            modalJumlahBayar.value = sisaTagihan;
+            modalWarningText.textContent = `⚠️ Pembayaran tidak boleh melebihi sisa tagihan (${formatRupiah(sisaTagihan)})`;
+            modalWarningText.style.display = 'block';
+            
+            setTimeout(() => {
+                modalWarningText.style.display = 'none';
+            }, 3000);
+            
+            // Trigger update lagi untuk cek status lunas
+            updateSisaSetelahPembayaran();
+        } else {
+            modalWarningText.style.display = 'none';
         }
     }
 
-    // Event
-    paketSelect.addEventListener('change', function() {
-        let selected = this.options[this.selectedIndex];
-        biaya = parseInt(selected.dataset.biaya || 0);
-        durasi = parseInt(selected.dataset.durasi || 0);
-        periode = selected.dataset.periode || 'bulan';
-        hitungTanggalSelesai();
-        hitungTotalBiaya();
+    // Event listener untuk input jumlah bayar
+    modalJumlahBayar.addEventListener('input', updateSisaSetelahPembayaran);
+
+    // Validasi sebelum submit
+    formPembayaran.addEventListener('submit', function(e) {
+        let sisaTagihan = parseInt(sisaTagihanValue.value) || 0;
+        let jumlahBayar = parseInt(modalJumlahBayar.value) || 0;
+
+        if (jumlahBayar > sisaTagihan && sisaTagihan > 0) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'error',
+                title: 'Pembayaran Melebihi Tagihan!',
+                html: `
+                    <p>Jumlah pembayaran tidak boleh melebihi sisa tagihan.</p>
+                    <br>
+                    <strong>Sisa Tagihan:</strong> ${formatRupiah(sisaTagihan)}<br>
+                    <strong>Yang Anda Input:</strong> ${formatRupiah(jumlahBayar)}
+                `,
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'OK'
+            });
+            modalJumlahBayar.focus();
+            return false;
+        }
+
+        if (jumlahBayar <= 0) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'error',
+                title: 'Jumlah Tidak Valid!',
+                text: 'Jumlah pembayaran harus lebih dari 0',
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'OK'
+            });
+            modalJumlahBayar.focus();
+            return false;
+        }
     });
 
-    tglMulai.addEventListener('change', hitungTanggalSelesai);
-    diskonInput.addEventListener('input', hitungTotalBiaya);
-    totalDibayarkan.addEventListener('input', hitungStatusPembayaran);
+    // Set max attribute pada input
+    modalJumlahBayar.setAttribute('max', sisaTagihanValue.value);
 
-    // Jalankan perhitungan awal saat halaman Detail dibuka
-    if (paketSelect.value) {
-        let selected = paketSelect.options[paketSelect.selectedIndex];
-        biaya = parseInt(selected.dataset.biaya || 0);
-        durasi = parseInt(selected.dataset.durasi || 0);
-        periode = selected.dataset.periode || 'bulan';
-    }
-    hitungTanggalSelesai();
-    hitungTotalBiaya();
-    hitungStatusPembayaran();
+    // Reset form saat modal dibuka
+    document.querySelector('[data-modal-target="popup-modal"]')?.addEventListener('click', function() {
+        // Cek apakah sudah lunas dari awal
+        let sisaTagihan = parseInt(sisaTagihanValue.value) || 0;
+        
+        if (sisaTagihan === 0) {
+            // Jika sudah lunas, disable tombol dan tampilkan pesan
+            btnSubmitPembayaran.disabled = true;
+            btnSubmitPembayaran.textContent = '✓ SUDAH LUNAS';
+            btnSubmitPembayaran.classList.remove('btn-primary', 'border-primary-600');
+            btnSubmitPembayaran.classList.add('bg-success-600', 'border-success-600', 'cursor-not-allowed', 'opacity-60');
+            
+            modalJumlahBayar.disabled = true;
+            modalJumlahBayar.value = 0;
+            modalSisaSetelah.value = formatRupiah(0) + " (SUDAH LUNAS)";
+            modalSisaSetelah.classList.add('bg-success-50', 'border-success-200', 'text-success-600');
+        } else {
+            // Reset normal
+            modalJumlahBayar.disabled = false;
+            modalJumlahBayar.value = 0;
+            btnSubmitPembayaran.disabled = false;
+            btnSubmitPembayaran.textContent = 'Simpan Pembayaran';
+            btnSubmitPembayaran.classList.remove('bg-success-600', 'border-success-600', 'cursor-not-allowed', 'opacity-60');
+            btnSubmitPembayaran.classList.add('btn-primary', 'border-primary-600');
+            updateSisaSetelahPembayaran();
+        }
+    });
 });
-
 </script>
 @endsection
