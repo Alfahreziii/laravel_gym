@@ -62,12 +62,35 @@
         <div class="xl:col-span-12 2xl:col-span-12">
             <div class="card h-full w-full rounded-lg border-0">
                 <div class="card-body overflow-x-auto">
-                    <div class="flex flex-wrap items-center justify-between">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
                         <h6 class="text-lg mb-0">Membership & Personal Trainer</h6>
-                        <select id="chartFilter" class="form-select bg-white form-select-sm w-auto">
-                            <option value="monthly" selected>Monthly</option>
-                            <option value="weekly">Weekly</option>
-                        </select>
+                        <div class="flex gap-2">
+                            <select id="chartYearFilter" class="form-select bg-white form-select-sm w-auto">
+                                @foreach($availableYears as $year)
+                                    <option value="{{ $year }}" {{ $year == $currentYear ? 'selected' : '' }}>
+                                        {{ $year }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <select id="chartFilter" class="form-select bg-white form-select-sm w-auto">
+                                <option value="monthly" selected>Monthly</option>
+                                <option value="weekly">Weekly</option>
+                            </select>
+                            <select id="chartMonthFilter" class="form-select bg-white form-select-sm w-auto" style="display: none;">
+                                <option value="1" {{ $currentMonth == 1 ? 'selected' : '' }}>January</option>
+                                <option value="2" {{ $currentMonth == 2 ? 'selected' : '' }}>February</option>
+                                <option value="3" {{ $currentMonth == 3 ? 'selected' : '' }}>March</option>
+                                <option value="4" {{ $currentMonth == 4 ? 'selected' : '' }}>April</option>
+                                <option value="5" {{ $currentMonth == 5 ? 'selected' : '' }}>May</option>
+                                <option value="6" {{ $currentMonth == 6 ? 'selected' : '' }}>June</option>
+                                <option value="7" {{ $currentMonth == 7 ? 'selected' : '' }}>July</option>
+                                <option value="8" {{ $currentMonth == 8 ? 'selected' : '' }}>August</option>
+                                <option value="9" {{ $currentMonth == 9 ? 'selected' : '' }}>September</option>
+                                <option value="10" {{ $currentMonth == 10 ? 'selected' : '' }}>October</option>
+                                <option value="11" {{ $currentMonth == 11 ? 'selected' : '' }}>November</option>
+                                <option value="12" {{ $currentMonth == 12 ? 'selected' : '' }}>December</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="flex flex-wrap items-center gap-2 mt-2">
                         <h6 class="mb-0">Rp {{ number_format($totalRevenue, 0, ',', '.') }}</h6>
@@ -76,6 +99,48 @@
                 </div>
             </div>
         </div>
+
+        <div class="xl:col-span-12 2xl:col-span-12">
+            <div class="card h-full w-full rounded-lg border-0">
+                <div class="card-body overflow-x-auto">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <h6 class="text-lg mb-0">Penjualan Produk</h6>
+                        <div class="flex gap-2">
+                            <select id="chartYearFilterProduct" class="form-select bg-white form-select-sm w-auto">
+                                @foreach($availableYears as $year)
+                                    <option value="{{ $year }}" {{ $year == $currentYear ? 'selected' : '' }}>
+                                        {{ $year }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <select id="chartFilterProduct" class="form-select bg-white form-select-sm w-auto">
+                                <option value="monthly" selected>Monthly</option>
+                                <option value="weekly">Weekly</option>
+                            </select>
+                            <select id="chartMonthFilterProduct" class="form-select bg-white form-select-sm w-auto" style="display: none;">
+                                <option value="1" {{ $currentMonth == 1 ? 'selected' : '' }}>January</option>
+                                <option value="2" {{ $currentMonth == 2 ? 'selected' : '' }}>February</option>
+                                <option value="3" {{ $currentMonth == 3 ? 'selected' : '' }}>March</option>
+                                <option value="4" {{ $currentMonth == 4 ? 'selected' : '' }}>April</option>
+                                <option value="5" {{ $currentMonth == 5 ? 'selected' : '' }}>May</option>
+                                <option value="6" {{ $currentMonth == 6 ? 'selected' : '' }}>June</option>
+                                <option value="7" {{ $currentMonth == 7 ? 'selected' : '' }}>July</option>
+                                <option value="8" {{ $currentMonth == 8 ? 'selected' : '' }}>August</option>
+                                <option value="9" {{ $currentMonth == 9 ? 'selected' : '' }}>September</option>
+                                <option value="10" {{ $currentMonth == 10 ? 'selected' : '' }}>October</option>
+                                <option value="11" {{ $currentMonth == 11 ? 'selected' : '' }}>November</option>
+                                <option value="12" {{ $currentMonth == 12 ? 'selected' : '' }}>December</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 mt-2">
+                        <h6 class="mb-0">Rp {{ number_format($totalProductRevenue, 0, ',', '.') }}</h6>
+                    </div>
+                    <div id="chartProduct" class="pt-[28px] apexcharts-tooltip-style-1 w-full min-w-800px"></div>
+                </div>
+            </div>
+        </div>
+
         <div class="xl:col-span-12 2xl:col-span-12">
             <div class="card h-full border-0">
                 <div class="card-body p-6">
@@ -172,20 +237,25 @@
             </div>
         </div>
     </div>
-
 @endsection
 
 @section('scripts')
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
     window.dashboardData = {
-        monthlyData: @json($monthlyData),
-        weeklyData: @json($weeklyData),
+        // Data Membership & Trainer per tahun
+        membershipByYear: @json($membershipDataByYear),
+        
+        // Data Penjualan Produk per tahun
+        productByYear: @json($productDataByYear),
+        
+        // Tahun dan bulan default
+        currentYear: @json($currentYear),
+        currentMonth: @json($currentMonth),
     };
 </script>
 
-{!! $script !!}
-
+{{-- DataTables Script --}}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     const tables = {
@@ -209,7 +279,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // 👇 Tambahkan event ini
     const subscribeTabBtn = document.getElementById("subscribe-tab");
     subscribeTabBtn.addEventListener("click", () => {
         setTimeout(() => {
@@ -220,7 +289,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }, 200);
     });
 });
-
 </script>
 @endsection
 
