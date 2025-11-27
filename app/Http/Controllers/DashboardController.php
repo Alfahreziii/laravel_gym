@@ -97,9 +97,16 @@ class DashboardController extends Controller
                 $weeklyDataByMonth[$month] = $this->getWeeklyDataForMonth($yearPayments, $year, $month, 'tgl_bayar', 'jumlah_bayar');
             }
 
+            // Data per hari untuk setiap bulan (NEW)
+            $dailyDataByMonth = [];
+            for ($month = 1; $month <= 12; $month++) {
+                $dailyDataByMonth[$month] = $this->getDailyDataForMonth($yearPayments, $year, $month, 'tgl_bayar', 'jumlah_bayar');
+            }
+
             $membershipDataByYear[$year] = [
                 'monthly' => $monthlyData,
                 'weekly' => $weeklyDataByMonth,
+                'daily' => $dailyDataByMonth,
             ];
         }
 
@@ -139,22 +146,33 @@ class DashboardController extends Controller
                     $weeklyProductDataByMonth[$month] = $this->getWeeklyDataForMonth($yearProducts, $year, $month, 'tanggal', 'kredit');
                 }
 
+                // Data per hari untuk setiap bulan (NEW)
+                $dailyProductDataByMonth = [];
+                for ($month = 1; $month <= 12; $month++) {
+                    $dailyProductDataByMonth[$month] = $this->getDailyDataForMonth($yearProducts, $year, $month, 'tanggal', 'kredit');
+                }
+
                 $productDataByYear[$year] = [
                     'monthly' => $monthlyProductData,
                     'weekly' => $weeklyProductDataByMonth,
+                    'daily' => $dailyProductDataByMonth,
                 ];
             }
         } else {
             // Jika akun tidak ditemukan
             foreach ($availableYears as $year) {
                 $weeklyDataByMonth = [];
+                $dailyDataByMonth = [];
                 for ($month = 1; $month <= 12; $month++) {
                     $weeklyDataByMonth[$month] = [0, 0, 0, 0, 0, 0];
+                    $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+                    $dailyDataByMonth[$month] = array_fill(0, $daysInMonth, 0);
                 }
                 
                 $productDataByYear[$year] = [
                     'monthly' => array_fill(0, 12, 0),
                     'weekly' => $weeklyDataByMonth,
+                    'daily' => $dailyDataByMonth,
                 ];
             }
         }
@@ -209,5 +227,34 @@ class DashboardController extends Controller
 
         // Kembalikan hanya minggu yang relevan
         return array_slice($weeklyData, 0, $weeksInMonth);
+    }
+
+    /**
+     * Helper untuk menghitung revenue per hari dalam satu bulan (NEW)
+     */
+    private function getDailyDataForMonth($data, $year, $month, $dateField, $amountField)
+    {
+        // Filter data untuk bulan tertentu
+        $monthData = $data->filter(function($item) use ($year, $month, $dateField) {
+            $date = strtotime($item->$dateField);
+            return date('Y', $date) == $year && date('n', $date) == $month;
+        });
+
+        // Hitung jumlah hari dalam bulan
+        $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+        
+        // Inisialisasi array untuk setiap hari
+        $dailyData = array_fill(0, $daysInMonth, 0);
+
+        // Kelompokkan berdasarkan hari
+        foreach ($monthData as $item) {
+            $date = strtotime($item->$dateField);
+            $day = (int) date('j', $date); // Tanggal 1-31
+            
+            // Index dimulai dari 0, jadi day-1
+            $dailyData[$day - 1] += $item->$amountField;
+        }
+
+        return $dailyData;
     }
 }

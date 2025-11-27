@@ -1,3 +1,4 @@
+
 @extends('layout.layout')
 
 @php
@@ -75,6 +76,7 @@
                             <select id="chartFilter" class="form-select bg-white form-select-sm w-auto">
                                 <option value="monthly" selected>Monthly</option>
                                 <option value="weekly">Weekly</option>
+                                <option value="daily">Daily Range</option>
                             </select>
                             <select id="chartMonthFilter" class="form-select bg-white form-select-sm w-auto" style="display: none;">
                                 <option value="1" {{ $currentMonth == 1 ? 'selected' : '' }}>January</option>
@@ -90,6 +92,8 @@
                                 <option value="11" {{ $currentMonth == 11 ? 'selected' : '' }}>November</option>
                                 <option value="12" {{ $currentMonth == 12 ? 'selected' : '' }}>December</option>
                             </select>
+                            <input type="number" id="chartStartDate" class="form-select bg-white form-select-sm w-20" placeholder="Start" min="1" max="31" style="display: none;">
+                            <input type="number" id="chartEndDate" class="form-select bg-white form-select-sm w-20" placeholder="End" min="1" max="31" style="display: none;">
                         </div>
                     </div>
                     <div class="flex flex-wrap items-center gap-2 mt-2">
@@ -116,6 +120,7 @@
                             <select id="chartFilterProduct" class="form-select bg-white form-select-sm w-auto">
                                 <option value="monthly" selected>Monthly</option>
                                 <option value="weekly">Weekly</option>
+                                <option value="daily">Daily Range</option>
                             </select>
                             <select id="chartMonthFilterProduct" class="form-select bg-white form-select-sm w-auto" style="display: none;">
                                 <option value="1" {{ $currentMonth == 1 ? 'selected' : '' }}>January</option>
@@ -131,6 +136,8 @@
                                 <option value="11" {{ $currentMonth == 11 ? 'selected' : '' }}>November</option>
                                 <option value="12" {{ $currentMonth == 12 ? 'selected' : '' }}>December</option>
                             </select>
+                            <input type="number" id="chartStartDateProduct" class="form-select bg-white form-select-sm w-20" placeholder="Start" min="1" max="31" style="display: none;">
+                            <input type="number" id="chartEndDateProduct" class="form-select bg-white form-select-sm w-20" placeholder="End" min="1" max="31" style="display: none;">
                         </div>
                     </div>
                     <div class="flex flex-wrap items-center gap-2 mt-2">
@@ -238,6 +245,7 @@
         </div>
     </div>
 @endsection
+
 
 @section('scripts')
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
