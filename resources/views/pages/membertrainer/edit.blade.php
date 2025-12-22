@@ -98,7 +98,20 @@ $script='<script src="' . asset('assets/js/data-table.js') . '"></script>';
                                         ?? '' }} ({{ optional($pakets->where('id', $memberTrainer->id_paket_personal_trainer)->first())->durasi 
                                         ?? '' }} {{ optional($pakets->where('id', $memberTrainer->id_paket_personal_trainer)->first())->periode 
                                         ?? '' }}) - Rp {{ number_format(optional($pakets->where('id', $memberTrainer->id_paket_personal_trainer)->first())->biaya ?? 0, 0, ',', '.') }}"  required>
-                        </div>       
+                        </div>     
+                        
+                        {{-- Tanggal Mulai & Selesai --}}
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="form-label">Tanggal Mulai</label>
+                            <input type="date" name="tgl_mulai" id="tgl_mulai" class="form-control" 
+                                value="{{ old('tgl_mulai', \Carbon\Carbon::parse($memberTrainer->tgl_mulai)->format('Y-m-d')) }}" readonly required>
+                        </div>
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="form-label">Tanggal Selesai</label>
+                            <input type="date" name="tgl_selesai" id="tgl_selesai" 
+                                value="{{ old('tgl_selesai', \Carbon\Carbon::parse($memberTrainer->tgl_selesai)->format('Y-m-d')) }}" 
+                                class="form-control" readonly>
+                        </div>
     
                         {{-- Diskon & Total Biaya --}}
                         <div class="col-span-12 md:col-span-6">

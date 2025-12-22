@@ -252,6 +252,34 @@
             @endhasanyrole
 
             @hasanyrole('spv|admin')
+            <li class="sidebar-menu-group-title">Payroll</li>
+
+            <li class="dropdown {{ request()->routeIs('gaji_trainer.*') || request()->routeIs('level_trainer.*') ? 'open' : '' }}">
+                <a href="javascript:void(0)">
+                    <iconify-icon icon="flowbite:users-group-outline" class="menu-icon"></iconify-icon>
+                    <span>Gaji Trainer</span>
+                </a>
+                <ul class="sidebar-submenu">
+                    <li>
+                        <a class="sidebar-menu-text {{ request()->routeIs('level_trainer') ? 'active-page' : '' }}" href="{{ route('level_trainer.index') }}">
+                            <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Level Trainer
+                        </a>
+                    </li>
+                    <li>
+                        <a class="sidebar-menu-text {{ request()->routeIs('gaji_trainer') ? 'active-page' : '' }}" href="{{ route('gaji_trainer.index') }}">
+                            <i class="ri-circle-fill circle-icon text-warning-600 w-auto"></i> Parameter Gaji
+                        </a>
+                    </li>
+                    <li>
+                        <a class="sidebar-menu-text {{ request()->routeIs('riwayat_gaji_trainer') ? 'active-page' : '' }}" href="{{ route('riwayat_gaji_trainer.index') }}">
+                            <i class="ri-circle-fill circle-icon text-success-600 w-auto"></i> Riwayat Gaji
+                        </a>
+                    </li>
+                </ul>
+            </li>
+            @endhasanyrole
+
+            @hasanyrole('spv|admin')
             <li class="sidebar-menu-group-title">Keuangan</li>
             
             <li class="dropdown {{ request()->routeIs('neraca.*') ? 'open' : '' }}">
@@ -268,19 +296,46 @@
                 </ul>
             </li>
             @endhasanyrole
-
             @hasanyrole('trainer')
             <li class="sidebar-menu-group-title">Trainer Dashboard</li>
-            
-            <li class="dropdown {{ request()->routeIs('trainer.dashboard') || request()->routeIs('trainer.session.logs') || request()->routeIs('trainer.waiting.approval') ? 'open' : '' }}">
-                <a href="javascript:void(0)">
+
+            <li class="{{ request()->routeIs('trainer.dashboard') || request()->routeIs('trainer.session.logs') || request()->routeIs('trainer.waiting.approval') ? 'active' : '' }}">
+                <a href="{{ route('trainer.dashboard') }}">
                     <iconify-icon icon="solar:home-smile-angle-outline" class="menu-icon"></iconify-icon>
                     <span>Dashboard</span>
                 </a>
+            </li>  
+
+            <li class="{{ request()->routeIs('trainer.monitoring') ? 'active' : '' }}">
+                <a href="{{ route('trainer.monitoring') }}">
+                    <i class="ri-open-arm-fill menu-icon mr-0-custom"></i>
+                    <span>Monitoring</span>
+                </a>
+            </li>  
+            
+            <li class="dropdown {{ request()->routeIs('trainerlistmember.*') ? 'open' : '' }}">
+                <a href="javascript:void(0)">
+                    <iconify-icon icon="flowbite:users-group-outline" class="menu-icon"></iconify-icon>
+                    <span>Member</span>
+                </a>
                 <ul class="sidebar-submenu">
                     <li>
-                        <a class="sidebar-menu-text {{ request()->routeIs('trainer.dashboard') ? 'active-page' : '' }}" href="{{ route('trainer.dashboard') }}">
-                            <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Dashboard
+                        <a class="sidebar-menu-text {{ request()->routeIs('trainerlistmember.*') ? 'active-page' : '' }}" href="{{ route('trainerlistmember.index') }}">
+                            <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> List Member
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="dropdown {{ request()->routeIs('trainerplaylist.*') ? 'open' : '' }}">
+                <a href="javascript:void(0)">
+                    <iconify-icon icon="solar:document-text-outline" class="menu-icon"></iconify-icon>
+                    <span>PlayList</span>
+                </a>
+                <ul class="sidebar-submenu">
+                    <li>
+                        <a class="sidebar-menu-text {{ request()->routeIs('trainerplaylist.*') ? 'active-page' : '' }}" href="{{ route('trainerplaylist.index') }}">
+                            <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Playlist Trainer
                         </a>
                     </li>
                 </ul>

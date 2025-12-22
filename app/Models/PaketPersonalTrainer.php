@@ -16,6 +16,7 @@ class PaketPersonalTrainer extends Model
     protected $fillable = [
         'nama_paket',
         'jumlah_sesi',
+        'periode',
         'durasi',
         'biaya',
     ];

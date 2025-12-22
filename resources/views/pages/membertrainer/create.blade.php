@@ -112,14 +112,24 @@
                             </select>
                         </div>
 
+                        {{-- Tgl Mulai & Selesai --}}
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="form-label">Tanggal Mulai</label>
+                            <input type="date" name="tgl_mulai" id="tgl_mulai" class="form-control" value="{{ old('tgl_mulai') }}" required>
+                        </div>
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="form-label">Tanggal Selesai</label>
+                            <input type="date" name="tgl_selesai" id="tgl_selesai" class="form-control" value="{{ old('tgl_selesai') }}" readonly>
+                        </div>
+
                         {{-- Diskon & Total Biaya --}}
                         <div class="col-span-12 md:col-span-6">
                             <label class="form-label">Diskon (Rp)</label>
-                            <input type="number" name="diskon" id="diskon" class="form-control" value="0">
+                            <input type="number" name="diskon" id="diskon" class="form-control" value="{{ old('diskon', 0) }}">
                         </div>
                         <div class="col-span-12 md:col-span-6">
                             <label class="form-label">Total Biaya</label>
-                            <input type="number" name="total_biaya" id="total_biaya" class="form-control" readonly>
+                            <input type="number" name="total_biaya" id="total_biaya" class="form-control" value="{{ old('total_biaya') }}" readonly>
                         </div>
 
                         {{-- Metode Pembayaran --}}
@@ -138,18 +148,18 @@
                         {{-- Tanggal Bayar & Total Dibayarkan --}}
                         <div class="col-span-12 md:col-span-6">
                             <label class="form-label">Tanggal Bayar</label>
-                            <input type="date" name="tgl_bayar" class="form-control" value="{{ old('tgl_bayar') }}">
+                            <input type="date" name="tgl_bayar" class="form-control" value="{{ old('tgl_bayar') }}" required>
                         </div>
                         <div class="col-span-12 md:col-span-6">
                             <label class="form-label">Total Dibayarkan Diawal</label>
-                            <input type="number" name="jumlah_bayar" id="jumlah_bayar" class="form-control" value="0" min="0">
+                            <input type="number" name="jumlah_bayar" id="jumlah_bayar" class="form-control" value="{{ old('jumlah_bayar', 0) }}" min="0">
                             <small class="text-muted" id="warning_text" style="display: none; color: #dc3545; margin-top: 4px;"></small>
                         </div>
                         
                         {{-- Status Pembayaran (readonly) --}}
                         <div class="col-span-12">
                             <label class="form-label">Status Pembayaran</label>
-                            <input type="text" id="status_pembayaran" class="form-control" readonly>
+                            <input type="text" id="status_pembayaran" class="form-control" value="{{ old('status_pembayaran') }}" readonly>
                         </div>
                         
                         {{-- Action Buttons --}}
@@ -175,6 +185,8 @@
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const paketSelect = document.getElementById('paket');
+    const tglMulai = document.getElementById('tgl_mulai');
+    const tglSelesai = document.getElementById('tgl_selesai');
     const diskonInput = document.getElementById('diskon');
     const totalBiaya = document.getElementById('total_biaya');
     const totalDibayarkan = document.getElementById('jumlah_bayar');
@@ -182,6 +194,27 @@ document.addEventListener("DOMContentLoaded", function() {
     const warningText = document.getElementById('warning_text');
 
     let biaya = 0;
+    let durasi = 0;
+    let periode = 'bulan';
+
+    // Hitung tanggal selesai
+    function hitungTanggalSelesai() {
+        if (tglMulai.value && durasi > 0) {
+            let mulai = new Date(tglMulai.value);
+            let selesai = new Date(mulai);
+
+            if (periode.toLowerCase() === 'hari') selesai.setDate(mulai.getDate() + durasi);
+            if (periode.toLowerCase() === 'minggu') selesai.setDate(mulai.getDate() + (durasi * 7));
+            if (periode.toLowerCase() === 'bulan') selesai.setMonth(mulai.getMonth() + durasi);
+            if (periode.toLowerCase() === 'tahun') selesai.setFullYear(mulai.getFullYear() + durasi);
+
+            let yyyy = selesai.getFullYear();
+            let mm = String(selesai.getMonth() + 1).padStart(2, '0');
+            let dd = String(selesai.getDate()).padStart(2, '0');
+
+            tglSelesai.value = `${yyyy}-${mm}-${dd}`;
+        }
+    }
 
     function hitungTotalBiaya() {
         let diskon = parseInt(diskonInput.value) || 0;
@@ -219,9 +252,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function hitungStatusPembayaran() {
         let dibayar = parseInt(totalDibayarkan.value) || 0;
-        let biaya = parseInt(totalBiaya.value) || 0;
+        let biayaTotal = parseInt(totalBiaya.value) || 0;
 
-        if (dibayar >= biaya && biaya > 0) {
+        if (dibayar >= biayaTotal && biayaTotal > 0) {
             statusPembayaran.value = "Lunas";
         } else {
             statusPembayaran.value = "Belum Lunas";
@@ -240,8 +273,15 @@ document.addEventListener("DOMContentLoaded", function() {
     paketSelect.addEventListener('change', function() {
         let selected = this.options[this.selectedIndex];
         biaya = parseInt(selected.dataset.biaya || 0);
+        durasi = parseInt(selected.dataset.durasi || 0);
+        periode = selected.dataset.periode || 'bulan';
+
+        hitungTanggalSelesai();
         hitungTotalBiaya();
     });
+
+    // Event tanggal mulai
+    tglMulai.addEventListener('change', hitungTanggalSelesai);
 
     // Event diskon
     diskonInput.addEventListener('input', hitungTotalBiaya);

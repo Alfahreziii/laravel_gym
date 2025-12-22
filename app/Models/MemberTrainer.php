@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class MemberTrainer extends Model
 {
@@ -16,6 +17,8 @@ class MemberTrainer extends Model
         'id_anggota',
         'id_paket_personal_trainer',
         'id_trainer',
+        'tgl_mulai',
+        'tgl_selesai',
         'diskon',
         'total_biaya',
         'status_pembayaran',
@@ -27,6 +30,8 @@ class MemberTrainer extends Model
     protected $casts = [
         'is_session_active' => 'boolean',
         'session_started_at' => 'datetime',
+        'tgl_mulai' => 'date',
+        'tgl_selesai' => 'date',
     ];
 
     protected $appends = ['sisa_sesi'];
@@ -61,7 +66,7 @@ class MemberTrainer extends Model
      */
     public function getSisaSesiAttribute()
     {
-        return $this->sesi; // ✅ Langsung return field sesi
+        return $this->sesi;
     }
 
     /**
@@ -79,5 +84,14 @@ class MemberTrainer extends Model
     public function isSessionsCompleted()
     {
         return $this->sisa_sesi <= 0;
+    }
+
+    /**
+     * Check if membership is currently active
+     */
+    public function getIsActiveAttribute()
+    {
+        $today = Carbon::today();
+        return $this->tgl_mulai <= $today && $this->tgl_selesai >= $today;
     }
 }

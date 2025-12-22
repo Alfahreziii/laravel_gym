@@ -48,6 +48,7 @@
                             @endrole
                             <th scope="col">Nama Paket</th>
                             <th scope="col">Durasi</th>
+                            <th scope="col">Periode</th>
                             <th scope="col">Jumlah Sesi</th>
                             <th scope="col">Biaya</th>
                         </tr>
@@ -72,6 +73,7 @@
                             @endrole
                             <td class="whitespace-nowrap">{{ $paket->nama_paket }}</td>
                             <td class="whitespace-nowrap">{{ $paket->durasi }}</td>
+                            <td class="whitespace-nowrap">{{ $paket->periode }}</td>
                             <td class="whitespace-nowrap">{{ $paket->jumlah_sesi ?? '-' }}</td>
                             <td class="whitespace-nowrap">Rp {{ number_format($paket->biaya, 0, ',', '.') }}</td>
                         </tr>

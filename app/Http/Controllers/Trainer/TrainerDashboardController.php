@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Trainer;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Trainer;
 use App\Models\MemberTrainer;
@@ -41,9 +42,16 @@ class TrainerDashboardController extends Controller
             ->pluck('rfid')
             ->toArray();
 
-        // Ambil semua member yang dilatih trainer ini
+        // Ambil semua member yang dilatih trainer ini dengan filter:
+        // 1. Hari ini berada di antara tgl_mulai dan tgl_selesai
+        // 2. Sesi masih tersisa (sesi > 0)
+        $today = now()->toDateString();
+        
         $memberTrainers = MemberTrainer::with(['anggota', 'paketPersonalTrainer', 'sesiLogs'])
             ->where('id_trainer', $trainer->id)
+            ->whereDate('tgl_mulai', '<=', $today)
+            ->whereDate('tgl_selesai', '>=', $today)
+            ->where('sesi', '>', 0)
             ->get()
             ->map(function($mt) use ($memberInGymToday) {
                 // Tambahkan properti is_checked_in untuk setiap member

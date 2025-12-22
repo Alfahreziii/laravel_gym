@@ -34,8 +34,14 @@ use App\Http\Middleware\RoleMiddleware;
 use App\Http\Middleware\LastActivityMiddleware;
 use App\Http\Controllers\NeracaController;
 use App\Http\Controllers\NoRoleController;
-use App\Http\Controllers\TrainerDashboardController;
 use App\Http\Controllers\TrainerRegisterController;
+use App\Http\Controllers\Trainer\TrainerDashboardController;
+use App\Http\Controllers\Trainer\TrainerListMemberController;
+use App\Http\Controllers\Trainer\TrainerPlaylistController;
+use App\Http\Controllers\Trainer\PlaylistMemberTrainerController;
+use App\Http\Controllers\Trainer\GajiTrainerController;
+use App\Http\Controllers\Trainer\LevelTrainerController;
+use App\Http\Controllers\Trainer\RiwayatGajiTrainerController;
 
 Route::get('/register/trainer', [TrainerRegisterController::class, 'showForm'])->name('register.trainer');
 Route::post('/register/trainer', [TrainerRegisterController::class, 'register'])->name('register.trainer.submit');
@@ -70,6 +76,25 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddle
     
     Route::get('/trainer/session-logs', [TrainerDashboardController::class, 'sessionLogs'])
         ->name('trainer.session.logs');
+
+    Route::controller(TrainerListMemberController::class)->group(function () {
+        Route::get('/trainer/member', 'index')->name('trainerlistmember.index');
+        Route::get('/trainer/member/{idAnggota}', 'memberDetail')->name('trainerlistmember.detail');
+    });
+
+    Route::controller(TrainerPlaylistController::class)->group(function () {
+        Route::get('/trainer/playlist', 'index')->name('trainerplaylist.index');
+        Route::post('/trainer/playlist', 'store')->name('trainerplaylist.store');
+        Route::put('/trainer/playlist/{id}', 'update')->name('trainerplaylist.update');
+        Route::delete('/trainer/playlist/{id}', 'destroy')->name('trainerplaylist.destroy');
+    });
+
+    Route::controller(PlaylistMemberTrainerController::class)->group(function () {
+        Route::get('/trainer/monitoring', 'monitoring')->name('trainer.monitoring');
+        Route::post('/trainer/playlist-member/store', 'store')->name('playlist-member.store');
+        Route::delete('/trainer/playlist-member/destroy', 'destroy')->name('playlist-member.destroy');
+        Route::get('/trainer/member/{memberTrainerId}/history', 'memberHistory')->name('trainer.member.history');
+    });
 });
 
 // Guest Route
@@ -302,7 +327,37 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
             });
         });
     });
+    // Route untuk Level Trainer
+    Route::controller(LevelTrainerController::class)->group(function () {
+        Route::get('/level-trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('level_trainer.index');
 
+        Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
+            Route::post('/level-trainer', 'store')->name('level_trainer.store');
+            Route::put('/level-trainer/{id}', 'update')->name('level_trainer.update');
+            Route::delete('/level-trainer/{id}', 'destroy')->name('level_trainer.destroy');
+        });
+    });
+
+    // Route untuk Gaji Trainer
+    Route::controller(GajiTrainerController::class)->group(function () {
+        Route::get('/gaji-trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('gaji_trainer.index');
+        Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
+            Route::get('/gaji-trainer/create', 'create')->name('gaji_trainer.create');
+            Route::post('/gaji-trainer', 'store')->name('gaji_trainer.store');
+            Route::get('/gaji-trainer/{id}/edit', 'edit')->name('gaji_trainer.edit');
+            Route::put('/gaji-trainer/{id}', 'update')->name('gaji_trainer.update');
+            Route::delete('/gaji-trainer/{id}', 'destroy')->name('gaji_trainer.destroy');
+        });
+    });
+    // Route untuk Gaji Trainer
+    Route::controller(RiwayatGajiTrainerController::class)->group(function () {
+        Route::get('/riwayat-gaji-trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('riwayat_gaji_trainer.index');
+        Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
+            Route::get('/riwayat-gaji-trainer/create', 'create')->name('riwayat_gaji_trainer.create');
+            Route::post('/riwayat-gaji-trainer', 'store')->name('riwayat_gaji_trainer.store');
+            Route::get('/riwayat-gaji-trainer/payment-data/{trainerId}', 'getPaymentData')->name('riwayat_gaji_trainer.payment-data');
+        });
+    });
 });
 
 // SPV Route

@@ -13,38 +13,77 @@
                 <h6 class="text-lg font-semibold mb-0">Form Edit Paket Personal Trainer</h6>
             </div>
             <div class="card-body">
-                <form action="{{ route('paket_personal_trainer.update', $paketPersonalTrainer->id) }}" method="POST">
+                <form action="{{ route('paket_personal_trainer.update', $paket_personal_trainer->id) }}" method="POST">
                     @csrf
                     @method('PUT')
                     
                     <div class="grid grid-cols-12 gap-4">
+                        <div class="col-span-12">
+                            {{-- Success Message --}}
+                            @if(session('success'))
+                                <div class="alert alert-success bg-success-50 dark:bg-success-600/25 
+                                    text-success-600 dark:text-success-400 border-success-50 
+                                    px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
+                                    <div class="flex items-center gap-4">
+                                        {{ session('success') }}
+                                        <a href="{{ route('paket_personal_trainer.index') }}" class="text-success-600 focus:bg-success-600 hover:bg-success-700 border border-success-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-success-300 rounded-lg text-sm px-4 py-1 text-center inline-flex items-center dark:text-success-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-success-800">Kembali</a>
+                                    </div>
+                                    <button class="remove-button text-success-600 text-2xl"> 
+                                        <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
+                                    </button>
+                                </div>
+                            @endif
+
+                            {{-- Error Message --}}
+                            @if(session('danger'))
+                                <div class="alert alert-danger bg-danger-100 dark:bg-danger-600/25 
+                                    text-danger-600 dark:text-danger-400 border-danger-100 
+                                    px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
+                                    {{ session('danger') }}
+                                    <button class="remove-button text-danger-600 text-2xl"> 
+                                        <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
+                                    </button>
+                                </div>
+                            @endif
+                        </div>
+
                         {{-- Nama Paket --}}
                         <div class="col-span-12">
                             <label class="form-label">Nama Paket</label>
                             <input type="text" name="nama_paket" class="form-control" 
-                                value="{{ old('nama_paket', $paketPersonalTrainer->nama_paket) }}" required>
+                                value="{{ old('nama_paket', $paket_personal_trainer->nama_paket) }}" required>
                         </div>
 
                         {{-- Jumlah Sesi --}}
-                        <div class="col-span-12 md:col-span-6">
+                        <div class="col-span-12">
                             <label class="form-label">Jumlah Sesi</label>
                             <input type="number" name="jumlah_sesi" class="form-control" 
-                                value="{{ old('jumlah_sesi', $paketPersonalTrainer->jumlah_sesi) }}" min="1" required>
+                                value="{{ old('jumlah_sesi', $paket_personal_trainer->jumlah_sesi) }}" min="1" required>
                         </div>
 
-                        {{-- Durasi --}}
+                        {{-- Durasi & Periode --}}
                         <div class="col-span-12 md:col-span-6">
                             <label class="form-label">Durasi</label>
-                            <input type="text" name="durasi" class="form-control" 
-                                placeholder="Contoh: 60 menit" 
-                                value="{{ old('durasi', $paketPersonalTrainer->durasi) }}" required>
+                            <input type="number" name="durasi" class="form-control" 
+                                value="{{ old('durasi', $paket_personal_trainer->durasi) }}" required>
+                        </div>
+
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="form-label">Periode</label>
+                            <select name="periode" class="form-control" required>
+                                <option value="">-- Pilih Periode --</option>
+                                <option value="hari" {{ old('periode', $paket_personal_trainer->periode) == 'hari' ? 'selected' : '' }}>Hari</option>
+                                <option value="minggu" {{ old('periode', $paket_personal_trainer->periode) == 'minggu' ? 'selected' : '' }}>Minggu</option>
+                                <option value="bulan" {{ old('periode', $paket_personal_trainer->periode) == 'bulan' ? 'selected' : '' }}>Bulan</option>
+                                <option value="tahun" {{ old('periode', $paket_personal_trainer->periode) == 'tahun' ? 'selected' : '' }}>Tahun</option>
+                            </select>
                         </div>
 
                         {{-- Biaya --}}
                         <div class="col-span-12">
                             <label class="form-label">Biaya</label>
                             <input type="number" name="biaya" class="form-control" 
-                                value="{{ old('biaya', $paketPersonalTrainer->biaya) }}" min="0" required>
+                                value="{{ old('biaya', $paket_personal_trainer->biaya) }}" min="0" required>
                         </div>
                         
                         {{-- Action Buttons --}}

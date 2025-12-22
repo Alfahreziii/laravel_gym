@@ -104,6 +104,8 @@ class MemberTrainerController extends Controller
             'id_anggota'                => 'required|exists:anggotas,id',
             'id_paket_personal_trainer' => 'required|exists:paket_personal_trainers,id',
             'id_trainer'                => 'required|exists:trainers,id',
+            'tgl_mulai'                 => 'required|date',
+            'tgl_selesai'               => 'required|date|after_or_equal:tgl_mulai',
             'diskon'                    => 'nullable|numeric|min:0',
             'total_biaya'               => 'required|numeric|min:0',
             'tgl_bayar'                 => 'required|date',
@@ -122,10 +124,12 @@ class MemberTrainerController extends Controller
                 'id_anggota'                => $request->id_anggota,
                 'id_paket_personal_trainer' => $request->id_paket_personal_trainer,
                 'id_trainer'                => $request->id_trainer,
+                'tgl_mulai'                 => $request->tgl_mulai,
+                'tgl_selesai'               => $request->tgl_selesai,
                 'diskon'                    => $request->diskon ?? 0,
                 'total_biaya'               => $request->total_biaya,
                 'status_pembayaran'         => $request->jumlah_bayar >= $request->total_biaya ? 'Lunas' : 'Belum Lunas',
-                'sesi'                      => $paket->jumlah_sesi, // ✅ Sisa sesi yang tersedia = jumlah sesi paket
+                'sesi'                      => $paket->jumlah_sesi,
             ]);
 
             // 2️⃣ Update sesi_belum_dijalani trainer
@@ -192,6 +196,8 @@ class MemberTrainerController extends Controller
             'id_anggota'                => 'required|exists:anggotas,id',
             'id_paket_personal_trainer' => 'required|exists:paket_personal_trainers,id',
             'id_trainer'                => 'required|exists:trainers,id',
+            'tgl_mulai'                 => 'required|date',
+            'tgl_selesai'               => 'required|date|after_or_equal:tgl_mulai',
             'diskon'                    => 'nullable|numeric|min:0',
             'total_biaya'               => 'required|numeric|min:0',
         ]);
@@ -206,6 +212,8 @@ class MemberTrainerController extends Controller
                 'id_anggota',
                 'id_paket_personal_trainer',
                 'id_trainer',
+                'tgl_mulai',
+                'tgl_selesai',
                 'diskon',
                 'total_biaya',
             ]));

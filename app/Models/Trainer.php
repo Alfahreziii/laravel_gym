@@ -71,6 +71,36 @@ class Trainer extends Model
     {
         return $this->hasMany(SesiTrainer::class, 'id_trainer');
     }
+        /**
+     * Relasi ke PlaylistTrainer
+     */
+    public function playlists()
+    {
+        return $this->hasMany(PlaylistTrainer::class, 'id_trainer');
+    }
+
+    /**
+     * Relasi ke SettingParameterGajiTrainer
+     */
+    public function settingGaji()
+    {
+        return $this->hasOne(SettingParameterGajiTrainer::class, 'id_trainer');
+    }
+
+    /**
+     * Relasi ke RiwayatGajiTrainer
+     */
+    public function riwayatGaji()
+    {
+        return $this->hasMany(RiwayatGajiTrainer::class, 'id_trainer');
+    }
+    /**
+     * Get latest riwayat gaji
+     */
+    public function getLatestGajiAttribute()
+    {
+        return $this->riwayatGaji()->latest()->first();
+    }
 
     /**
      * Get trainer name from user relationship

@@ -1,7 +1,7 @@
 @extends('layout.layout')
 
 @php
-    $title='Dashboard';
+    $title='Member List';
     $subTitle = $trainer->name ;
     $script = '<script src="' . asset('assets/js/data-table.js') . '"></script>';
 @endphp
@@ -30,83 +30,13 @@
         </button>
     </div>
 @endif
-
-    <!-- Status Training -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-4 3xl:grid-cols-4 gap-6 mx-auto">
-        <div class="card shadow-none border border-gray-200 rounded-lg h-full bg-gradient-to-r from-cyan-600/10 to-bg-white">
-            <div class="card-body p-5">
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <P class="font-medium text-neutral-900 mb-1">Status</P>
-                        <h6>
-                            @if($trainer->isTraining())
-                                <span>🔴 Training</span>
-                            @else
-                                <span>🟢 Available</span>
-                            @endif
-                        </h6>
-                    </div>
-                    <div class="w-[50px] h-[50px] bg-cyan-600 rounded-full flex justify-center items-center">
-                        <iconify-icon icon="gridicons:multiple-users" class="text-white text-2xl mb-0"></iconify-icon>
-                    </div>
-                </div>
-                @if($trainer->active_session)
-                <p class="font-medium text-sm text-neutral-600 mt-3 mb-0 flex items-center gap-2">
-                    <span class="inline-flex items-center gap-1 text-success-600"><iconify-icon icon="bxs:up-arrow" class="text-xs"></iconify-icon> Sedang melatih:</span>
-                    {{ $trainer->active_session->anggota->name }}
-                </p>  
-                @endif
-            </div>
-        </div>
-        <div class="card shadow-none border border-gray-200 rounded-lg h-full bg-gradient-to-r from-cyan-600/10 to-bg-white">
-            <div class="card-body p-5">
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <p class="font-medium text-neutral-900 mb-1">Sesi Sudah Dijalani</p>
-                        <h6>{{ $trainer->sesi_sudah_dijalani }}</h6>
-                    </div>
-                    <div class="w-[50px] h-[50px] bg-purple-600 rounded-full flex justify-center items-center">
-                        <iconify-icon icon="fa-solid:award" class="text-white text-2xl mb-0"></iconify-icon>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="card shadow-none border border-gray-200 rounded-lg h-full bg-gradient-to-r from-blue-600/10 to-bg-white">
-            <div class="card-body p-5">
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <p class="font-medium text-neutral-900 mb-1">Sesi Belum Dijalani</p>
-                        <h6>{{ $trainer->sesi_belum_dijalani }}</h6>
-                    </div>
-                    <div class="w-[50px] h-[50px] bg-blue-600 rounded-full flex justify-center items-center">
-                        <iconify-icon icon="fa-solid:award" class="text-white text-2xl mb-0"></iconify-icon>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="card shadow-none border border-gray-200 rounded-lg h-full bg-gradient-to-r from-blue-600/10 to-bg-white">
-            <div class="card-body p-5">
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <p class="font-medium text-neutral-900 mb-1">Total Member</p>
-                        <h6>{{ $memberTrainers->count() }}</h6>
-                    </div>
-                    <div class="w-[50px] h-[50px] bg-blue-600 rounded-full flex justify-center items-center">
-                        <iconify-icon icon="fluent:people-20-filled" class="text-white text-2xl mb-0"></iconify-icon>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Daftar Member -->
     <div class="grid grid-cols-12 mt-6">
         <div class="col-span-12">
             <div class="card border-0 overflow-hidden">
                 <div class="card-header flex items-center justify-between">
                     <h6 class="card-title mb-0 text-lg">Daftar Member Anda</h6>
-                    <!-- Link ke Log Sesi -->
-                    <a href="{{ route('trainer.session.logs') }}" class="text-primary-600 focus:bg-primary-600 hover:bg-primary-700 border border-primary-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center dark:text-primary-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-primary-800">
+                    <a href="{{ route('trainer.session.logs') }}" class="text-primary-600 focus:bg-primary-600 hover:bg-primary-700 border border-primary-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center dark:text-primary-400 dark:dark:hover:text-white dark:focus:text-white dark:focus:ring-primary-800">
                         📋 Lihat Riwayat Sesi
                     </a>
                 </div>
@@ -115,62 +45,66 @@
                         <thead>
                             <tr>
                                 <th scope="col">Member</th>
-                                <th scope="col">Riwayat Gym</th>
-                                <th scope="col">Paket</th>
+                                <th scope="col">Paket Aktif</th>
+                                <th scope="col">Sesi Aktif</th>
                                 <th scope="col">Sesi Selesai</th>
-                                <th scope="col">Sisa Sesi</th>
+                                <th scope="col">Sesi Kadaluarsa</th>
                                 <th scope="col">Status Kehadiran</th>
                                 <th scope="col">Status Sesi</th>
                                 <th scope="col">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($memberTrainers as $mt)
-                            <tr class="{{ $mt->is_session_active ? 'table-warning' : '' }}">
+                            @foreach($groupedMembers as $member)
+                            <tr class="{{ $member->is_session_active ? 'table-warning' : '' }}">
                                 <td>
-                                    <a title="Member Detail" href="{{ route('trainerlistmember.detail', $mt->id_anggota) }}">
-                                        <strong class="text-primary-600">{{ $mt->anggota->name }}</strong><br>
-                                        <small class="text-muted">{{ $mt->anggota->no_telp }}</small>
+                                    <a title="Member Detail" href="{{ route('trainerlistmember.detail', $member->id_anggota) }}">
+                                        <strong class="text-primary-600">{{ $member->anggota->name }}</strong><br>
+                                        <small class="text-muted">{{ $member->anggota->no_telp }}</small>
                                     </a>
+                                    
                                 </td>
                                 <td>
-                                    <a title="Lihat Riwayat Gym" href="{{ route('trainer.member.history', $mt->id) }}" class="text-primary-600 hover:underline">
-                                        Lihat Detail
-                                    </a>
+                                    <span class="badge bg-primary">{{ $member->total_paket_aktif }} paket</span>
                                 </td>
-                                <td>{{ $mt->paketPersonalTrainer->nama_paket }}</td>
-                                <td>{{ $mt->sesi }} / {{ $mt->paketPersonalTrainer->jumlah_sesi }}</td>
                                 <td>
-                                    <span class="badge {{ $mt->sisa_sesi > 0 ? 'bg-info' : 'bg-secondary' }}">
-                                        {{ $mt->sisa_sesi }} sesi
+                                    <span class="badge {{ $member->total_sesi_aktif > 0 ? 'bg-info' : 'bg-secondary' }}">
+                                        {{ $member->total_sesi_aktif }} sesi
                                     </span>
                                 </td>
                                 <td>
-                                    @if($mt->is_checked_in)
+                                    <span class="badge bg-success">{{ $member->total_sesi_selesai }} sesi</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-warning">{{ $member->total_sesi_kadaluarsa }} sesi</span>
+                                </td>
+                                <td>
+                                    @if($member->is_checked_in)
                                         <span class="badge bg-success">✅ Hadir</span>
                                     @else
                                         <span class="badge bg-secondary">❌ Belum Check-in</span>
                                     @endif
                                 </td>
                                 <td>
-                                    @if($mt->is_session_active)
+                                    @if($member->is_session_active)
                                         <span class="badge bg-warning">⏳ Sedang Training</span><br>
-                                        <small>Mulai: {{ $mt->session_started_at->format('H:i') }}</small>
+                                        <small>Mulai: {{ $member->session_started_at->format('H:i') }}</small>
                                     @else
                                         <span class="badge bg-secondary">Tidak Aktif</span>
                                     @endif
                                 </td>
                                 <td>
-                                    @if($mt->sisa_sesi > 0)
-                                        @if(!$mt->is_session_active)
+
+                                    
+                                    @if($member->total_sesi_aktif > 0)
+                                        @if(!$member->is_session_active)
                                             @if(!$trainer->isTraining())
-                                                @if($mt->is_checked_in)
-                                                    <!-- Tombol buka modal -->
+                                                @if($member->is_checked_in)
                                                     <button type="button"
                                                         data-modal-target="start-session-modal"
                                                         data-modal-toggle="start-session-modal"
-                                                        data-member="{{ $mt->anggota->name }}"
-                                                        data-action="{{ route('trainer.session.start', $mt->id) }}"
+                                                        data-member="{{ $member->anggota->name }}"
+                                                        data-action="{{ route('trainer.session.start', $member->active_session->id ?? 0) }}"
                                                         class="btn btn-sm btn-success open-start-session-modal">
                                                         ▶️ Mulai Sesi
                                                     </button>
@@ -185,12 +119,11 @@
                                                 </button>
                                             @endif
                                         @else
-                                            <!-- Tombol Selesai (buka modal konfirmasi) -->
                                             <button type="button"
                                                 data-modal-target="end-session-modal"
                                                 data-modal-toggle="end-session-modal"
-                                                data-member="{{ $mt->anggota->name }}"
-                                                data-action="{{ route('trainer.session.end', $mt->id) }}"
+                                                data-member="{{ $member->anggota->name }}"
+                                                data-action="{{ route('trainer.session.end', $member->active_session->id) }}"
                                                 class="btn btn-sm btn-danger open-end-session-modal">
                                                 ⏹️ Selesai
                                             </button>
@@ -284,7 +217,6 @@
     </div>
 </div>
 
-
 @if(session('success'))
 <script>
     Swal.fire({
@@ -312,7 +244,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('startSessionForm');
     const nameHolder = document.getElementById('sessionMemberName');
 
-    // Saat tombol "Mulai Sesi" diklik
     document.querySelectorAll('.open-start-session-modal').forEach(btn => {
         btn.addEventListener('click', function () {
             const memberName = this.getAttribute('data-member');
@@ -327,7 +258,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // === Modal Selesai Sesi ===
     const endModal = document.getElementById('end-session-modal');
     const endForm = document.getElementById('endSessionForm');
     const endNameHolder = document.getElementById('endSessionMemberName');
@@ -343,6 +273,5 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
-
 
 @endsection

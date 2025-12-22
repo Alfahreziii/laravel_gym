@@ -11,8 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('transactions', function (Blueprint $table) {
-            //
+        Schema::create('playlist_trainers', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('id_trainer')->constrained('trainers')->onDelete('cascade');
+            $table->string('latihan', 100);
+            $table->timestamps();
         });
     }
 
@@ -21,8 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('transactions', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('playlist_trainers');
     }
 };
