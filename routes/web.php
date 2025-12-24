@@ -356,6 +356,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
             Route::get('/riwayat-gaji-trainer/create', 'create')->name('riwayat_gaji_trainer.create');
             Route::post('/riwayat-gaji-trainer', 'store')->name('riwayat_gaji_trainer.store');
             Route::get('/riwayat-gaji-trainer/payment-data/{trainerId}', 'getPaymentData')->name('riwayat_gaji_trainer.payment-data');
+            Route::get('/riwayat-gaji-trainer/{trainer}/history', 'history')->name('riwayat-gaji-trainer.history');
         });
     });
 });

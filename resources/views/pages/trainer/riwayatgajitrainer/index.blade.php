@@ -59,6 +59,11 @@
                                     {{ $gaji['sesi_belum_dibayar'] <= 0 ? 'disabled' : '' }}>
                                     <iconify-icon icon="hugeicons:money-send-square" class="menu-icon"></iconify-icon>
                                 </button>
+                                <a href="{{ route('riwayat-gaji-trainer.history', $gaji['id']) }}" 
+                                   title="Lihat History" 
+                                   class="w-8 h-8 bg-info-100 text-info-600 rounded-full inline-flex items-center justify-center hover:bg-info-200 transition-colors">
+                                    <iconify-icon icon="solar:clipboard-list-bold" class="menu-icon"></iconify-icon>
+                                </a>
                             </td>
                             <td class="whitespace-nowrap">{{ $gaji['nama'] }}</td>
                             <td class="whitespace-nowrap">{{ $gaji['terakhir_gajian'] }}</td>

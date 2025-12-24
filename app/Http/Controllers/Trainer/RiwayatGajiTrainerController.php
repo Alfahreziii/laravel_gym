@@ -244,4 +244,37 @@ class RiwayatGajiTrainerController extends Controller
             ], 500);
         }
     }
+    
+    /**
+     * Display history pembayaran gaji trainer (separate page)
+     */
+    public function history($trainerId)
+    {
+        try {
+            $trainer = Trainer::with(['user', 'settingGaji'])->findOrFail($trainerId);
+            
+            // Ambil semua riwayat gaji trainer, diurutkan dari yang terbaru
+            $riwayatGaji = RiwayatGajiTrainer::byTrainer($trainerId)
+                ->latest()
+                ->paginate(15);
+
+            // Hitung total statistik
+            $totalPembayaran = RiwayatGajiTrainer::byTrainer($trainerId)->sum('total_dibayarkan');
+            $totalSesi = RiwayatGajiTrainer::byTrainer($trainerId)->sum('jumlah_sesi');
+            $totalBonus = RiwayatGajiTrainer::byTrainer($trainerId)->sum('bonus');
+
+            return view('pages.trainer.riwayatgajitrainer.history', compact(
+                'trainer',
+                'riwayatGaji',
+                'totalPembayaran',
+                'totalSesi',
+                'totalBonus'
+            ));
+        } catch (\Exception $e) {
+            Log::error('Error in history page: ' . $e->getMessage());
+            
+            return redirect()->route('riwayat-gaji-trainer.index')
+                ->with('danger', 'Gagal memuat history: ' . $e->getMessage());
+        }
+    }
 }
