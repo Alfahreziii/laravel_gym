@@ -18,6 +18,7 @@
                     elseif($roles->contains('admin')) $homeRoute = route('dashboard');
                     elseif($roles->contains('spv')) $homeRoute = route('dashboard');
                     elseif($roles->contains('trainer')) $homeRoute = route('trainer.dashboard');
+                    elseif($roles->contains('member')) $homeRoute = route('member.profile');
                 }
             @endphp
 

@@ -20,11 +20,11 @@
         </button>
     </div>
 @endif
-@if(session('danger'))
+@if(session('error'))
     <div class="alert alert-danger bg-danger-100 dark:bg-danger-600/25 
         text-danger-600 dark:text-danger-400 border-danger-100 
         px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
-        {{ session('danger') }}
+        {{ session('error') }}
         <button class="remove-button text-danger-600 text-2xl"> 
             <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
         </button>
@@ -70,6 +70,7 @@
                             <th scope="col">ID Kartu</th>
                             <th scope="col">Photo</th>
                             <th scope="col">Nama</th>
+                            <th scope="col">Email</th>
                             <th scope="col">Tanggal Lahir</th>
                             <th scope="col">No. Telp</th>
                             <th scope="col">Status</th>
@@ -97,16 +98,17 @@
                             @endif
                             <td class="whitespace-nowrap">{{ $anggota->id_kartu }}</td>
                             <td class="whitespace-nowrap">
-                                @if($anggota->photo)
-                                    <img src="{{ asset('storage/' . $anggota->photo) }}" 
+                                @if($anggota->user && $anggota->user->photo)
+                                    <img src="{{ asset('storage/' . $anggota->user->photo) }}" 
                                         alt="Photo {{ $anggota->name }}" 
                                         class="w-10 h-10 rounded-full object-cover cursor-pointer anggota-photo"
-                                        data-photo="{{ asset('storage/' . $anggota->photo) }}">
+                                        data-photo="{{ asset('storage/' . $anggota->user->photo) }}">
                                 @else
                                     <span class="text-gray-400 italic">No photo</span>
                                 @endif
                             </td>
                             <td class="whitespace-nowrap">{{ $anggota->name }}</td>
+                            <td class="whitespace-nowrap">{{ $anggota->user ? $anggota->user->email : '-' }}</td>
                             <td class="whitespace-nowrap">{{ $anggota->tgl_lahir->format('d M Y') }}</td>
                             <td class="whitespace-nowrap">{{ $anggota->no_telp }}</td>
                             <td class="whitespace-nowrap">
@@ -183,6 +185,17 @@
 @section('scripts')
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+    // Script untuk menghapus alert
+    const removeButtons = document.querySelectorAll('.remove-button');
+    removeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const alert = this.closest('.alert');
+            if(alert) {
+                alert.remove();
+            }
+        });
+    });
+
     // Script untuk konfirmasi hapus
     const deleteForms = document.querySelectorAll('.delete-form');
     deleteForms.forEach(form => {
@@ -191,7 +204,7 @@ document.addEventListener("DOMContentLoaded", function () {
             e.preventDefault();
             Swal.fire({
                 title: 'Apakah kamu yakin?',
-                text: "Data anggota yang dihapus tidak bisa dikembalikan!",
+                text: "Data anggota dan akun login yang dihapus tidak bisa dikembalikan!",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#e3342f',

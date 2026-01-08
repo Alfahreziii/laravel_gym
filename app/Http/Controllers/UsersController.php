@@ -25,10 +25,10 @@ class UsersController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'role' => 'required|in:admin,spv,guest'
+            'role' => 'required|in:admin,spv,guest,member'
         ], [
             'role.required' => 'Role harus dipilih',
-            'role.in' => 'Role tidak valid. Pilih antara Admin, SPV, atau Guest'
+            'role.in' => 'Role tidak valid. Pilih antara Admin, SPV, Guest, atau Member'
         ]);
 
         try {
@@ -48,7 +48,8 @@ class UsersController extends Controller
             $roleDisplay = [
                 'admin' => 'Admin',
                 'spv' => 'Supervisor (SPV)',
-                'guest' => 'Guest'
+                'guest' => 'Guest',
+                'member' => 'Member'
             ];
 
             return redirect()->back()->with('success', "Role user {$user->name} berhasil diubah menjadi {$roleDisplay[$request->role]}!");
@@ -67,7 +68,7 @@ class UsersController extends Controller
         $request->validate([
             'user_ids' => 'required|array',
             'user_ids.*' => 'exists:users,id',
-            'role' => 'required|in:admin,spv,guest'
+            'role' => 'required|in:admin,spv,guest,member'
         ]);
 
         try {

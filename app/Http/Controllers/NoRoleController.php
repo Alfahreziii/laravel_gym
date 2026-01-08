@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Storage;
 class NoRoleController extends Controller
 {
     /**
-     * Menampilkan daftar kehadiran
+     * Menampilkan halaman absensi member
      */
     public function index()
     {
@@ -21,13 +21,13 @@ class NoRoleController extends Controller
     }
 
     /**
-     * Menyimpan data kehadiran (dengan foto)
+     * Menyimpan data kehadiran member (dengan foto)
      */
     public function store(Request $request)
     {
         $request->validate([
             'rfid' => 'required|string',
-            'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // maksimal 2MB
+            'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         // Cek apakah kartu terdaftar di tabel anggotas
@@ -62,7 +62,7 @@ class NoRoleController extends Controller
             ]);
 
             return redirect()->route('absen.index')
-                ->with('success', 'Absensi ' . strtoupper($status) . ' untuk anggota ' . e($anggota->name) . ' berhasil dicatat.');
+                ->with('success', 'Absensi ' . strtoupper($status) . ' untuk ' . e($anggota->name) . ' berhasil dicatat!');
         } catch (\Exception $e) {
             return redirect()->route('absen.index')
                 ->with('danger', 'Gagal menyimpan data absensi: ' . $e->getMessage());
@@ -70,7 +70,7 @@ class NoRoleController extends Controller
     }
 
     /**
-     * Hapus data kehadiran (dan fotonya)
+     * Hapus data kehadiran member
      */
     public function destroy(KehadiranMember $kehadiranmember)
     {
@@ -90,29 +90,30 @@ class NoRoleController extends Controller
     } 
 
     /**
-     * Menampilkan daftar kehadiran
+     * Menampilkan halaman absensi trainer
      */
     public function indextrainer()
     {
-        // Ambil kehadiran beserta data anggota
         $kehadirantrainers = KehadiranTrainer::with('trainer')->latest()->get();
         return view('pages.norole.kehadirantrainer', compact('kehadirantrainers'));
     }
 
+    /**
+     * Menyimpan data kehadiran trainer (dengan foto)
+     */
     public function storetrainer(Request $request)
     {
         $request->validate([
-            'rfid'   => 'required|string',
+            'rfid' => 'required|string',
             'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        // cek apakah kartu ada di tabel trainers
+        // Cek apakah kartu ada di tabel trainers
         $trainer = Trainer::where('rfid', $request->rfid)->first();
 
         if (!$trainer) {
-            // lempar alert danger ke index
             return redirect()->route('absentrainer.index')
-                ->with('danger', 'Kartu dengan RFID' . e($request->rfid) . ' tidak ditemukan!');
+                ->with('danger', 'Kartu dengan RFID ' . e($request->rfid) . ' tidak ditemukan!');
         }
 
         $today = now()->toDateString();
@@ -139,7 +140,7 @@ class NoRoleController extends Controller
             ]);
 
             return redirect()->route('absentrainer.index')
-                ->with('success', 'Absensi untuk trainer' . e($trainer->name) . 'berhasil dicatat.');
+                ->with('success', 'Absensi ' . strtoupper($status) . ' untuk ' . e($trainer->name) . ' berhasil dicatat!');
         } catch (\Exception $e) {
             return redirect()->route('absentrainer.index')
                 ->with('danger', 'Gagal menyimpan data absensi: ' . $e->getMessage());
@@ -147,7 +148,7 @@ class NoRoleController extends Controller
     }
 
     /**
-     * Hapus data kehadiran
+     * Hapus data kehadiran trainer
      */
     public function destroytrainer(KehadiranTrainer $kehadirantrainer)
     {
@@ -157,9 +158,11 @@ class NoRoleController extends Controller
             }
 
             $kehadirantrainer->delete();
+            
             return redirect()->route('absentrainer.index')->with('success', 'Data kehadiran berhasil dihapus.');
         } catch (\Exception $e) {
-            return redirect()->route('absentrainer.index')->with('danger', 'Gagal menghapus data kehadiran: ' . $e->getMessage());
+            return redirect()->route('absentrainer.index')
+                ->with('danger', 'Gagal menghapus data kehadiran: ' . $e->getMessage());
         }
     }
 }

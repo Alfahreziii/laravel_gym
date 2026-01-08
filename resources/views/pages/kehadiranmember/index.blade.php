@@ -31,11 +31,157 @@
     </div>
 @endif
 
+{{-- Card Scan Barcode - HANYA TAMPIL jika BUKAN mode laporan --}}
+@if(!$isLaporanMode)
+<div class="grid grid-cols-12 gap-5 mb-5">
+    <div class="col-span-12 lg:col-span-6">
+        <div class="card border-0">
+            <div class="card-header bg-primary-600 text-white">
+                <h6 class="text-lg font-semibold mb-0">📷 Scan Barcode untuk Absensi</h6>
+            </div>
+            <div class="card-body">
+                <form id="barcodeForm" action="{{ route('kehadiranmember.store') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="space-y-4">
+                        <!-- Input Barcode -->
+                        <div>
+                            <label for="barcode_input" class="form-label text-lg font-semibold">
+                                Scan Kartu Barcode Disini
+                                <span class="text-danger-600">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="barcode_input" 
+                                name="rfid" 
+                                class="form-control form-control-lg text-center text-2xl font-bold tracking-wider" 
+                                placeholder="Arahkan scanner ke sini..."
+                                autocomplete="off"
+                                autofocus
+                                required>
+                            <small class="text-muted">Klik di sini atau scan kartu dengan barcode scanner</small>
+                        </div>
+
+                        <!-- Live Webcam Preview -->
+                        <div class="flex flex-col items-center border-2 border-dashed border-primary-300 rounded-lg p-4">
+                            <label class="font-semibold text-neutral-600 text-sm mb-2">Kamera Absensi</label>
+                            <video id="webcam" autoplay playsinline class="rounded-lg border border-neutral-300 w-full max-w-md"></video>
+                            <canvas id="canvas" class="hidden"></canvas>
+                            <p class="text-sm text-muted mt-2">Foto akan diambil otomatis saat scan barcode</p>
+                        </div>
+
+                        <!-- Status Indicator -->
+                        <div id="scan-status" class="hidden">
+                            <div class="bg-info-50 border border-info-200 text-info-700 px-4 py-3 rounded-lg flex items-center">
+                                <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-info-700 mr-3"></div>
+                                <span>Memproses absensi...</span>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Instruksi Penggunaan -->
+                <div class="mt-6 bg-gray-50 p-4 rounded-lg">
+                    <h6 class="font-semibold mb-2 text-neutral-700">📝 Cara Menggunakan:</h6>
+                    <ol class="list-decimal list-inside space-y-1 text-sm text-neutral-600">
+                        <li>Pastikan cursor berada di kotak input (klik jika perlu)</li>
+                        <li>Arahkan barcode scanner ke kartu member</li>
+                        <li>Scanner akan otomatis membaca dan submit</li>
+                        <li>Foto akan diambil secara otomatis dari webcam</li>
+                        <li>Status IN/OUT ditentukan otomatis oleh sistem</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card Info Absensi Terakhir -->
+    <div class="col-span-12 lg:col-span-6">
+        <div class="card border-0">
+            <div class="card-header bg-success-600 text-white">
+                <h6 class="text-lg font-semibold mb-0">📊 Absensi Hari Ini</h6>
+            </div>
+            <div class="card-body">
+                @php
+                    $today = now()->toDateString();
+                    $todayAttendance = $kehadiranmembers->filter(function($item) use ($today) {
+                        return $item->created_at->toDateString() === $today;
+                    });
+                    $totalToday = $todayAttendance->count();
+                    $totalIn = $todayAttendance->where('status', 'in')->count();
+                    $totalOut = $todayAttendance->where('status', 'out')->count();
+                    $uniqueMembers = $todayAttendance->unique('rfid')->count();
+                @endphp
+
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="bg-primary-50 p-4 rounded-lg text-center">
+                        <div class="text-3xl font-bold text-primary-600">{{ $totalIn }}</div>
+                        <div class="text-sm text-neutral-600">Check IN</div>
+                    </div>
+                    <div class="bg-warning-50 p-4 rounded-lg text-center">
+                        <div class="text-3xl font-bold text-warning-600">{{ $totalOut }}</div>
+                        <div class="text-sm text-neutral-600">Check OUT</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-success-50 p-4 rounded-lg text-center">
+                        <div class="text-3xl font-bold text-success-600">{{ $uniqueMembers }}</div>
+                        <div class="text-sm text-neutral-600">Member Unik</div>
+                    </div>
+                    <div class="bg-info-50 p-4 rounded-lg text-center">
+                        <div class="text-3xl font-bold text-info-600">{{ $totalToday }}</div>
+                        <div class="text-sm text-neutral-600">Total Absensi</div>
+                    </div>
+                </div>
+
+                <!-- 5 Absensi Terakhir Hari Ini -->
+                <div class="mt-6">
+                    <h6 class="font-semibold mb-3 text-neutral-700">Absensi Terakhir:</h6>
+                    <div class="space-y-2">
+                        @forelse($todayAttendance->take(5) as $item)
+                        <div class="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                            <div class="flex items-center gap-3">
+                                @if($item->foto)
+                                    <img src="{{ asset('storage/' . $item->foto) }}" 
+                                         alt="Photo" 
+                                         class="w-10 h-10 rounded-full object-cover">
+                                @else
+                                    <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
+                                        <iconify-icon icon="mdi:account" class="text-gray-600"></iconify-icon>
+                                    </div>
+                                @endif
+                                <div>
+                                    <div class="font-semibold text-sm">{{ $item->anggota->name }}</div>
+                                    <div class="text-xs text-neutral-500">{{ $item->created_at->format('H:i:s') }}</div>
+                                </div>
+                            </div>
+                            <div>
+                                @if($item->status === 'in')
+                                    <span class="bg-success-100 text-success-600 px-3 py-1 rounded-full text-xs font-semibold">IN</span>
+                                @else
+                                    <span class="bg-warning-100 text-warning-600 px-3 py-1 rounded-full text-xs font-semibold">OUT</span>
+                                @endif
+                            </div>
+                        </div>
+                        @empty
+                        <div class="text-center text-neutral-500 py-4">
+                            Belum ada absensi hari ini
+                        </div>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
+<!-- Tabel Data Kehadiran -->
 <div class="grid grid-cols-12">
     <div class="col-span-12">
         <div class="card border-0 overflow-hidden">
             <div class="card-header flex items-center justify-between">
-                <h6 class="card-title mb-0 text-lg">{{ $isLaporanMode ? 'Laporan Data Kehadiran Member' : 'Data Kehadiran Member' }}</h6>
+                <h6 class="card-title mb-0 text-lg">{{ $isLaporanMode ? 'Laporan Data Kehadiran Member' : 'Riwayat Kehadiran Member' }}</h6>
                 <div class="flex gap-2">
                     <!-- Tombol Export PDF -->
                     <button type="button" data-modal-target="export-pdf-modal" data-modal-toggle="export-pdf-modal" 
@@ -43,15 +189,6 @@
                         <iconify-icon icon="carbon:document-pdf" class="mr-2"></iconify-icon>
                         Export PDF
                     </button>
-                    {{-- Tombol Tambah Data hanya tampil jika BUKAN mode laporan --}}
-                    @if(!$isLaporanMode)
-                        @role('admin')
-                        <button type="button" data-modal-target="popup-modal" data-modal-toggle="popup-modal" 
-                                class="text-primary-600 focus:bg-primary-600 hover:bg-primary-700 border border-primary-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center dark:text-primary-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-primary-800">
-                            + Tambah Data
-                        </button>
-                        @endrole
-                    @endif
                 </div>
             </div>
             <div class="card-body">
@@ -59,11 +196,11 @@
                     <thead>
                         <tr>
                             <th scope="col">S.L</th>
-                            <th scope="col">RFID</th>
+                            <th scope="col">ID Kartu</th>
                             <th scope="col">Foto</th>
-                            <th scope="col">Name</th>
+                            <th scope="col">Nama Member</th>
                             <th scope="col">Status</th>
-                            <th scope="col">Time</th>
+                            <th scope="col">Waktu</th>
                             @if(!$isLaporanMode)
                             <th scope="col">Aksi</th>
                             @endif
@@ -85,11 +222,17 @@
                                 @endif
                             </td>
                             <td class="whitespace-nowrap">{{ $item->anggota->name }}</td>
-                            <td class="whitespace-nowrap">{{ $item->status }}</td>
-                            <td class="whitespace-nowrap">{{ $item->created_at }}</td>
+                            <td class="whitespace-nowrap">
+                                @if($item->status === 'in')
+                                    <span class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm">CHECK IN</span>
+                                @else
+                                    <span class="bg-warning-100 text-warning-600 px-4 py-1.5 rounded-full font-medium text-sm">CHECK OUT</span>
+                                @endif
+                            </td>
+                            <td class="whitespace-nowrap">{{ $item->created_at->format('d M Y - H:i:s') }}</td>
                             @if(!$isLaporanMode)
                             <td class="whitespace-nowrap">
-                                <!-- Form Delete -->
+                                @role('admin')
                                 <form action="{{ route('kehadiranmember.destroy', $item->id) }}" method="POST" class="inline-block delete-form">
                                     @csrf
                                     @method('DELETE')
@@ -97,6 +240,7 @@
                                         <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
                                     </button>
                                 </form>
+                                @endrole
                             </td>
                             @endif
                         </tr>
@@ -107,61 +251,6 @@
         </div>
     </div>
 </div>
-
-{{-- Modal Add Kehadiran - HANYA TAMPIL jika BUKAN mode laporan --}}
-@if(!$isLaporanMode)
-<div id="popup-modal" tabindex="-1"
-    class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-    <div class="rounded-2xl bg-white max-w-[800px] w-full">
-        <div class="py-4 px-6 border-b border-neutral-200 flex items-center justify-between">
-            <h1 class="text-xl">Tambah Kehadiran Member</h1>
-            <button data-modal-hide="popup-modal" type="button"
-                class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
-                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                </svg>
-                <span class="sr-only">Close modal</span>
-            </button>
-        </div>
-
-        <div class="p-6">
-            <form id="kehadiranForm" action="{{ route('kehadiranmember.store') }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                @method('POST')
-
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-                    <div class="col-span-12">
-                        <label for="rfid" class="inline-block font-semibold text-neutral-600 text-sm mb-2">RFID</label>
-                        <input type="text" id="rfid" name="rfid" class="form-control rounded-lg"
-                            placeholder="Masukkan RFID" required>
-                    </div>
-
-                    <!-- Live Webcam Preview -->
-                    <div class="col-span-12 flex flex-col items-center">
-                        <label class="inline-block font-semibold text-neutral-600 text-sm mb-2">Kamera</label>
-                        <video id="webcam" autoplay playsinline class="rounded-lg border border-neutral-300 w-64 h-48"></video>
-                        <canvas id="canvas" class="hidden"></canvas>
-                    </div>
-
-                    <div class="col-span-12">
-                        <div class="flex items-center justify-start gap-3 mt-6">
-                            <button type="reset" data-modal-hide="popup-modal"
-                                class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
-                                Cancel
-                            </button>
-                            <button type="submit"
-                                class="btn btn-primary border border-primary-600 text-base px-6 py-3 rounded-lg">
-                                Save
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-@endif
 
 <!-- Modal Export PDF -->
 <div id="export-pdf-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
@@ -179,7 +268,6 @@
             <form action="{{ route('kehadiranmember.export_pdf') }}" method="POST" id="export-pdf-form">
                 @csrf
                 <div class="grid grid-cols-1 gap-6">
-                    <!-- Pilih Tipe Filter -->
                     <div class="col-span-12">
                         <label class="inline-block font-semibold text-neutral-600 text-sm mb-2">Pilih Periode:</label>
                         <div class="space-y-2">
@@ -194,7 +282,6 @@
                         </div>
                     </div>
 
-                    <!-- Filter Range Tanggal -->
                     <div id="range-filter" class="hidden">
                         <div class="space-y-4">
                             <div>
@@ -208,7 +295,6 @@
                         </div>
                     </div>
 
-                    <!-- Tombol Aksi -->
                     <div class="col-span-12">
                         <div class="flex items-center justify-start gap-3 mt-6">
                             <button type="button" data-modal-hide="export-pdf-modal" class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
@@ -226,71 +312,127 @@
     </div>
 </div>
 
-{{-- Webcam Script - HANYA JALAN jika BUKAN mode laporan --}}
-@if(!$isLaporanMode)
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const video = document.getElementById('webcam');
-    const canvas = document.getElementById('canvas');
-    const form = document.getElementById('kehadiranForm');
-
-    // 🟢 Minta akses kamera
-    navigator.mediaDevices.getUserMedia({ video: true })
-        .then(stream => video.srcObject = stream)
-        .catch(err => console.error('Tidak bisa mengakses kamera:', err));
-
-    // 🟢 Tangkap foto otomatis saat submit
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-
-        // Gambar frame dari video ke canvas
-        const context = canvas.getContext('2d');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        // Ubah ke Blob agar bisa dikirim seperti file
-        canvas.toBlob((blob) => {
-            const file = new File([blob], "foto.png", { type: "image/png" });
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-
-            // Buat input file tersembunyi jika belum ada
-            let fileInput = document.querySelector('input[name="foto"]');
-            if (!fileInput) {
-                fileInput = document.createElement('input');
-                fileInput.type = 'file';
-                fileInput.name = 'foto';
-                fileInput.hidden = true;
-                form.appendChild(fileInput);
-            }
-
-            fileInput.files = dataTransfer.files;
-
-            // Submit form setelah foto siap
-            form.submit();
-        }, 'image/png');
-    });
-});
-</script>
-@endif
-
 @endsection
 
 @section('scripts')
 <script>
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener('DOMContentLoaded', () => {
     @if(!$isLaporanMode)
-    // Delete functionality - hanya aktif jika bukan mode laporan
+    // ==================== BARCODE SCANNER & WEBCAM INTEGRATION ====================
+    const video = document.getElementById('webcam');
+    const canvas = document.getElementById('canvas');
+    const form = document.getElementById('barcodeForm');
+    const barcodeInput = document.getElementById('barcode_input');
+    const scanStatus = document.getElementById('scan-status');
+    
+    let isProcessing = false;
+    let scanBuffer = '';
+    let scanTimeout = null;
+
+    // Minta akses kamera
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+        .then(stream => {
+            video.srcObject = stream;
+        })
+        .catch(err => {
+            console.error('Tidak bisa mengakses kamera:', err);
+            Swal.fire({
+                icon: 'warning',
+                title: 'Kamera Tidak Tersedia',
+                text: 'Absensi akan tetap berjalan tanpa foto',
+                confirmButtonText: 'OK'
+            });
+        });
+
+    // Auto-focus ke input barcode
+    barcodeInput.focus();
+
+    // Detect barcode scan (scanner bekerja seperti keyboard)
+    barcodeInput.addEventListener('input', function(e) {
+        clearTimeout(scanTimeout);
+        
+        // Scanner biasanya mengirim data dengan cepat dan diakhiri Enter
+        scanTimeout = setTimeout(() => {
+            if (barcodeInput.value.length > 0) {
+                submitWithPhoto();
+            }
+        }, 100); // 100ms delay untuk memastikan semua karakter terkirim
+    });
+
+    // Handle Enter key dari scanner
+    barcodeInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            clearTimeout(scanTimeout);
+            submitWithPhoto();
+        }
+    });
+
+    // Fungsi untuk submit dengan foto dari webcam
+    function submitWithPhoto() {
+        if (isProcessing || barcodeInput.value.trim() === '') {
+            return;
+        }
+
+        isProcessing = true;
+        scanStatus.classList.remove('hidden');
+
+        // Capture foto dari webcam
+        const context = canvas.getContext('2d');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Konversi canvas ke blob
+            canvas.toBlob((blob) => {
+                if (blob) {
+                    const file = new File([blob], "absensi_" + Date.now() + ".png", { type: "image/png" });
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+
+                    // Buat atau update input file
+                    let fileInput = form.querySelector('input[name="foto"]');
+                    if (!fileInput) {
+                        fileInput = document.createElement('input');
+                        fileInput.type = 'file';
+                        fileInput.name = 'foto';
+                        fileInput.hidden = true;
+                        form.appendChild(fileInput);
+                    }
+
+                    fileInput.files = dataTransfer.files;
+                }
+
+                // Submit form
+                form.submit();
+            }, 'image/png');
+        } else {
+            // Jika webcam belum siap, submit tanpa foto
+            console.warn('Webcam belum siap, submit tanpa foto');
+            form.submit();
+        }
+    }
+
+    // Reset focus ke input setelah beberapa detik
+    setInterval(() => {
+        if (document.activeElement !== barcodeInput && !isProcessing) {
+            barcodeInput.focus();
+        }
+    }, 3000);
+    @endif
+
+    // ==================== DELETE FUNCTIONALITY ====================
+    @if(!$isLaporanMode)
     const deleteForms = document.querySelectorAll('.delete-form');
     deleteForms.forEach(form => {
         const btn = form.querySelector('.delete-btn');
         btn.addEventListener('click', function (e) {
             e.preventDefault();
-
             Swal.fire({
                 title: 'Apakah kamu yakin?',
-                text: "Data item yang dihapus tidak bisa dikembalikan!",
+                text: "Data absensi yang dihapus tidak bisa dikembalikan!",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#e3342f',
@@ -306,7 +448,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     @endif
     
-    // Remove alert button
+    // ==================== ALERT REMOVE BUTTON ====================
     const removeButtons = document.querySelectorAll('.remove-button');
     removeButtons.forEach(button => {
         button.addEventListener('click', function() {
@@ -317,14 +459,14 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    // Pop-up foto
+    // ==================== PHOTO POPUP ====================
     const photos = document.querySelectorAll('.item-photo');
     photos.forEach(photo => {
         photo.addEventListener('click', function () {
             const imageUrl = this.getAttribute('data-photo');
             Swal.fire({
                 imageUrl: imageUrl,
-                imageAlt: 'Foto Member',
+                imageAlt: 'Foto Absensi',
                 showConfirmButton: false,
                 background: 'transparent',
                 width: 'auto',
@@ -334,7 +476,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
     
-    // Toggle filter sections untuk export PDF
+    // ==================== EXPORT PDF FILTER ====================
     const filterRadios = document.querySelectorAll('input[name="filter_type"]');
     const rangeFilter = document.getElementById('range-filter');
 
@@ -366,7 +508,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 return false;
             }
             
-            // Validasi tanggal dari tidak boleh lebih besar dari tanggal sampai
             if (new Date(tanggalDari) > new Date(tanggalSampai)) {
                 e.preventDefault();
                 Swal.fire({

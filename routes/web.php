@@ -42,9 +42,19 @@ use App\Http\Controllers\Trainer\PlaylistMemberTrainerController;
 use App\Http\Controllers\Trainer\GajiTrainerController;
 use App\Http\Controllers\Trainer\LevelTrainerController;
 use App\Http\Controllers\Trainer\RiwayatGajiTrainerController;
+use App\Http\Controllers\MemberProfileController;
+
 
 Route::get('/register/trainer', [TrainerRegisterController::class, 'showForm'])->name('register.trainer');
 Route::post('/register/trainer', [TrainerRegisterController::class, 'register'])->name('register.trainer.submit');
+// Member Route
+Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddleware::class . ':member'])->group(function () {
+    Route::controller(MemberProfileController::class)->group(function () {
+        Route::get('/member/profile', 'index')->name('member.profile');
+        Route::get('/member/download-card', 'downloadCard')->name('member.download-card');
+        Route::get('/member/barcode', 'showBarcode')->name('member.barcode');
+    });
+});
 
 Route::controller(NoRoleController::class)->group(function () {
     Route::get('/absen', 'index')->name('absen.index');

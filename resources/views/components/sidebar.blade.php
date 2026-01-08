@@ -341,7 +341,24 @@
                 </ul>
             </li>
             @endhasanyrole
-        
+        {{-- Tambahkan ini di sidebar Anda (biasanya di resources/views/layout/sidebar.blade.php) --}}
+
+        {{-- Menu untuk Member --}}
+        @hasanyrole('member')
+        <li class="sidebar-menu-link {{ request()->routeIs('member.profile') ? 'active' : '' }}">
+            <a href="{{ route('member.profile') }}">
+                <iconify-icon icon="mdi:account-circle" class="menu-icon"></iconify-icon>
+                <span>Profile Saya</span>
+            </a>
+        </li>
+
+        <!-- <li class="sidebar-menu-link {{ request()->routeIs('member.barcode') ? 'active' : '' }}">
+            <a href="{{ route('member.barcode') }}">
+                <iconify-icon icon="mdi:barcode-scan" class="menu-icon"></iconify-icon>
+                <span>Kartu Barcode</span>
+            </a>
+        </li> -->
+        @endhasanyrole
         </ul>
     </div>
 </aside>

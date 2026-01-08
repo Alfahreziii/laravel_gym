@@ -22,6 +22,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'trainer_id',
+        'anggota_id',
         'photo',
         'last_activity',
     ];
@@ -59,11 +60,27 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Relasi ke Anggota (One to One)
+     */
+    public function anggota()
+    {
+        return $this->belongsTo(Anggota::class, 'anggota_id');
+    }
+
+    /**
      * Check if user is a trainer
      */
     public function isTrainer()
     {
         return $this->hasRole('trainer') && $this->trainer_id !== null;
+    }
+
+    /**
+     * Check if user is a member (anggota)
+     */
+    public function isMember()
+    {
+        return $this->hasRole('member') && $this->anggota_id !== null;
     }
 
     /**
@@ -96,6 +113,14 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getTrainerDataAttribute()
     {
         return $this->isTrainer() ? $this->trainer : null;
+    }
+
+    /**
+     * Get anggota data if user is member
+     */
+    public function getAnggotaDataAttribute()
+    {
+        return $this->isMember() ? $this->anggota : null;
     }
 
     /**
