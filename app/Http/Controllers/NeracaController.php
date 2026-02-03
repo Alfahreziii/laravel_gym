@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\KategoriAkun;
 use App\Models\AkunKeuangan;
 use App\Models\TransaksiKeuangan;
+use App\Models\AnggotaMembership;
+use App\Models\PembayaranMembership;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -13,16 +15,34 @@ class NeracaController extends Controller
 {
     public function index()
     {
-        // Ambil semua kategori beserta akun & transaksi (AST, KEW, MOD, BEB)
-        $kategori = KategoriAkun::with(['akun.transaksi'])->get();
+        // Ambil semua kategori beserta akun
+        $kategori = KategoriAkun::with(['akun'])->get();
 
-        // Hitung saldo per akun sesuai normal balance per kategori:
-        // - AST & BEB: saldo = debit - kredit
-        // - KEW & MOD: saldo = kredit - debit
-        $kategori->each(function ($kat) {
-            $kat->akun->each(function ($akun) use ($kat) {
-                $debit  = $akun->transaksi->sum('debit');
-                $kredit = $akun->transaksi->sum('kredit');
+        // Ambil ID valid untuk filtering orphan
+        $validMembershipIds = AnggotaMembership::pluck('id')->toArray();
+        $validPaymentIds = PembayaranMembership::pluck('id')->toArray();
+
+        // Hitung saldo per akun dengan filtering orphan transactions
+        $kategori->each(function ($kat) use ($validMembershipIds, $validPaymentIds) {
+            $kat->akun->each(function ($akun) use ($kat, $validMembershipIds, $validPaymentIds) {
+                // Filter transaksi: buang yang orphan
+                $transaksiValid = $akun->transaksi->filter(function ($trx) use ($validMembershipIds, $validPaymentIds) {
+                    // Jika referensi ke anggota_memberships, cek apakah ID-nya masih valid
+                    if ($trx->referensi_tabel === 'anggota_memberships') {
+                        return in_array($trx->referensi_id, $validMembershipIds);
+                    }
+
+                    // Jika referensi ke pembayaran_memberships, cek apakah ID-nya masih valid
+                    if ($trx->referensi_tabel === 'pembayaran_memberships') {
+                        return in_array($trx->referensi_id, $validPaymentIds);
+                    }
+
+                    // Untuk referensi lain (products, manual_kas, dll), tetap ambil
+                    return true;
+                });
+
+                $debit  = $transaksiValid->sum('debit');
+                $kredit = $transaksiValid->sum('kredit');
 
                 if (in_array($kat->kode, ['AST', 'BEB'])) {
                     // Aset & Beban bertambah di DEBIT
@@ -114,7 +134,6 @@ class NeracaController extends Controller
 
             return redirect()->route('neraca.index')
                 ->with('success', 'Kas berhasil ditambahkan sebesar Rp ' . number_format($jumlah, 2, ',', '.'));
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Gagal menambah kas manual', [

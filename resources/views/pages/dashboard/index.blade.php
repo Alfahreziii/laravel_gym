@@ -1,14 +1,12 @@
-
 @extends('layout.layout')
 
 @php
-    $title='Dashboard';
+    $title = 'Dashboard';
     $subTitle = 'AI';
     $script = '<script src="' . asset('assets/js/homeOneChart.js') . '"></script>';
 @endphp
 
 @section('content')
-
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-3 3xl:grid-cols-3 gap-6 mx-auto">
         <div class="card shadow-none border border-gray-200 rounded-lg h-full bg-gradient-to-r from-cyan-600/10 to-bg-white">
             <div class="card-body p-5">
@@ -22,12 +20,14 @@
                     </div>
                 </div>
                 <p class="font-medium text-sm text-neutral-600 mt-3 mb-0 flex items-center gap-2">
-                    <span class="inline-flex items-center gap-1 text-success-600"><iconify-icon icon="bxs:up-arrow" class="text-xs"></iconify-icon> +4000</span>
+                    <span class="inline-flex items-center gap-1 text-success-600"><iconify-icon icon="bxs:up-arrow"
+                            class="text-xs"></iconify-icon> +4000</span>
                     Last 30 days users
                 </p>
             </div>
         </div><!-- card end -->
-        <div class="card shadow-none border border-gray-200 rounded-lg h-full bg-gradient-to-r from-purple-600/10 to-bg-white">
+        <div
+            class="card shadow-none border border-gray-200 rounded-lg h-full bg-gradient-to-r from-purple-600/10 to-bg-white">
             <div class="card-body p-5">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <div>
@@ -40,7 +40,8 @@
                 </div>
             </div>
         </div><!-- card end -->
-        <div class="card shadow-none border border-gray-200 rounded-lg h-full bg-gradient-to-r from-blue-600/10 to-bg-white">
+        <div
+            class="card shadow-none border border-gray-200 rounded-lg h-full bg-gradient-to-r from-blue-600/10 to-bg-white">
             <div class="card-body p-5">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <div>
@@ -52,7 +53,8 @@
                     </div>
                 </div>
                 <p class="font-medium text-sm text-neutral-600 mt-3 mb-0 flex items-center gap-2">
-                    <span class="inline-flex items-center gap-1 text-success-600"><iconify-icon icon="bxs:up-arrow" class="text-xs"></iconify-icon> +200</span>
+                    <span class="inline-flex items-center gap-1 text-success-600"><iconify-icon icon="bxs:up-arrow"
+                            class="text-xs"></iconify-icon> +200</span>
                     Last 30 days users
                 </p>
             </div>
@@ -67,18 +69,20 @@
                         <h6 class="text-lg mb-0">Membership & Personal Trainer</h6>
                         <div class="flex gap-2">
                             <select id="chartYearFilter" class="form-select bg-white form-select-sm w-auto">
-                                @foreach($availableYears as $year)
+                                @foreach ($availableYears as $year)
                                     <option value="{{ $year }}" {{ $year == $currentYear ? 'selected' : '' }}>
                                         {{ $year }}
                                     </option>
                                 @endforeach
                             </select>
                             <select id="chartFilter" class="form-select bg-white form-select-sm w-auto">
-                                <option value="monthly" selected>Monthly</option>
+                                <option value="all" selected>All</option>
+                                <option value="monthly">Monthly</option>
                                 <option value="weekly">Weekly</option>
                                 <option value="daily">Daily Range</option>
                             </select>
-                            <select id="chartMonthFilter" class="form-select bg-white form-select-sm w-auto" style="display: none;">
+                            <select id="chartMonthFilter" class="form-select bg-white form-select-sm w-auto"
+                                style="display: none;">
                                 <option value="1" {{ $currentMonth == 1 ? 'selected' : '' }}>January</option>
                                 <option value="2" {{ $currentMonth == 2 ? 'selected' : '' }}>February</option>
                                 <option value="3" {{ $currentMonth == 3 ? 'selected' : '' }}>March</option>
@@ -92,12 +96,15 @@
                                 <option value="11" {{ $currentMonth == 11 ? 'selected' : '' }}>November</option>
                                 <option value="12" {{ $currentMonth == 12 ? 'selected' : '' }}>December</option>
                             </select>
-                            <input type="number" id="chartStartDate" class="form-select bg-white form-select-sm w-20" placeholder="Start" min="1" max="31" style="display: none;">
-                            <input type="number" id="chartEndDate" class="form-select bg-white form-select-sm w-20" placeholder="End" min="1" max="31" style="display: none;">
+                            <input type="number" id="chartStartDate" class="form-select bg-white form-select-sm w-20"
+                                placeholder="Start" min="1" max="31" style="display: none;">
+                            <input type="number" id="chartEndDate" class="form-select bg-white form-select-sm w-20"
+                                placeholder="End" min="1" max="31" style="display: none;">
                         </div>
                     </div>
                     <div class="flex flex-wrap items-center gap-2 mt-2">
-                        <h6 class="mb-0">Rp {{ number_format($totalRevenue, 0, ',', '.') }}</h6>
+                        <h6 class="mb-0" id="totalRevenueDisplay">Rp {{ number_format($totalRevenue, 0, ',', '.') }}</h6>
+                        <span class="text-sm text-gray-500 ml-2" id="revenueStatus">(All Years)</span>
                     </div>
                     <div id="chart" class="pt-[28px] apexcharts-tooltip-style-1 w-full min-w-800px"></div>
                 </div>
@@ -111,18 +118,20 @@
                         <h6 class="text-lg mb-0">Penjualan Produk</h6>
                         <div class="flex gap-2">
                             <select id="chartYearFilterProduct" class="form-select bg-white form-select-sm w-auto">
-                                @foreach($availableYears as $year)
+                                @foreach ($availableYears as $year)
                                     <option value="{{ $year }}" {{ $year == $currentYear ? 'selected' : '' }}>
                                         {{ $year }}
                                     </option>
                                 @endforeach
                             </select>
                             <select id="chartFilterProduct" class="form-select bg-white form-select-sm w-auto">
-                                <option value="monthly" selected>Monthly</option>
+                                <option value="all" selected>All</option>
+                                <option value="monthly">Monthly</option>
                                 <option value="weekly">Weekly</option>
                                 <option value="daily">Daily Range</option>
                             </select>
-                            <select id="chartMonthFilterProduct" class="form-select bg-white form-select-sm w-auto" style="display: none;">
+                            <select id="chartMonthFilterProduct" class="form-select bg-white form-select-sm w-auto"
+                                style="display: none;">
                                 <option value="1" {{ $currentMonth == 1 ? 'selected' : '' }}>January</option>
                                 <option value="2" {{ $currentMonth == 2 ? 'selected' : '' }}>February</option>
                                 <option value="3" {{ $currentMonth == 3 ? 'selected' : '' }}>March</option>
@@ -136,12 +145,18 @@
                                 <option value="11" {{ $currentMonth == 11 ? 'selected' : '' }}>November</option>
                                 <option value="12" {{ $currentMonth == 12 ? 'selected' : '' }}>December</option>
                             </select>
-                            <input type="number" id="chartStartDateProduct" class="form-select bg-white form-select-sm w-20" placeholder="Start" min="1" max="31" style="display: none;">
-                            <input type="number" id="chartEndDateProduct" class="form-select bg-white form-select-sm w-20" placeholder="End" min="1" max="31" style="display: none;">
+                            <input type="number" id="chartStartDateProduct"
+                                class="form-select bg-white form-select-sm w-20" placeholder="Start" min="1"
+                                max="31" style="display: none;">
+                            <input type="number" id="chartEndDateProduct"
+                                class="form-select bg-white form-select-sm w-20" placeholder="End" min="1"
+                                max="31" style="display: none;">
                         </div>
                     </div>
                     <div class="flex flex-wrap items-center gap-2 mt-2">
-                        <h6 class="mb-0">Rp {{ number_format($totalProductRevenue, 0, ',', '.') }}</h6>
+                        <h6 class="mb-0" id="totalProductRevenueDisplay">Rp
+                            {{ number_format($totalProductRevenue, 0, ',', '.') }}</h6>
+                        <span class="text-sm text-gray-500 ml-2" id="productRevenueStatus">(All Years)</span>
                     </div>
                     <div id="chartProduct" class="pt-[28px] apexcharts-tooltip-style-1 w-full min-w-800px"></div>
                 </div>
@@ -153,20 +168,21 @@
                 <div class="card-body p-6">
 
                     <div class="mb-4">
-                        <ul class="tab-style-gradient flex flex-wrap -mb-px text-sm font-medium text-center" id="default-tab" data-tabs-toggle="#default-tab-content" role="tablist">
+                        <ul class="tab-style-gradient flex flex-wrap -mb-px text-sm font-medium text-center"
+                            id="default-tab" data-tabs-toggle="#default-tab-content" role="tablist">
                             <li class="" role="presentation">
-                                <button class="py-2.5 px-4 border-t-2 font-semibold text-lg inline-flex items-center gap-3 text-neutral-600"
-                                    id="registered-tab"
-                                    data-tabs-target="#registered"
-                                    type="button"
-                                    role="tab"
-                                    aria-controls="registered"
-                                    aria-selected="true">
+                                <button
+                                    class="py-2.5 px-4 border-t-2 font-semibold text-lg inline-flex items-center gap-3 text-neutral-600"
+                                    id="registered-tab" data-tabs-target="#registered" type="button" role="tab"
+                                    aria-controls="registered" aria-selected="true">
                                     Kehadiran Member
                                 </button>
                             </li>
                             <li class="" role="presentation">
-                                <button class="py-2.5 px-4 border-t-2 font-semibold text-lg inline-flex items-center gap-3 text-neutral-600 hover:text-gray-600 hover:border-gray-300" id="subscribe-tab" data-tabs-target="#subscribe" type="button" role="tab" aria-controls="subscribe" aria-selected="false">
+                                <button
+                                    class="py-2.5 px-4 border-t-2 font-semibold text-lg inline-flex items-center gap-3 text-neutral-600 hover:text-gray-600 hover:border-gray-300"
+                                    id="subscribe-tab" data-tabs-target="#subscribe" type="button" role="tab"
+                                    aria-controls="subscribe" aria-selected="false">
                                     Member In Room
                                 </button>
                             </li>
@@ -188,19 +204,19 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach($kehadiranmembers as $index => $item)
-                                        <tr>
-                                            <td class="whitespace-nowrap">{{ $index + 1 }}</td>
-                                            <td class="whitespace-nowrap">{{ $item->rfid }}</td>
-                                            <td class="whitespace-nowrap">
-                                                    <img src="{{ asset('storage/' . $item->foto) }}" 
-                                                        alt="image {{ $item->anggota->name }}" 
+                                        @foreach ($kehadiranmembers as $index => $item)
+                                            <tr>
+                                                <td class="whitespace-nowrap">{{ $index + 1 }}</td>
+                                                <td class="whitespace-nowrap">{{ $item->rfid }}</td>
+                                                <td class="whitespace-nowrap">
+                                                    <img src="{{ asset('storage/' . $item->foto) }}"
+                                                        alt="image {{ $item->anggota->name }}"
                                                         class="w-10 h-10 rounded object-cover">
-                                            </td>
-                                            <td class="whitespace-nowrap">{{ $item->anggota->name }}</td>
-                                            <td class="whitespace-nowrap">{{ $item->status }}</td>
-                                            <td class="whitespace-nowrap">{{ $item->created_at }}</td>
-                                        </tr>
+                                                </td>
+                                                <td class="whitespace-nowrap">{{ $item->anggota->name }}</td>
+                                                <td class="whitespace-nowrap">{{ $item->status }}</td>
+                                                <td class="whitespace-nowrap">{{ $item->created_at }}</td>
+                                            </tr>
                                         @endforeach
                                     </tbody>
                                 </table>
@@ -208,7 +224,8 @@
                         </div>
                         <div class="hidden" id="subscribe" role="tabpanel" aria-labelledby="subscribe-tab">
                             <div class="">
-                                <table id="table-memberinroom" class="border border-neutral-200 rounded-lg border-separate">
+                                <table id="table-memberinroom"
+                                    class="border border-neutral-200 rounded-lg border-separate">
                                     <thead>
                                         <tr>
                                             <th scope="col">S.L</th>
@@ -220,19 +237,19 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach($memberInGymToday as $index => $item)
-                                        <tr>
-                                            <td class="whitespace-nowrap">{{ $index + 1 }}</td>
-                                            <td class="whitespace-nowrap">{{ $item->rfid }}</td>
-                                            <td class="whitespace-nowrap">
-                                                    <img src="{{ asset('storage/' . $item->foto) }}" 
-                                                        alt="image {{ $item->anggota->name }}" 
+                                        @foreach ($memberInGymToday as $index => $item)
+                                            <tr>
+                                                <td class="whitespace-nowrap">{{ $index + 1 }}</td>
+                                                <td class="whitespace-nowrap">{{ $item->rfid }}</td>
+                                                <td class="whitespace-nowrap">
+                                                    <img src="{{ asset('storage/' . $item->foto) }}"
+                                                        alt="image {{ $item->anggota->name }}"
                                                         class="w-10 h-10 rounded object-cover">
-                                            </td>
-                                            <td class="whitespace-nowrap">{{ $item->anggota->name }}</td>
-                                            <td class="whitespace-nowrap">{{ $item->status }}</td>
-                                            <td class="whitespace-nowrap">{{ $item->created_at }}</td>
-                                        </tr>
+                                                </td>
+                                                <td class="whitespace-nowrap">{{ $item->anggota->name }}</td>
+                                                <td class="whitespace-nowrap">{{ $item->status }}</td>
+                                                <td class="whitespace-nowrap">{{ $item->created_at }}</td>
+                                            </tr>
                                         @endforeach
                                     </tbody>
                                 </table>
@@ -248,55 +265,119 @@
 
 
 @section('scripts')
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-<script>
-    window.dashboardData = {
-        // Data Membership & Trainer per tahun
-        membershipByYear: @json($membershipDataByYear),
-        
-        // Data Penjualan Produk per tahun
-        productByYear: @json($productDataByYear),
-        
-        // Tahun dan bulan default
-        currentYear: @json($currentYear),
-        currentMonth: @json($currentMonth),
-    };
-</script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script>
+        window.dashboardData = {
+            // Data Membership & Trainer per tahun
+            membershipByYear: @json($membershipDataByYear),
 
-{{-- DataTables Script --}}
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    const tables = {
-        "#table-kehadiran": null,
-        "#table-memberinroom": null,
-    };
+            // Data Penjualan Produk per tahun
+            productByYear: @json($productDataByYear),
 
-    Object.keys(tables).forEach(id => {
-        const table = document.querySelector(id);
-        if (!table) return;
+            // Tahun dan bulan default
+            currentYear: @json($currentYear),
+            currentMonth: @json($currentMonth),
 
-        try {
-            tables[id] = new simpleDatatables.DataTable(table, {
-                searchable: true,
-                fixedHeight: true,
-                perPage: 5,
-            });
-            console.log(`✅ DataTable berhasil diinisialisasi untuk ${id}`);
-        } catch (error) {
-            console.error(`❌ Gagal inisialisasi DataTable ${id}:`, error);
+            // Total revenue dari SEMUA tahun
+            totalRevenueAllYears: @json($totalRevenueAllYears),
+            totalProductRevenueAllYears: @json($totalProductRevenueAllYears),
+        };
+
+        // Fungsi untuk format rupiah
+        function formatRupiah(number) {
+            return 'Rp ' + number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
         }
-    });
 
-    const subscribeTabBtn = document.getElementById("subscribe-tab");
-    subscribeTabBtn.addEventListener("click", () => {
-        setTimeout(() => {
-            if (tables["#table-memberinroom"]) {
-                tables["#table-memberinroom"].refresh();
-                console.log("🔄 DataTable Member In Room direfresh");
+        // Fungsi untuk update total revenue
+        function updateTotalRevenue(chartType, year, month = null) {
+            let total = 0;
+            let status = '';
+
+            if (chartType === 'all') {
+                // Untuk filter All, gunakan total dari SEMUA tahun
+                total = window.dashboardData.totalRevenueAllYears;
+                status = '(All Years)';
+            } else if (chartType === 'monthly') {
+                // Untuk filter Monthly, gunakan total tahun yang dipilih
+                const data = window.dashboardData.membershipByYear[year];
+                total = data.totalPerYear;
+                status = `(Year ${year})`;
+            } else if (chartType === 'weekly' || chartType === 'daily') {
+                // Untuk filter Weekly/Daily, gunakan total bulan yang dipilih
+                const data = window.dashboardData.membershipByYear[year];
+                if (month) {
+                    total = data.totalPerMonth[month];
+                    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    status = `(${monthNames[month - 1]} ${year})`;
+                }
             }
-        }, 200);
-    });
-});
-</script>
-@endsection
 
+            document.getElementById('totalRevenueDisplay').textContent = formatRupiah(total);
+            document.getElementById('revenueStatus').textContent = status;
+        }
+
+        // Fungsi untuk update total product revenue
+        function updateTotalProductRevenue(chartType, year, month = null) {
+            let total = 0;
+            let status = '';
+
+            if (chartType === 'all') {
+                // Untuk filter All, gunakan total dari SEMUA tahun
+                total = window.dashboardData.totalProductRevenueAllYears;
+                status = '(All Years)';
+            } else if (chartType === 'monthly') {
+                // Untuk filter Monthly, gunakan total tahun yang dipilih
+                const data = window.dashboardData.productByYear[year];
+                total = data.totalPerYear;
+                status = `(Year ${year})`;
+            } else if (chartType === 'weekly' || chartType === 'daily') {
+                // Untuk filter Weekly/Daily, gunakan total bulan yang dipilih
+                const data = window.dashboardData.productByYear[year];
+                if (month) {
+                    total = data.totalPerMonth[month];
+                    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    status = `(${monthNames[month - 1]} ${year})`;
+                }
+            }
+
+            document.getElementById('totalProductRevenueDisplay').textContent = formatRupiah(total);
+            document.getElementById('productRevenueStatus').textContent = status;
+        }
+    </script>
+
+    {{-- DataTables Script --}}
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const tables = {
+                "#table-kehadiran": null,
+                "#table-memberinroom": null,
+            };
+
+            Object.keys(tables).forEach(id => {
+                const table = document.querySelector(id);
+                if (!table) return;
+
+                try {
+                    tables[id] = new simpleDatatables.DataTable(table, {
+                        searchable: true,
+                        fixedHeight: true,
+                        perPage: 5,
+                    });
+                    console.log(`✅ DataTable berhasil diinisialisasi untuk ${id}`);
+                } catch (error) {
+                    console.error(`❌ Gagal inisialisasi DataTable ${id}:`, error);
+                }
+            });
+
+            const subscribeTabBtn = document.getElementById("subscribe-tab");
+            subscribeTabBtn.addEventListener("click", () => {
+                setTimeout(() => {
+                    if (tables["#table-memberinroom"]) {
+                        tables["#table-memberinroom"].refresh();
+                        console.log("🔄 DataTable Member In Room direfresh");
+                    }
+                }, 200);
+            });
+        });
+    </script>
+@endsection

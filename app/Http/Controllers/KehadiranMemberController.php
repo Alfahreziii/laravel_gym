@@ -25,34 +25,34 @@ class KehadiranMemberController extends Controller
 
         try {
             $filterType = $request->filter_type;
-            
+
             // Hitung statistik dari SEMUA data (tidak terfilter)
             $allKehadiran = KehadiranMember::with('anggota')->get();
-            
+
             $totalKehadiran = $allKehadiran->count();
             $totalIn = $allKehadiran->where('status', 'in')->count();
             $totalOut = $allKehadiran->where('status', 'out')->count();
             $totalMemberUnik = $allKehadiran->unique('rfid')->count();
-            
+
             // Query untuk data yang akan ditampilkan
             $query = KehadiranMember::with('anggota');
-            
+
             // Filter berdasarkan tanggal
             $filterInfo = '';
             if ($filterType === 'range') {
                 $tanggalDari = Carbon::parse($request->tanggal_dari)->startOfDay();
                 $tanggalSampai = Carbon::parse($request->tanggal_sampai)->endOfDay();
-                
+
                 $query->whereBetween('created_at', [$tanggalDari, $tanggalSampai]);
-                
-                $filterInfo = $tanggalDari->locale('id')->isoFormat('D MMMM YYYY') . ' - ' . 
-                            $tanggalSampai->locale('id')->isoFormat('D MMMM YYYY');
+
+                $filterInfo = $tanggalDari->locale('id')->isoFormat('D MMMM YYYY') . ' - ' .
+                    $tanggalSampai->locale('id')->isoFormat('D MMMM YYYY');
             } else {
                 $filterInfo = 'Semua Periode';
             }
-            
+
             $kehadiranMembers = $query->orderBy('created_at', 'desc')->get();
-            
+
             // Buat title dinamis
             $title = 'Laporan Kehadiran Member';
             if ($filterType !== 'all') {
@@ -71,11 +71,10 @@ class KehadiranMemberController extends Controller
             ));
 
             $pdf->setPaper('a4', 'landscape');
-            
+
             $filename = 'Laporan_Kehadiran_Member_' . date('Y-m-d_His') . '.pdf';
-            
+
             return $pdf->download($filename);
-            
         } catch (\Exception $e) {
             Log::error('Gagal export PDF kehadiran member', [
                 'error' => $e->getMessage(),
@@ -92,7 +91,7 @@ class KehadiranMemberController extends Controller
      */
     public function index()
     {
-        $kehadiranmembers = KehadiranMember::with('anggota')->latest()->get();
+        $kehadiranmembers = KehadiranMember::with('anggota.user')->latest()->get();
         return view('pages.kehadiranmember.index', compact('kehadiranmembers'));
     }
 
@@ -103,20 +102,24 @@ class KehadiranMemberController extends Controller
     {
         $request->validate([
             'rfid' => 'required|string',
-            'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // maksimal 2MB
+            'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        // Cek apakah kartu terdaftar di tabel anggotas
-        $anggota = Anggota::where('id_kartu', $request->rfid)->first();
+        // NORMALISASI RFID: Ubah ke uppercase untuk konsistensi
+        $rfid = strtoupper(trim($request->rfid, '0'));
+
+        // Cek apakah kartu terdaftar (case-insensitive)
+        $anggota = Anggota::whereRaw('UPPER(id_kartu) = ?', [$rfid])->first();
 
         if (!$anggota) {
             return redirect()->route('kehadiranmember.index')
-                ->with('danger', 'Kartu dengan RFID ' . e($request->rfid) . ' tidak ditemukan!');
+                ->with('danger', 'Kartu dengan RFID ' . e($rfid) . ' tidak ditemukan!');
         }
 
         $today = now()->toDateString();
 
-        $lastAttendance = KehadiranMember::where('rfid', $request->rfid)
+        // Cari kehadiran terakhir dengan case-insensitive
+        $lastAttendance = KehadiranMember::whereRaw('UPPER(rfid) = ?', [$rfid])
             ->whereDate('created_at', $today)
             ->orderByDesc('created_at')
             ->first();
@@ -132,7 +135,7 @@ class KehadiranMemberController extends Controller
 
         try {
             KehadiranMember::create([
-                'rfid'   => $request->rfid,
+                'rfid'   => $anggota->id_kartu, // Gunakan ID kartu asli dari database
                 'status' => $status,
                 'foto'   => $fotoPath,
             ]);

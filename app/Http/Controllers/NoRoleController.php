@@ -16,7 +16,7 @@ class NoRoleController extends Controller
      */
     public function index()
     {
-        $kehadiranmembers = KehadiranMember::with('anggota')->latest()->get();
+        $kehadiranmembers = KehadiranMember::with('anggota.user')->latest()->get();
         return view('pages.norole.kehadiranmember', compact('kehadiranmembers'));
     }
 
@@ -30,17 +30,21 @@ class NoRoleController extends Controller
             'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        // Cek apakah kartu terdaftar di tabel anggotas
-        $anggota = Anggota::where('id_kartu', $request->rfid)->first();
+        // NORMALISASI RFID: Ubah ke uppercase untuk konsistensi
+        $rfid = strtoupper(trim($request->rfid, '0'));
+
+        // Cek apakah kartu terdaftar (case-insensitive)
+        $anggota = Anggota::whereRaw('UPPER(id_kartu) = ?', [$rfid])->first();
 
         if (!$anggota) {
             return redirect()->route('absen.index')
-                ->with('danger', 'Kartu dengan RFID ' . e($request->rfid) . ' tidak ditemukan!');
+                ->with('danger', 'Kartu dengan RFID ' . e($rfid) . ' tidak ditemukan!');
         }
 
         $today = now()->toDateString();
 
-        $lastAttendance = KehadiranMember::where('rfid', $request->rfid)
+        // Cari kehadiran terakhir dengan case-insensitive
+        $lastAttendance = KehadiranMember::whereRaw('UPPER(rfid) = ?', [$rfid])
             ->whereDate('created_at', $today)
             ->orderByDesc('created_at')
             ->first();
@@ -56,7 +60,7 @@ class NoRoleController extends Controller
 
         try {
             KehadiranMember::create([
-                'rfid'   => $request->rfid,
+                'rfid'   => $anggota->id_kartu, // Gunakan ID kartu asli dari database
                 'status' => $status,
                 'foto'   => $fotoPath,
             ]);
@@ -87,7 +91,7 @@ class NoRoleController extends Controller
             return redirect()->route('absen.index')
                 ->with('danger', 'Gagal menghapus data kehadiran: ' . $e->getMessage());
         }
-    } 
+    }
 
     /**
      * Menampilkan halaman absensi trainer
@@ -108,17 +112,20 @@ class NoRoleController extends Controller
             'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        // Cek apakah kartu ada di tabel trainers
-        $trainer = Trainer::where('rfid', $request->rfid)->first();
+        // NORMALISASI RFID untuk trainer juga
+        $rfid = strtoupper(trim($request->rfid));
+
+        // Cek apakah kartu ada di tabel trainers (case-insensitive)
+        $trainer = Trainer::whereRaw('UPPER(rfid) = ?', [$rfid])->first();
 
         if (!$trainer) {
             return redirect()->route('absentrainer.index')
-                ->with('danger', 'Kartu dengan RFID ' . e($request->rfid) . ' tidak ditemukan!');
+                ->with('danger', 'Kartu dengan RFID ' . e($rfid) . ' tidak ditemukan!');
         }
 
         $today = now()->toDateString();
 
-        $lastAttendance = KehadiranTrainer::where('rfid', $request->rfid)
+        $lastAttendance = KehadiranTrainer::whereRaw('UPPER(rfid) = ?', [$rfid])
             ->whereDate('created_at', $today)
             ->orderByDesc('created_at')
             ->first();
@@ -134,7 +141,7 @@ class NoRoleController extends Controller
 
         try {
             KehadiranTrainer::create([
-                'rfid'   => $request->rfid,
+                'rfid'   => $trainer->rfid, // Gunakan RFID asli dari database
                 'status' => $status,
                 'foto'   => $fotoPath,
             ]);
@@ -158,7 +165,7 @@ class NoRoleController extends Controller
             }
 
             $kehadirantrainer->delete();
-            
+
             return redirect()->route('absentrainer.index')->with('success', 'Data kehadiran berhasil dihapus.');
         } catch (\Exception $e) {
             return redirect()->route('absentrainer.index')

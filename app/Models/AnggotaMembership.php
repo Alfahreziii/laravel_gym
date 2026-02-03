@@ -27,6 +27,11 @@ class AnggotaMembership extends Model
         'total_dibayarkan',
     ];
 
+    protected $casts = [
+        'tgl_mulai' => 'date',
+        'tgl_selesai' => 'date',
+    ];
+
     /**
      * Relasi ke Anggota
      */

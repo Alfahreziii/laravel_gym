@@ -42,26 +42,26 @@ class DashboardController extends Controller
         // ========================================
         $currentYear = date('Y');
         $currentMonth = date('n'); // 1-12
-        
+
         // Ambil tahun dari pembayaran membership & trainer
         $membershipYears = PembayaranMembership::selectRaw('YEAR(tgl_bayar) as year')
             ->distinct()
             ->pluck('year');
-        
+
         $trainerYears = PembayaranMemberTrainer::selectRaw('YEAR(tgl_bayar) as year')
             ->distinct()
             ->pluck('year');
-        
+
         $paymentYears = $membershipYears->merge($trainerYears)->unique()->sort()->values();
-        
+
         // Ambil tahun dari transaksi produk
         $productYears = TransaksiKeuangan::selectRaw('YEAR(tanggal) as year')
             ->distinct()
             ->pluck('year');
-        
+
         // Gabungkan semua tahun
         $availableYears = $paymentYears->merge($productYears)->unique()->sort()->values();
-        
+
         // Jika tidak ada data, tambahkan tahun sekarang
         if ($availableYears->isEmpty()) {
             $availableYears = collect([$currentYear]);
@@ -75,11 +75,12 @@ class DashboardController extends Controller
         $allPayments = $membershipPayments->concat($trainerPayments);
 
         $totalRevenue = $allPayments->sum('jumlah_bayar');
+        $totalRevenueAllYears = $totalRevenue; // Total dari semua tahun
 
         // Data per tahun untuk Membership & Trainer
         $membershipDataByYear = [];
         foreach ($availableYears as $year) {
-            $yearPayments = $allPayments->filter(function($item) use ($year) {
+            $yearPayments = $allPayments->filter(function ($item) use ($year) {
                 return date('Y', strtotime($item->tgl_bayar)) == $year;
             });
 
@@ -87,17 +88,19 @@ class DashboardController extends Controller
             $monthlyRevenue = $yearPayments
                 ->groupBy(fn($item) => date('M', strtotime($item->tgl_bayar)))
                 ->map(fn($row) => $row->sum('jumlah_bayar'));
-            
-            $months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+            $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             $monthlyData = array_map(fn($m) => $monthlyRevenue[$m] ?? 0, $months);
 
             // Revenue per minggu untuk setiap bulan
             $weeklyDataByMonth = [];
+            $monthlyTotals = []; // Total revenue per bulan
             for ($month = 1; $month <= 12; $month++) {
                 $weeklyDataByMonth[$month] = $this->getWeeklyDataForMonth($yearPayments, $year, $month, 'tgl_bayar', 'jumlah_bayar');
+                $monthlyTotals[$month] = array_sum($weeklyDataByMonth[$month]);
             }
 
-            // Data per hari untuk setiap bulan (NEW)
+            // Data per hari untuk setiap bulan
             $dailyDataByMonth = [];
             for ($month = 1; $month <= 12; $month++) {
                 $dailyDataByMonth[$month] = $this->getDailyDataForMonth($yearPayments, $year, $month, 'tgl_bayar', 'jumlah_bayar');
@@ -107,6 +110,8 @@ class DashboardController extends Controller
                 'monthly' => $monthlyData,
                 'weekly' => $weeklyDataByMonth,
                 'daily' => $dailyDataByMonth,
+                'totalPerYear' => $yearPayments->sum('jumlah_bayar'),
+                'totalPerMonth' => $monthlyTotals,
             ];
         }
 
@@ -114,8 +119,9 @@ class DashboardController extends Controller
         // CHART 2: Penjualan Produk
         // ========================================
         $akunPenjualanProduk = AkunKeuangan::where('kode', 'MOD005')->first();
-        
+
         $totalProductRevenue = 0;
+        $totalProductRevenueAllYears = 0; // Total dari semua tahun
         $productDataByYear = [];
 
         if ($akunPenjualanProduk) {
@@ -125,10 +131,11 @@ class DashboardController extends Controller
                 ->get();
 
             $totalProductRevenue = $productSalesData->sum('kredit');
+            $totalProductRevenueAllYears = $totalProductRevenue; // Total dari semua tahun
 
             // Data per tahun untuk Produk
             foreach ($availableYears as $year) {
-                $yearProducts = $productSalesData->filter(function($item) use ($year) {
+                $yearProducts = $productSalesData->filter(function ($item) use ($year) {
                     return date('Y', strtotime($item->tanggal)) == $year;
                 });
 
@@ -136,17 +143,19 @@ class DashboardController extends Controller
                 $monthlyProductRevenue = $yearProducts
                     ->groupBy(fn($item) => date('M', strtotime($item->tanggal)))
                     ->map(fn($row) => $row->sum('kredit'));
-                
-                $months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+                $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                 $monthlyProductData = array_map(fn($m) => $monthlyProductRevenue[$m] ?? 0, $months);
 
                 // Revenue per minggu untuk setiap bulan
                 $weeklyProductDataByMonth = [];
+                $monthlyProductTotals = [];
                 for ($month = 1; $month <= 12; $month++) {
                     $weeklyProductDataByMonth[$month] = $this->getWeeklyDataForMonth($yearProducts, $year, $month, 'tanggal', 'kredit');
+                    $monthlyProductTotals[$month] = array_sum($weeklyProductDataByMonth[$month]);
                 }
 
-                // Data per hari untuk setiap bulan (NEW)
+                // Data per hari untuk setiap bulan
                 $dailyProductDataByMonth = [];
                 for ($month = 1; $month <= 12; $month++) {
                     $dailyProductDataByMonth[$month] = $this->getDailyDataForMonth($yearProducts, $year, $month, 'tanggal', 'kredit');
@@ -156,6 +165,8 @@ class DashboardController extends Controller
                     'monthly' => $monthlyProductData,
                     'weekly' => $weeklyProductDataByMonth,
                     'daily' => $dailyProductDataByMonth,
+                    'totalPerYear' => $yearProducts->sum('kredit'),
+                    'totalPerMonth' => $monthlyProductTotals,
                 ];
             }
         } else {
@@ -163,16 +174,20 @@ class DashboardController extends Controller
             foreach ($availableYears as $year) {
                 $weeklyDataByMonth = [];
                 $dailyDataByMonth = [];
+                $monthlyTotals = [];
                 for ($month = 1; $month <= 12; $month++) {
                     $weeklyDataByMonth[$month] = [0, 0, 0, 0, 0, 0];
                     $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
                     $dailyDataByMonth[$month] = array_fill(0, $daysInMonth, 0);
+                    $monthlyTotals[$month] = 0;
                 }
-                
+
                 $productDataByYear[$year] = [
                     'monthly' => array_fill(0, 12, 0),
                     'weekly' => $weeklyDataByMonth,
                     'daily' => $dailyDataByMonth,
+                    'totalPerYear' => 0,
+                    'totalPerMonth' => $monthlyTotals,
                 ];
             }
         }
@@ -180,13 +195,15 @@ class DashboardController extends Controller
         return view('pages.dashboard.index', compact(
             'totalRevenue',
             'totalProductRevenue',
+            'totalRevenueAllYears',
+            'totalProductRevenueAllYears',
             'membershipDataByYear',
             'productDataByYear',
             'availableYears',
             'currentYear',
             'currentMonth',
-            'totalMember', 
-            'memberAktif', 
+            'totalMember',
+            'memberAktif',
             'memberInGym',
             'kehadiranmembers',
             'memberInGymToday'
@@ -199,7 +216,7 @@ class DashboardController extends Controller
     private function getWeeklyDataForMonth($data, $year, $month, $dateField, $amountField)
     {
         // Filter data untuk bulan tertentu
-        $monthData = $data->filter(function($item) use ($year, $month, $dateField) {
+        $monthData = $data->filter(function ($item) use ($year, $month, $dateField) {
             $date = strtotime($item->$dateField);
             return date('Y', $date) == $year && date('n', $date) == $month;
         });
@@ -211,13 +228,13 @@ class DashboardController extends Controller
         foreach ($monthData as $item) {
             $date = strtotime($item->$dateField);
             $day = (int) date('j', $date); // Tanggal 1-31
-            
+
             // Tentukan minggu (0-5)
             $weekNumber = (int) floor(($day - 1) / 7);
-            
+
             // Pastikan week number tidak lebih dari 5
             $weekNumber = min($weekNumber, 5);
-            
+
             $weeklyData[$weekNumber] += $item->$amountField;
         }
 
@@ -230,19 +247,19 @@ class DashboardController extends Controller
     }
 
     /**
-     * Helper untuk menghitung revenue per hari dalam satu bulan (NEW)
+     * Helper untuk menghitung revenue per hari dalam satu bulan
      */
     private function getDailyDataForMonth($data, $year, $month, $dateField, $amountField)
     {
         // Filter data untuk bulan tertentu
-        $monthData = $data->filter(function($item) use ($year, $month, $dateField) {
+        $monthData = $data->filter(function ($item) use ($year, $month, $dateField) {
             $date = strtotime($item->$dateField);
             return date('Y', $date) == $year && date('n', $date) == $month;
         });
 
         // Hitung jumlah hari dalam bulan
         $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
-        
+
         // Inisialisasi array untuk setiap hari
         $dailyData = array_fill(0, $daysInMonth, 0);
 
@@ -250,7 +267,7 @@ class DashboardController extends Controller
         foreach ($monthData as $item) {
             $date = strtotime($item->$dateField);
             $day = (int) date('j', $date); // Tanggal 1-31
-            
+
             // Index dimulai dari 0, jadi day-1
             $dailyData[$day - 1] += $item->$amountField;
         }

@@ -5,11 +5,13 @@ document.addEventListener("DOMContentLoaded", function () {
   const monthFilterEl = document.querySelector("#chartMonthFilter");
   const startDateEl = document.querySelector("#chartStartDate");
   const endDateEl = document.querySelector("#chartEndDate");
+  const totalRevenueDisplay = document.querySelector("#totalRevenueDisplay");
+  const revenueStatus = document.querySelector("#revenueStatus");
 
   if (!chartEl || !filterEl || !yearFilterEl || !monthFilterEl || !startDateEl || !endDateEl) return;
 
   let currentYear = window.dashboardData.currentYear;
-  let currentPeriod = 'monthly';
+  let currentPeriod = 'all'; // Default ke 'all'
   let currentMonth = window.dashboardData.currentMonth;
   let startDate = 1;
   let endDate = 31;
@@ -26,6 +28,55 @@ document.addEventListener("DOMContentLoaded", function () {
       return "Rp " + (value / 1000).toFixed(0) + " rb";
     }
     return "Rp " + Math.round(value);
+  }
+
+  // Fungsi format rupiah lengkap untuk total revenue display
+  function formatRupiahFull(number) {
+    return 'Rp ' + number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
+
+  // Fungsi update total revenue
+  function updateTotalRevenue() {
+    let total = 0;
+    let status = '';
+
+    if (currentPeriod === 'all') {
+      // Untuk filter All, gunakan total dari SEMUA tahun
+      total = window.dashboardData.totalRevenueAllYears;
+      status = '(All Years)';
+    } else if (currentPeriod === 'monthly') {
+      // Untuk filter Monthly, gunakan total tahun yang dipilih
+      const yearData = window.dashboardData.membershipByYear[currentYear];
+      if (yearData) {
+        total = yearData.totalPerYear;
+        status = `(Year ${currentYear})`;
+      }
+    } else if (currentPeriod === 'weekly') {
+      // Untuk filter Weekly, gunakan total bulan yang dipilih
+      const yearData = window.dashboardData.membershipByYear[currentYear];
+      if (yearData) {
+        total = yearData.totalPerMonth[currentMonth];
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        status = `(${monthNames[currentMonth - 1]} ${currentYear})`;
+      }
+    } else if (currentPeriod === 'daily') {
+      // Untuk filter Daily, hitung total dari range yang dipilih
+      const yearData = window.dashboardData.membershipByYear[currentYear];
+      if (yearData) {
+        const dailyData = yearData.daily[currentMonth] || [];
+        const rangeData = dailyData.slice(startDate - 1, endDate);
+        total = rangeData.reduce((sum, val) => sum + val, 0);
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        status = `(${monthNames[currentMonth - 1]} ${startDate}-${endDate}, ${currentYear})`;
+      }
+    }
+
+    if (totalRevenueDisplay) {
+      totalRevenueDisplay.textContent = formatRupiahFull(total);
+    }
+    if (revenueStatus) {
+      revenueStatus.textContent = status;
+    }
   }
 
   const options = {
@@ -112,11 +163,18 @@ document.addEventListener("DOMContentLoaded", function () {
   window.chartInstance = new ApexCharts(chartEl, options);
   window.chartInstance.render();
 
-  // Filter Periode (Monthly/Weekly/Daily)
+  // Update total revenue saat pertama kali load
+  updateTotalRevenue();
+
+  // Filter Periode (All/Monthly/Weekly/Daily)
   filterEl.addEventListener("change", function (e) {
     currentPeriod = e.target.value.toLowerCase();
     
-    if (currentPeriod === 'weekly') {
+    if (currentPeriod === 'all') {
+      monthFilterEl.style.display = 'none';
+      startDateEl.style.display = 'none';
+      endDateEl.style.display = 'none';
+    } else if (currentPeriod === 'weekly') {
       monthFilterEl.style.display = 'block';
       startDateEl.style.display = 'none';
       endDateEl.style.display = 'none';
@@ -140,6 +198,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     
     updateChart();
+    updateTotalRevenue();
   });
 
   // Filter Tahun
@@ -158,6 +217,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     
     updateChart();
+    updateTotalRevenue();
   });
 
   // Filter Bulan
@@ -178,6 +238,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     
     updateChart();
+    updateTotalRevenue();
   });
 
   // Filter Start Date
@@ -191,6 +252,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     
     updateChart();
+    updateTotalRevenue();
   });
 
   // Filter End Date
@@ -204,6 +266,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     
     updateChart();
+    updateTotalRevenue();
   });
 
   function updateChart() {
@@ -212,7 +275,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const yearData = window.dashboardData.membershipByYear[currentYear];
     if (!yearData) return;
 
-    if (currentPeriod === "monthly") {
+    if (currentPeriod === "all" || currentPeriod === "monthly") {
       window.chartInstance.updateSeries([{ 
         name: "Revenue", 
         data: yearData.monthly 
@@ -264,11 +327,13 @@ document.addEventListener("DOMContentLoaded", function () {
   const monthFilterProductEl = document.querySelector("#chartMonthFilterProduct");
   const startDateProductEl = document.querySelector("#chartStartDateProduct");
   const endDateProductEl = document.querySelector("#chartEndDateProduct");
+  const totalProductRevenueDisplay = document.querySelector("#totalProductRevenueDisplay");
+  const productRevenueStatus = document.querySelector("#productRevenueStatus");
 
   if (!chartProductEl || !filterProductEl || !yearFilterProductEl || !monthFilterProductEl || !startDateProductEl || !endDateProductEl) return;
 
   let currentYearProduct = window.dashboardData.currentYear;
-  let currentPeriodProduct = 'monthly';
+  let currentPeriodProduct = 'all'; // Default ke 'all'
   let currentMonthProduct = window.dashboardData.currentMonth;
   let startDateProduct = 1;
   let endDateProduct = 31;
@@ -285,6 +350,55 @@ document.addEventListener("DOMContentLoaded", function () {
       return "Rp " + (value / 1000).toFixed(0) + " rb";
     }
     return "Rp " + Math.round(value);
+  }
+
+  // Fungsi format rupiah lengkap untuk total revenue display
+  function formatRupiahFullProduct(number) {
+    return 'Rp ' + number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
+
+  // Fungsi update total product revenue
+  function updateTotalProductRevenue() {
+    let total = 0;
+    let status = '';
+
+    if (currentPeriodProduct === 'all') {
+      // Untuk filter All, gunakan total dari SEMUA tahun
+      total = window.dashboardData.totalProductRevenueAllYears;
+      status = '(All Years)';
+    } else if (currentPeriodProduct === 'monthly') {
+      // Untuk filter Monthly, gunakan total tahun yang dipilih
+      const yearData = window.dashboardData.productByYear[currentYearProduct];
+      if (yearData) {
+        total = yearData.totalPerYear;
+        status = `(Year ${currentYearProduct})`;
+      }
+    } else if (currentPeriodProduct === 'weekly') {
+      // Untuk filter Weekly, gunakan total bulan yang dipilih
+      const yearData = window.dashboardData.productByYear[currentYearProduct];
+      if (yearData) {
+        total = yearData.totalPerMonth[currentMonthProduct];
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        status = `(${monthNames[currentMonthProduct - 1]} ${currentYearProduct})`;
+      }
+    } else if (currentPeriodProduct === 'daily') {
+      // Untuk filter Daily, hitung total dari range yang dipilih
+      const yearData = window.dashboardData.productByYear[currentYearProduct];
+      if (yearData) {
+        const dailyData = yearData.daily[currentMonthProduct] || [];
+        const rangeData = dailyData.slice(startDateProduct - 1, endDateProduct);
+        total = rangeData.reduce((sum, val) => sum + val, 0);
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        status = `(${monthNames[currentMonthProduct - 1]} ${startDateProduct}-${endDateProduct}, ${currentYearProduct})`;
+      }
+    }
+
+    if (totalProductRevenueDisplay) {
+      totalProductRevenueDisplay.textContent = formatRupiahFullProduct(total);
+    }
+    if (productRevenueStatus) {
+      productRevenueStatus.textContent = status;
+    }
   }
 
   const optionsProduct = {
@@ -371,11 +485,18 @@ document.addEventListener("DOMContentLoaded", function () {
   window.chartProductInstance = new ApexCharts(chartProductEl, optionsProduct);
   window.chartProductInstance.render();
 
-  // Filter Periode (Monthly/Weekly/Daily)
+  // Update total product revenue saat pertama kali load
+  updateTotalProductRevenue();
+
+  // Filter Periode (All/Monthly/Weekly/Daily)
   filterProductEl.addEventListener("change", function (e) {
     currentPeriodProduct = e.target.value.toLowerCase();
     
-    if (currentPeriodProduct === 'weekly') {
+    if (currentPeriodProduct === 'all') {
+      monthFilterProductEl.style.display = 'none';
+      startDateProductEl.style.display = 'none';
+      endDateProductEl.style.display = 'none';
+    } else if (currentPeriodProduct === 'weekly') {
       monthFilterProductEl.style.display = 'block';
       startDateProductEl.style.display = 'none';
       endDateProductEl.style.display = 'none';
@@ -398,6 +519,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     
     updateProductChart();
+    updateTotalProductRevenue();
   });
 
   // Filter Tahun
@@ -415,6 +537,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     
     updateProductChart();
+    updateTotalProductRevenue();
   });
 
   // Filter Bulan
@@ -433,6 +556,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     
     updateProductChart();
+    updateTotalProductRevenue();
   });
 
   // Filter Start Date
@@ -445,6 +569,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     
     updateProductChart();
+    updateTotalProductRevenue();
   });
 
   // Filter End Date
@@ -457,6 +582,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     
     updateProductChart();
+    updateTotalProductRevenue();
   });
 
   function updateProductChart() {
@@ -465,7 +591,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const yearData = window.dashboardData.productByYear[currentYearProduct];
     if (!yearData) return;
 
-    if (currentPeriodProduct === "monthly") {
+    if (currentPeriodProduct === "all" || currentPeriodProduct === "monthly") {
       window.chartProductInstance.updateSeries([{ 
         name: "Penjualan Produk", 
         data: yearData.monthly 

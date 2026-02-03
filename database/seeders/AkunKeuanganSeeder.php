@@ -13,6 +13,7 @@ class AkunKeuanganSeeder extends Seeder
         $aset = KategoriAkun::where('kode', 'AST')->first();
         $kewajiban = KategoriAkun::where('kode', 'KEW')->first();
         $modal = KategoriAkun::where('kode', 'MOD')->first();
+        $beban = KategoriAkun::where('kode', 'BEB')->first();
 
         $akun = [
             // Aset
@@ -32,6 +33,10 @@ class AkunKeuanganSeeder extends Seeder
             // Pendapatan (tambahan penting)
             ['kategori_id' => $modal->id, 'nama' => 'Pendapatan Membership', 'kode' => 'MOD003'],
             ['kategori_id' => $modal->id, 'nama' => 'Pendapatan Personal Trainer', 'kode' => 'MOD004'],
+
+            // Pendapatan (tambahan penting)
+            ['kategori_id' => $modal->id, 'nama' => 'Pendapatan Penjualan Produk', 'kode' => 'MOD005'],
+            ['kategori_id' => $beban->id, 'nama' => 'Beban Harga Pokok Penjualan', 'kode' => 'BEB001'],
         ];
 
         foreach ($akun as $item) {

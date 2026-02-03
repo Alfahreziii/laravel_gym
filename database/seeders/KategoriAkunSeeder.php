@@ -13,6 +13,7 @@ class KategoriAkunSeeder extends Seeder
             ['nama' => 'Aset', 'kode' => 'AST'],
             ['nama' => 'Kewajiban', 'kode' => 'KEW'],
             ['nama' => 'Modal', 'kode' => 'MOD'],
+            ['nama' => 'Beban', 'kode' => 'BEB'],
         ];
 
         foreach ($kategori as $item) {

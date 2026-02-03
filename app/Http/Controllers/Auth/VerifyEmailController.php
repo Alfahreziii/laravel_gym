@@ -4,18 +4,28 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Events\Verified;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use App\Helpers\RoleRedirectHelper;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class VerifyEmailController extends Controller
 {
-    /**
-     * Mark the authenticated user's email address as verified.
-     */
-    public function __invoke(EmailVerificationRequest $request): RedirectResponse
+    public function __invoke(Request $request): RedirectResponse
     {
-        $user = $request->user();
+        // Validasi signed URL
+        if (!$request->hasValidSignature()) {
+            abort(403, 'Invalid or expired verification link.');
+        }
+
+        // Ambil user berdasarkan ID dari URL
+        $user = User::findOrFail($request->route('id'));
+
+        // Login user jika belum login
+        if (!Auth::check()) {
+            Auth::login($user);
+        }
 
         // Kalau sudah terverifikasi sebelumnya
         if ($user->hasVerifiedEmail()) {

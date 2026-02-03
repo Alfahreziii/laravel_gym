@@ -19,40 +19,40 @@ class AnggotaController extends Controller
     {
         try {
             $statusFilter = $request->input('status_filter', 'all');
-            
+
             // Hitung statistik dari SEMUA data (tidak terfilter)
-            $allAnggotas = Anggota::with(['anggotaMemberships' => function($query) {
+            $allAnggotas = Anggota::with(['anggotaMemberships' => function ($query) {
                 $query->latest('tgl_selesai');
             }])->get();
-            
+
             $totalAnggota = $allAnggotas->count();
-            $totalAktif = $allAnggotas->filter(function($anggota) {
+            $totalAktif = $allAnggotas->filter(function ($anggota) {
                 return $anggota->status_keanggotaan === true;
             })->count();
-            $totalTidakAktif = $allAnggotas->filter(function($anggota) {
+            $totalTidakAktif = $allAnggotas->filter(function ($anggota) {
                 return $anggota->status_keanggotaan === false;
             })->count();
-            
+
             // Query dengan join dan filter untuk data yang akan ditampilkan
             $query = Anggota::with(['anggotaMemberships', 'user'])
                 ->join('users', 'anggotas.id', '=', 'users.anggota_id')
                 ->select('anggotas.*');
-            
+
             // Filter berdasarkan status
             if ($statusFilter === 'aktif') {
-                $query->whereHas('anggotaMemberships', function($q) {
+                $query->whereHas('anggotaMemberships', function ($q) {
                     $q->where('is_active', true);
                 });
                 $title = 'Laporan Anggota Aktif';
             } elseif ($statusFilter === 'tidak_aktif') {
-                $query->whereDoesntHave('anggotaMemberships', function($q) {
+                $query->whereDoesntHave('anggotaMemberships', function ($q) {
                     $q->where('is_active', true);
                 });
                 $title = 'Laporan Anggota Tidak Aktif';
             } else {
                 $title = 'Laporan Semua Anggota';
             }
-            
+
             $anggotas = $query->orderBy('users.name', 'asc')->get();
 
             $pdf = Pdf::loadView('pages.anggota.pdf', compact(
@@ -65,11 +65,10 @@ class AnggotaController extends Controller
             ));
 
             $pdf->setPaper('a4', 'landscape');
-            
-            $filename = 'Laporan_Anggota_' . ucfirst($statusFilter) . '_' . date('Y-m-d_His') . '.pdf';
-            
-            return $pdf->download($filename);
 
+            $filename = 'Laporan_Anggota_' . ucfirst($statusFilter) . '_' . date('Y-m-d_His') . '.pdf';
+
+            return $pdf->download($filename);
         } catch (\Exception $e) {
             Log::error('Gagal export PDF anggota', [
                 'error' => $e->getMessage(),
@@ -83,7 +82,7 @@ class AnggotaController extends Controller
 
     public function index()
     {
-        $anggotas = Anggota::with(['user', 'anggotaMemberships'])->latest()->paginate(10);
+        $anggotas = Anggota::with(['user', 'anggotaMemberships'])->latest()->get();
         return view('pages.anggota.index', compact('anggotas'));
     }
 
@@ -100,7 +99,7 @@ class AnggotaController extends Controller
             'email'            => 'required|email|unique:users,email',
             'password'         => 'required|string|min:8|confirmed',
             'photo'            => 'required|image|mimes:jpg,jpeg,png|max:2048',
-            
+
             // Data Anggota
             'id_kartu'         => 'required|string|max:30|unique:anggotas,id_kartu',
             'no_telp'          => 'required|string|max:50',
@@ -157,15 +156,14 @@ class AnggotaController extends Controller
 
             return redirect()->route('anggota.index')
                 ->with('success', 'Anggota berhasil ditambahkan. Email verifikasi telah dikirim ke ' . $user->email);
-
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             // Hapus foto jika ada error
             if (isset($photoPath) && Storage::disk('public')->exists($photoPath)) {
                 Storage::disk('public')->delete($photoPath);
             }
-            
+
             Log::error('Gagal membuat anggota', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
@@ -191,7 +189,7 @@ class AnggotaController extends Controller
             'email'            => 'required|email|unique:users,email,' . $anggota->user->id,
             'password'         => 'nullable|string|min:8|confirmed',
             'photo'            => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            
+
             // Data Anggota
             'id_kartu'         => 'required|string|max:30|unique:anggotas,id_kartu,' . $anggota->id,
             'no_telp'          => 'required|string|max:50',
@@ -219,7 +217,7 @@ class AnggotaController extends Controller
             }
 
             // Handle photo upload untuk USER
-            if($request->hasFile('photo')){
+            if ($request->hasFile('photo')) {
                 // Hapus foto lama dari USER
                 if ($anggota->user->photo && Storage::disk('public')->exists($anggota->user->photo)) {
                     Storage::disk('public')->delete($anggota->user->photo);
@@ -231,8 +229,17 @@ class AnggotaController extends Controller
 
             // 2️⃣ Update Anggota (TANPA name dan photo)
             $anggotaData = $request->only([
-                'id_kartu', 'no_telp', 'alamat', 'gol_darah', 'tinggi', 'berat',
-                'tempat_lahir', 'tgl_lahir', 'tgl_daftar', 'jenis_kelamin', 'riwayat_kesehatan'
+                'id_kartu',
+                'no_telp',
+                'alamat',
+                'gol_darah',
+                'tinggi',
+                'berat',
+                'tempat_lahir',
+                'tgl_lahir',
+                'tgl_daftar',
+                'jenis_kelamin',
+                'riwayat_kesehatan'
             ]);
 
             $anggota->update($anggotaData);
@@ -241,7 +248,6 @@ class AnggotaController extends Controller
 
             return redirect()->route('anggota.index')
                 ->with('success', 'Anggota berhasil diperbarui.');
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Gagal update anggota', [
@@ -278,7 +284,6 @@ class AnggotaController extends Controller
 
             return redirect()->route('anggota.index')
                 ->with('success', 'Anggota dan akun login berhasil dihapus.');
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Gagal hapus anggota', [

@@ -77,13 +77,13 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddle
 
     Route::get('/trainer/dashboard', [TrainerDashboardController::class, 'index'])
         ->name('trainer.dashboard');
-    
+
     Route::post('/trainer/session/start/{memberTrainer}', [TrainerDashboardController::class, 'startSession'])
         ->name('trainer.session.start');
-    
+
     Route::post('/trainer/session/end/{memberTrainer}', [TrainerDashboardController::class, 'endSession'])
         ->name('trainer.session.end');
-    
+
     Route::get('/trainer/session-logs', [TrainerDashboardController::class, 'sessionLogs'])
         ->name('trainer.session.logs');
 
@@ -155,7 +155,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
             Route::get('/products/{product}/edit', 'edit')->name('products.edit');
             Route::put('/products/{product}', 'update')->name('products.update');
             Route::delete('/products/{product}', 'destroy')->name('products.destroy');
-            Route::post('/products/{product}/adjust','adjustQuantity')->name('products.adjust');
+            Route::post('/products/{product}/adjust', 'adjustQuantity')->name('products.adjust');
         });
         Route::get('/products/{product}/logs', 'logs')->middleware(RoleMiddleware::class . ':admin|spv')->name('products.logs');
     });
@@ -219,14 +219,14 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
             Route::post('/anggota-membership', 'store')->name('anggota_membership.store');
             Route::put('/anggota-membership/{id}', 'update')->name('anggota_membership.update');
             Route::delete('/anggota-membership/{id}', 'destroy')->name('anggota_membership.destroy');
-            
+
             Route::put('/pembayaran-membership/{id}', 'tambahPembayaran')->name('pembayaran_membership.tambahPembayaran');
             Route::post('/anggota-membership/{id}/tambah-pembayaran', 'tambahPembayaran')->name('anggota_membership.tambahPembayaran');
             Route::delete('/pembayaran-membership/{id}', 'destroyPembayaran')->name('pembayaran_membership.destroy');
         });
         Route::get('/anggota-membership/{id}/edit', 'edit')->middleware(RoleMiddleware::class . ':admin|spv')->name('anggota_membership.edit');
     });
-    
+
     // Route untuk Spesialisasi Trainer
     Route::controller(SpecialisasiController::class)->group(function () {
         Route::get('/specialisasi', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('specialisasi.index');
@@ -277,7 +277,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
             Route::post('/member-trainer', 'store')->name('membertrainer.store');
             Route::put('/member-trainer/{id}', 'update')->name('membertrainer.update');
             Route::delete('/member-trainer/{id}', 'destroy')->name('membertrainer.destroy');
-            
+
             Route::put('/pembayaran-trainer/{id}', 'tambahPembayaran')->name('pembayaran_trainer.tambahPembayaran');
             Route::post('/member-trainer/{id}/tambah-pembayaran', 'tambahPembayaran')->name('membertrainer.tambahPembayaran');
             Route::delete('/pembayaran-trainer/{id}', 'destroyPembayaran')->name('pembayaran_trainer.destroy');
@@ -317,19 +317,19 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
             Route::middleware(['auth'])->group(function () {
                 Route::get('/view-profile', 'viewProfile')->name('viewProfile');
                 Route::patch('/profile/update', 'updateProfile')->name('users.profile.update');
-                Route::patch('/profile/password/update', 'updatePassword')->name('users.profile.password.update');
+                Route::put('/profile/password/update', 'updatePassword')->name('users.profile.password.update');
                 Route::delete('/profile/photo/delete', 'deletePhoto')->name('users.profile.photo.delete');
 
                 Route::patch('/trainer/profile/update', 'updateTrainerProfile')
                     ->name('users.trainer.profile.update')
                     ->middleware(RoleMiddleware::class . ':trainer');
             });
-            
+
             // Admin & SPV only
             Route::middleware([RoleMiddleware::class . ':admin|spv'])->group(function () {
                 Route::get('/users-list', 'usersList')->name('usersList');
             });
-        
+
             // Admin only
             Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
                 Route::put('/role/update/{id}', 'update')->name('role.update');
@@ -384,16 +384,15 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddle
         Route::get('/held-transactions', 'getHeldTransactions')->name('getHeldTransactions');
         Route::get('/kasir/print-nota/{transactionId}', 'printNota')->name('kasir.print-nota');
     });
-
 });
 
 
 Route::controller(HomeController::class)->group(function () {
-    Route::get('page-error','pageError')->name('pageError');
+    Route::get('page-error', 'pageError')->name('pageError');
 });
 Route::fallback(function () {
     return redirect()->route('pageError');
 });
 
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

@@ -7,6 +7,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\VerifyEmailNotification;
+use App\Notifications\ResetPasswordNotification;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -131,7 +133,7 @@ class User extends Authenticatable implements MustVerifyEmail
         if ($this->photo) {
             return asset('storage/' . $this->photo);
         }
-        
+
         // Default avatar
         return asset('assets/images/user-grid/user-grid-img14.png');
     }
@@ -143,11 +145,11 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $words = explode(' ', $this->name);
         $initials = '';
-        
+
         foreach ($words as $word) {
             $initials .= strtoupper(substr($word, 0, 1));
         }
-        
+
         return substr($initials, 0, 2);
     }
 
@@ -174,5 +176,26 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getLastActivityHumanAttribute()
     {
         return $this->last_activity ? $this->last_activity->diffForHumans() : 'Never';
+    }
+
+    /**
+     * Send the email verification notification.
+     *
+     * @return void
+     */
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new VerifyEmailNotification);
+    }
+
+    /**
+     * Send the password reset notification.
+     *
+     * @param  string  $token
+     * @return void
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new ResetPasswordNotification($token));
     }
 }

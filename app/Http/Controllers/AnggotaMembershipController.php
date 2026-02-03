@@ -32,53 +32,53 @@ class AnggotaMembershipController extends Controller
         try {
             $statusFilter = $request->status_filter;
             $filterType = $request->filter_type;
-            
+
             // Hitung statistik dari SEMUA data (tidak terfilter)
             $allMemberships = AnggotaMembership::with(['anggota', 'paketMembership', 'pembayaranMemberships'])->get();
-            
+
             $totalMembership = $allMemberships->count();
             $totalLunas = $allMemberships->where('status_pembayaran', 'Lunas')->count();
             $totalBelumLunas = $allMemberships->where('status_pembayaran', 'Belum Lunas')->count();
-            
+
             // Hitung total keuangan keseluruhan
             $totalPendapatan = $allMemberships->sum('total_biaya');
-            $totalTerbayar = $allMemberships->sum(function($item) {
+            $totalTerbayar = $allMemberships->sum(function ($item) {
                 return $item->pembayaranMemberships->sum('jumlah_bayar');
             });
             $totalPiutang = $totalPendapatan - $totalTerbayar;
-            
+
             // Query untuk data yang akan ditampilkan
             $query = AnggotaMembership::with(['anggota', 'paketMembership', 'pembayaranMemberships']);
-            
+
             // Filter berdasarkan status pembayaran
             if ($statusFilter === 'lunas') {
                 $query->where('status_pembayaran', 'Lunas');
             } elseif ($statusFilter === 'belum_lunas') {
                 $query->where('status_pembayaran', 'Belum Lunas');
             }
-            
+
             // Filter berdasarkan tanggal
             $filterInfo = '';
             if ($filterType === 'single') {
                 $bulan = $request->bulan;
                 $tahun = $request->tahun;
-                
+
                 $query->whereYear('tgl_mulai', $tahun)
                     ->whereMonth('tgl_mulai', $bulan);
-                
+
                 $filterInfo = Carbon::create($tahun, $bulan)->locale('id')->isoFormat('MMMM YYYY');
             } elseif ($filterType === 'range') {
                 $dariTanggal = Carbon::create($request->tahun_dari, $request->bulan_dari, 1)->startOfMonth();
                 $sampaiTanggal = Carbon::create($request->tahun_sampai, $request->bulan_sampai, 1)->endOfMonth();
-                
+
                 $query->whereBetween('tgl_mulai', [$dariTanggal, $sampaiTanggal]);
-                
-                $filterInfo = $dariTanggal->locale('id')->isoFormat('MMMM YYYY') . ' - ' . 
-                            $sampaiTanggal->locale('id')->isoFormat('MMMM YYYY');
+
+                $filterInfo = $dariTanggal->locale('id')->isoFormat('MMMM YYYY') . ' - ' .
+                    $sampaiTanggal->locale('id')->isoFormat('MMMM YYYY');
             } else {
                 $filterInfo = 'Semua Periode';
             }
-            
+
             // Status filter info
             $statusInfo = 'Semua Status';
             if ($statusFilter === 'lunas') {
@@ -86,9 +86,9 @@ class AnggotaMembershipController extends Controller
             } elseif ($statusFilter === 'belum_lunas') {
                 $statusInfo = 'Belum Lunas';
             }
-            
+
             $anggotaMemberships = $query->orderBy('tgl_mulai', 'desc')->get();
-            
+
             // Buat title dinamis
             $title = 'Laporan Anggota Membership';
             if ($statusFilter !== 'all' || $filterType !== 'all') {
@@ -117,11 +117,10 @@ class AnggotaMembershipController extends Controller
             ));
 
             $pdf->setPaper('a4', 'landscape');
-            
+
             $filename = 'Laporan_Membership_' . ucfirst($statusFilter) . '_' . date('Y-m-d_His') . '.pdf';
-            
+
             return $pdf->download($filename);
-            
         } catch (\Exception $e) {
             Log::error('Gagal export PDF membership', [
                 'error' => $e->getMessage(),
@@ -189,10 +188,10 @@ class AnggotaMembershipController extends Controller
 
             // 4️⃣ Catat transaksi keuangan pembayaran
             $this->createTransaksiKeuanganForPembayaran(
-                $pembayaran, 
-                $anggotaMembership, 
-                $request->jumlah_bayar, 
-                $request->tgl_bayar, 
+                $pembayaran,
+                $anggotaMembership,
+                $request->jumlah_bayar,
+                $request->tgl_bayar,
                 'Pembayaran awal membership'
             );
 
@@ -282,7 +281,7 @@ class AnggotaMembershipController extends Controller
         $request->validate([
             'tgl_bayar'        => 'required|date',
             'jumlah_bayar'     => 'required|numeric|min:0',
-            'metode_pembayaran'=> 'required|string',
+            'metode_pembayaran' => 'required|string',
         ]);
 
         DB::beginTransaction();
@@ -296,8 +295,8 @@ class AnggotaMembershipController extends Controller
             if ($request->jumlah_bayar > $sisaTagihan) {
                 DB::rollBack();
                 return redirect()->back()
-                    ->with('error', "Jumlah pembayaran (Rp " . number_format($request->jumlah_bayar, 0, ',', '.') . 
-                           ") melebihi sisa tagihan (Rp " . number_format($sisaTagihan, 0, ',', '.') . ")");
+                    ->with('error', "Jumlah pembayaran (Rp " . number_format($request->jumlah_bayar, 0, ',', '.') .
+                        ") melebihi sisa tagihan (Rp " . number_format($sisaTagihan, 0, ',', '.') . ")");
             }
 
             // Simpan pembayaran baru
@@ -310,10 +309,10 @@ class AnggotaMembershipController extends Controller
 
             // Catat transaksi keuangan (Debit Kas, Kredit Piutang)
             $this->createTransaksiKeuanganForPembayaran(
-                $pembayaran, 
-                $anggotaMembership, 
-                $request->jumlah_bayar, 
-                $request->tgl_bayar, 
+                $pembayaran,
+                $anggotaMembership,
+                $request->jumlah_bayar,
+                $request->tgl_bayar,
                 'Pembayaran membership'
             );
 
@@ -405,7 +404,7 @@ class AnggotaMembershipController extends Controller
         $request->validate([
             'tgl_bayar'        => 'required|date',
             'jumlah_bayar'     => 'required|numeric|min:0',
-            'metode_pembayaran'=> 'required|string',
+            'metode_pembayaran' => 'required|string',
         ]);
 
         DB::beginTransaction();
@@ -417,14 +416,14 @@ class AnggotaMembershipController extends Controller
             $totalDibayarLain = $anggotaMembership->pembayaranMemberships()
                 ->where('id', '!=', $pembayaran->id)
                 ->sum('jumlah_bayar');
-            
+
             $sisaTagihan = $anggotaMembership->total_biaya - $totalDibayarLain;
 
             if ($request->jumlah_bayar > $sisaTagihan) {
                 DB::rollBack();
                 return redirect()->back()
-                    ->with('error', "Jumlah pembayaran (Rp " . number_format($request->jumlah_bayar, 0, ',', '.') . 
-                           ") melebihi sisa tagihan (Rp " . number_format($sisaTagihan, 0, ',', '.') . ")");
+                    ->with('error', "Jumlah pembayaran (Rp " . number_format($request->jumlah_bayar, 0, ',', '.') .
+                        ") melebihi sisa tagihan (Rp " . number_format($sisaTagihan, 0, ',', '.') . ")");
             }
 
             // Update pembayaran
@@ -441,10 +440,10 @@ class AnggotaMembershipController extends Controller
 
             // Buat transaksi keuangan baru
             $this->createTransaksiKeuanganForPembayaran(
-                $pembayaran, 
-                $anggotaMembership, 
-                $request->jumlah_bayar, 
-                $request->tgl_bayar, 
+                $pembayaran,
+                $anggotaMembership,
+                $request->jumlah_bayar,
+                $request->tgl_bayar,
                 'Edit pembayaran membership'
             );
 
@@ -483,7 +482,7 @@ class AnggotaMembershipController extends Controller
         // ⚠️ CATATAN: MOD003 digunakan sebagai Pendapatan langsung
         // Ini adalah pendekatan CASH BASIS (langsung akui pendapatan)
         // Bukan accrual basis (pendapatan diterima dimuka)
-        
+
         $akunPendapatan = AkunKeuangan::where('kode', 'MOD003')->first(); // Pendapatan Membership
         $akunPiutang = AkunKeuangan::where('kode', 'AST002')->first(); // Piutang Usaha
 
