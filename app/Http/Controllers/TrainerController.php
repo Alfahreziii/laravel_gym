@@ -21,19 +21,19 @@ class TrainerController extends Controller
     {
         try {
             $statusFilter = $request->input('status_filter', 'all');
-            
+
             // Hitung statistik dari SEMUA data (tidak terfilter)
             $allTrainers = Trainer::all();
             $totalTrainer = $allTrainers->count();
             $totalAktif = $allTrainers->where('status', Trainer::STATUS_AKTIF)->count();
             $totalNonaktif = $allTrainers->where('status', Trainer::STATUS_NONAKTIF)->count();
             $totalPending = $allTrainers->where('status', Trainer::STATUS_PENDING)->count();
-            
+
             // Query dengan join dan filter untuk data yang akan ditampilkan
             $query = Trainer::with(['specialisasi', 'user', 'schedules'])
                 ->join('users', 'trainers.id', '=', 'users.trainer_id')
                 ->select('trainers.*');
-            
+
             // Filter berdasarkan status
             if ($statusFilter === 'aktif') {
                 $query->where('trainers.status', Trainer::STATUS_AKTIF);
@@ -47,7 +47,7 @@ class TrainerController extends Controller
             } else {
                 $title = 'Laporan Semua Trainer';
             }
-            
+
             $trainers = $query->orderBy('users.name', 'asc')->get();
 
             $pdf = Pdf::loadView('pages.trainer.pdf', compact(
@@ -61,12 +61,11 @@ class TrainerController extends Controller
             ));
 
             $pdf->setPaper('a4', 'landscape');
-            
+
             // Generate filename dengan status filter
             $filename = 'Laporan_Trainer_' . ucfirst($statusFilter) . '_' . date('Y-m-d_His') . '.pdf';
-            
-            return $pdf->download($filename);
 
+            return $pdf->download($filename);
         } catch (\Exception $e) {
             Log::error('Gagal export PDF trainer', [
                 'error' => $e->getMessage(),
@@ -80,8 +79,58 @@ class TrainerController extends Controller
 
     public function index()
     {
-        $trainers = Trainer::with(['specialisasi', 'user'])->latest()->paginate(10);
-        return view('pages.trainer.index', compact('trainers'));
+        return view('pages.trainer.index');
+    }
+
+    public function datatable(Request $request)
+    {
+        $search = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page = (int) $request->get('page', 1);
+
+        $query = Trainer::with(['specialisasi', 'user'])->latest();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('rfid', 'like', "%{$search}%")
+                    ->orWhere('no_telp', 'like', "%{$search}%")
+                    ->orWhere('experience', 'like', "%{$search}%")
+                    ->orWhere('status', 'like', "%{$search}%")
+                    ->orWhereHas('user', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('specialisasi', fn($q2) => $q2->where('nama_specialisasi', 'like', "%{$search}%"));
+            });
+        }
+
+        $total = (clone $query)->count();
+        $data = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        return response()->json([
+            'data' => $data->map(function ($item, $index) use ($page, $perPage) {
+                return [
+                    'no'                   => (($page - 1) * $perPage) + $index + 1,
+                    'id'                   => $item->id,
+                    'rfid'                 => $item->rfid ?? '-',
+                    'foto'                 => $item->user?->photo ? asset('storage/' . $item->user->photo) : null,
+                    'name'                 => $item->user?->name ?? '-',
+                    'no_telp'              => $item->no_telp ?? '-',
+                    'specialisasi'         => $item->specialisasi?->nama_specialisasi ?? '-',
+                    'sesi_belum_dijalani'  => $item->sesi_belum_dijalani ?? 0,
+                    'sesi_sudah_dijalani'  => $item->sesi_sudah_dijalani ?? 0,
+                    'experience'           => $item->experience ?? '-',
+                    'tgl_gabung'           => $item->tgl_gabung ? $item->tgl_gabung->format('d-m-Y') : '-',
+                    'status'               => $item->status ?? '-',
+                    'status_label'         => $item->status_label,
+                    'show_url'             => route('trainer.show', $item->id),
+                    'edit_url'             => route('trainer.edit', $item->id),
+                    'delete_url'           => route('trainer.destroy', $item->id),
+                    'update_status_url'    => route('trainer.update-status', $item->id),
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
     }
 
     public function create()
@@ -98,7 +147,7 @@ class TrainerController extends Controller
             'email'           => 'required|email|unique:users,email',
             'password'        => 'required|string|min:8|confirmed',
             'photo'           => 'required|image|mimes:jpg,jpeg,png|max:2048',
-            
+
             // Data Trainer
             'id_specialisasi' => 'required|exists:specialisasis,id',
             'rfid'            => 'required|unique:trainers,rfid|max:30',
@@ -152,8 +201,8 @@ class TrainerController extends Controller
             $user->assignRole('trainer');
 
             // 5️⃣ Simpan jadwal
-            if($request->has('jadwal')){
-                foreach($request->jadwal as $j){
+            if ($request->has('jadwal')) {
+                foreach ($request->jadwal as $j) {
                     $trainer->schedules()->create([
                         'day_of_week' => $j['day_of_week'],
                         'start_time'  => $j['start_time'],
@@ -172,15 +221,14 @@ class TrainerController extends Controller
 
             return redirect()->route('trainer.index')
                 ->with('success', 'Trainer berhasil ditambahkan. Email verifikasi telah dikirim ke ' . $user->email);
-
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             // Hapus foto jika ada error
             if (isset($photoPath) && Storage::disk('public')->exists($photoPath)) {
                 Storage::disk('public')->delete($photoPath);
             }
-            
+
             Log::error('Gagal membuat trainer', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
@@ -213,7 +261,7 @@ class TrainerController extends Controller
             'email'           => 'required|email|unique:users,email,' . $trainer->user->id,
             'password'        => 'nullable|string|min:8|confirmed',
             'photo'           => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            
+
             // Data Trainer
             'id_specialisasi' => 'required|exists:specialisasis,id',
             'rfid'            => 'required|max:30|unique:trainers,rfid,' . $trainer->id,
@@ -245,7 +293,7 @@ class TrainerController extends Controller
             }
 
             // Handle photo upload untuk USER
-            if($request->hasFile('photo')){
+            if ($request->hasFile('photo')) {
                 // Hapus foto lama dari USER
                 if ($trainer->user->photo && Storage::disk('public')->exists($trainer->user->photo)) {
                     Storage::disk('public')->delete($trainer->user->photo);
@@ -257,16 +305,24 @@ class TrainerController extends Controller
 
             // 2️⃣ Update Trainer (TANPA photo karena sudah dipindah ke users)
             $trainerData = $request->only([
-                'id_specialisasi', 'rfid', 'no_telp', 'experience', 'tgl_gabung', 
-                'keterangan', 'tempat_lahir', 'tgl_lahir', 'jenis_kelamin', 'alamat'
+                'id_specialisasi',
+                'rfid',
+                'no_telp',
+                'experience',
+                'tgl_gabung',
+                'keterangan',
+                'tempat_lahir',
+                'tgl_lahir',
+                'jenis_kelamin',
+                'alamat'
             ]);
 
             $trainer->update($trainerData);
 
             // 3️⃣ Update jadwal
             $trainer->schedules()->delete();
-            if($request->has('jadwal')){
-                foreach($request->jadwal as $j){
+            if ($request->has('jadwal')) {
+                foreach ($request->jadwal as $j) {
                     $trainer->schedules()->create([
                         'day_of_week' => $j['day_of_week'],
                         'start_time'  => $j['start_time'],
@@ -279,7 +335,6 @@ class TrainerController extends Controller
 
             return redirect()->route('trainer.index')
                 ->with('success', 'Trainer berhasil diperbarui.');
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Gagal update trainer', [
@@ -308,7 +363,6 @@ class TrainerController extends Controller
 
             return redirect()->back()
                 ->with('success', 'Status trainer berhasil diperbarui menjadi ' . $trainer->status_label['text']);
-
         } catch (\Exception $e) {
             Log::error('Gagal update status trainer', [
                 'error' => $e->getMessage()
@@ -346,7 +400,6 @@ class TrainerController extends Controller
 
             return redirect()->route('trainer.index')
                 ->with('success', 'Trainer dan akun login berhasil dihapus.');
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Gagal hapus trainer', [

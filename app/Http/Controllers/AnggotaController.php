@@ -82,8 +82,54 @@ class AnggotaController extends Controller
 
     public function index()
     {
-        $anggotas = Anggota::with(['user', 'anggotaMemberships'])->latest()->get();
-        return view('pages.anggota.index', compact('anggotas'));
+        return view('pages.anggota.index');
+    }
+    public function datatable(Request $request)
+    {
+        $search = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page = (int) $request->get('page', 1);
+        $isLaporan = $request->get('laporan', false);
+
+        $query = Anggota::with('user')->latest();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('id_kartu', 'like', "%{$search}%")
+                    ->orWhere('no_telp', 'like', "%{$search}%")
+                    ->orWhereHas(
+                        'user',
+                        fn($q2) => $q2
+                            ->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%")
+                    );
+            });
+        }
+
+        $total = (clone $query)->count();
+        $data = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        return response()->json([
+            'data' => $data->map(function ($item, $index) use ($page, $perPage) {
+                return [
+                    'no'          => (($page - 1) * $perPage) + $index + 1,
+                    'id'          => $item->id,
+                    'id_kartu'    => $item->id_kartu,
+                    'foto'        => $item->user?->photo ? asset('storage/' . $item->user->photo) : null,
+                    'name'        => $item->user?->name ?? '-',
+                    'email'       => $item->user?->email ?? '-',
+                    'tgl_lahir'   => $item->tgl_lahir ? $item->tgl_lahir->format('d M Y') : '-',
+                    'no_telp'     => $item->no_telp ?? '-',
+                    'status'      => $item->status_keanggotaan,
+                    'edit_url'    => route('anggota.edit', $item->id),
+                    'delete_url'  => route('anggota.destroy', $item->id),
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
     }
 
     public function create()

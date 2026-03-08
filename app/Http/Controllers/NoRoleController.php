@@ -16,8 +16,60 @@ class NoRoleController extends Controller
      */
     public function index()
     {
-        $kehadiranmembers = KehadiranMember::with('anggota.user')->latest()->get();
+        $kehadiranmembers = KehadiranMember::with('anggota.user')
+            ->whereDate('created_at', now()->toDateString())
+            ->latest()
+            ->get();
+
         return view('pages.norole.kehadiranmember', compact('kehadiranmembers'));
+    }
+
+    public function datatable(Request $request)
+    {
+        $search = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page = (int) $request->get('page', 1);
+
+        $query = KehadiranMember::with('anggota.user')->latest();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('rfid', 'like', "%{$search}%")
+                    ->orWhere('status', 'like', "%{$search}%")
+                    ->orWhereIn('rfid', function ($sub) use ($search) {
+                        $sub->select('id_kartu')
+                            ->from('anggotas')
+                            ->whereIn('id', function ($userSub) use ($search) {
+                                $userSub->select('anggota_id')
+                                    ->from('users')
+                                    ->where('name', 'like', "%{$search}%");
+                            });
+                    });
+            });
+        }
+
+        $total = (clone $query)->count();
+        $data = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        return response()->json([
+            'data' => $data->map(function ($item, $index) use ($page, $perPage) {
+                return [
+                    'no'         => (($page - 1) * $perPage) + $index + 1,
+                    'id'         => $item->id,
+                    'rfid'       => $item->rfid,
+                    'foto'       => $item->foto ? asset('storage/' . $item->foto) : null,
+                    'name'       => $item->anggota?->user?->name ?? '-',
+                    'status'     => $item->status,
+                    'date'       => $item->created_at->format('d/m/Y'),
+                    'time'       => $item->created_at->format('H:i:s'),
+                    'delete_url' => route('absen.destroy', $item->id),
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
     }
 
     /**

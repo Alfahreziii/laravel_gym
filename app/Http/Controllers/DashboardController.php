@@ -15,17 +15,6 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        // Member yang hadir hari ini
-        $memberInGymToday = KehadiranMember::with('anggota')
-            ->whereDate('created_at', now()->toDateString())
-            ->latest()
-            ->get()
-            ->groupBy('rfid')
-            ->map(fn($items) => $items->first())
-            ->filter(fn($item) => strtolower($item->status) === 'in')
-            ->values();
-
-        $kehadiranmembers = KehadiranMember::with('anggota')->latest()->get();
         $totalMember = Anggota::count();
         $memberAktif = Anggota::all()->filter(fn($anggota) => $anggota->status_keanggotaan)->count();
         $memberInGym = KehadiranMember::with('anggota')
@@ -204,9 +193,7 @@ class DashboardController extends Controller
             'currentMonth',
             'totalMember',
             'memberAktif',
-            'memberInGym',
-            'kehadiranmembers',
-            'memberInGymToday'
+            'memberInGym'
         ));
     }
 
@@ -273,5 +260,97 @@ class DashboardController extends Controller
         }
 
         return $dailyData;
+    }
+
+
+    public function kehadiranDatatable(Request $request)
+    {
+        $search = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 5);
+        $page = (int) $request->get('page', 1);
+
+        $query = KehadiranMember::with('anggota.user')->latest();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('rfid', 'like', "%{$search}%")
+                    ->orWhere('status', 'like', "%{$search}%")
+                    ->orWhereIn('rfid', function ($sub) use ($search) {
+                        $sub->select('id_kartu')
+                            ->from('anggotas')
+                            ->whereIn('id', function ($userSub) use ($search) {
+                                $userSub->select('anggota_id')
+                                    ->from('users')
+                                    ->where('name', 'like', "%{$search}%");
+                            });
+                    });
+            });
+        }
+
+        $total = (clone $query)->count();
+        $data = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        return response()->json([
+            'data' => $data->map(function ($item, $index) use ($page, $perPage) {
+                return [
+                    'no'     => (($page - 1) * $perPage) + $index + 1,
+                    'rfid'   => $item->rfid,
+                    'foto'   => $item->foto ? asset('storage/' . $item->foto) : null,
+                    'name'   => $item->anggota?->user?->name ?? '-',
+                    'status' => $item->status,
+                    'time'   => $item->created_at->format('d M Y H:i'),
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
+    }
+    public function memberInRoomDatatable(Request $request)
+    {
+        $search = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 5);
+        $page = (int) $request->get('page', 1);
+
+        $today = now()->toDateString();
+
+        $all = KehadiranMember::with('anggota')
+            ->whereDate('created_at', $today)
+            ->latest()
+            ->get()
+            ->groupBy('rfid')
+            ->map(fn($items) => $items->first())
+            ->filter(fn($item) => strtolower($item->status) === 'in')
+            ->values();
+
+        if ($search) {
+            $s = strtolower($search);
+            $all = $all->filter(function ($item) use ($s) {
+                return str_contains(strtolower($item->rfid ?? ''), $s)
+                    || str_contains(strtolower($item->anggota?->name ?? ''), $s)
+                    || str_contains(strtolower($item->status ?? ''), $s);
+            })->values();
+        }
+
+        $total = $all->count();
+        $data = $all->slice(($page - 1) * $perPage, $perPage)->values();
+
+        return response()->json([
+            'data' => $data->map(function ($item, $index) use ($page, $perPage) {
+                return [
+                    'no'     => (($page - 1) * $perPage) + $index + 1,
+                    'rfid'   => $item->rfid,
+                    'foto'   => $item->foto ? asset('storage/' . $item->foto) : null,
+                    'name'   => $item->anggota?->name ?? '-',
+                    'status' => $item->status,
+                    'time'   => $item->created_at->format('d M Y H:i'),
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
     }
 }

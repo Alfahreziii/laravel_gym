@@ -26,4 +26,4 @@
     <!-- main js -->
     <script src="{{ asset('assets/js/app.js') }}"></script>
 
-    <?php echo (isset($script) ? $script   : '')?>
+    <?php echo isset($script) ? $script : ''; ?>

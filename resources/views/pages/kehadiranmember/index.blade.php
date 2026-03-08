@@ -2,7 +2,6 @@
 @php
     $title = 'Kehadiran Member';
     $subTitle = 'Kehadiran Member';
-    $script = '<script src="' . asset('assets/js/data-table.js') . '"></script>';
     $isLaporanMode = request()->routeIs('laporan.kehadiran');
 @endphp
 
@@ -142,8 +141,11 @@
                                     <div class="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
                                         <div class="flex items-center gap-3">
                                             @if ($item->foto)
-                                                <img src="{{ asset('storage/' . $item->foto) }}" alt="Photo"
-                                                    class="w-10 h-10 rounded-full object-cover">
+                                                {{-- Lazy Loading untuk foto di recent attendance --}}
+                                                <img data-src="{{ asset('storage/' . $item->foto) }}"
+                                                    src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' fill='%23e5e7eb'/%3E%3C/svg%3E"
+                                                    alt="Photo"
+                                                    class="lazy w-10 h-10 rounded-full object-cover bg-gray-200">
                                             @else
                                                 <div
                                                     class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
@@ -196,67 +198,53 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <table id="selection-table" class="border border-neutral-200 rounded-lg border-separate">
-                        <thead>
-                            <tr>
-                                <th scope="col">S.L</th>
-                                <th scope="col">ID Kartu</th>
-                                <th scope="col">Foto</th>
-                                <th scope="col">Nama Member</th>
-                                <th scope="col">Status</th>
-                                <th scope="col">Waktu</th>
-                                @if (!$isLaporanMode)
-                                    <th scope="col">Aksi</th>
-                                @endif
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($kehadiranmembers as $index => $item)
+                    {{-- Search & per page --}}
+                    <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+                        <input type="text" id="searchKehadiran" placeholder="Search..."
+                            class="form-control form-control-sm w-64">
+                        <div class="flex items-center gap-2">
+                            <select id="perPageKehadiran" class="form-select form-select-sm w-auto">
+                                <option value="10" selected>10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                            <span class="text-sm text-gray-500">entries per page</span>
+                        </div>
+                    </div>
+
+                    {{-- Table --}}
+                    <div class="overflow-x-auto">
+                        <table class="ajax-table border border-neutral-200 rounded-lg border-separate">
+                            <thead>
                                 <tr>
-                                    <td class="whitespace-nowrap">{{ $index + 1 }}</td>
-                                    <td class="whitespace-nowrap">{{ $item->rfid }}</td>
-                                    <td class="whitespace-nowrap">
-                                        @if ($item->foto)
-                                            <img src="{{ asset('storage/' . $item->foto) }}"
-                                                alt="Photo {{ $item->anggota->name }}"
-                                                class="w-10 h-10 rounded-lg object-cover cursor-pointer item-photo"
-                                                data-photo="{{ asset('storage/' . $item->foto) }}">
-                                        @else
-                                            <span class="text-gray-400 italic">No photo</span>
-                                        @endif
-                                    </td>
-                                    <td class="whitespace-nowrap">{{ $item->anggota->name }}</td>
-                                    <td class="whitespace-nowrap">
-                                        @if ($item->status === 'in')
-                                            <span
-                                                class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm">CHECK
-                                                IN</span>
-                                        @else
-                                            <span
-                                                class="bg-warning-100 text-warning-600 px-4 py-1.5 rounded-full font-medium text-sm">CHECK
-                                                OUT</span>
-                                        @endif
-                                    </td>
-                                    <td class="whitespace-nowrap">{{ $item->created_at->format('d M Y - H:i:s') }}</td>
+                                    <th>S.L</th>
+                                    <th>ID Kartu</th>
+                                    <th>Foto</th>
+                                    <th>Nama Member</th>
+                                    <th>Status</th>
+                                    <th>Waktu</th>
                                     @if (!$isLaporanMode)
-                                        <td class="whitespace-nowrap">
-                                            @role('admin')
-                                                <form action="{{ route('kehadiranmember.destroy', $item->id) }}"
-                                                    method="POST" class="inline-block delete-form">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="button"
-                                                        class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center delete-btn">
-                                                        <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
-                                                    </button>
-                                                </form>
-                                            @endrole
-                                        </td>
+                                        @role('admin')
+                                            <th>Aksi</th>
+                                        @endrole
                                     @endif
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody id="tbodyKehadiranMember">
+                                <tr>
+                                    <td colspan="{{ !$isLaporanMode && auth()->user()->hasRole('admin') ? 7 : 6 }}"
+                                        class="text-center py-8">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {{-- Pagination & info --}}
+                    <div class="flex justify-between items-center mt-4 flex-wrap gap-2">
+                        <span class="text-sm text-gray-500" id="infoKehadiranMember"></span>
+                        <div id="paginationKehadiranMember" class="flex gap-1 flex-wrap"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -340,10 +328,12 @@
 @endsection
 
 @section('scripts')
+    <script src="{{ asset('assets/js/ajax-table.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+
             @if (!$isLaporanMode)
-                // ==================== BARCODE SCANNER & WEBCAM INTEGRATION ====================
+                // ==================== BARCODE SCANNER & WEBCAM ====================
                 const video = document.getElementById('webcam');
                 const canvas = document.getElementById('canvas');
                 const form = document.getElementById('barcodeForm');
@@ -351,10 +341,8 @@
                 const scanStatus = document.getElementById('scan-status');
 
                 let isProcessing = false;
-                let scanBuffer = '';
                 let scanTimeout = null;
 
-                // Minta akses kamera
                 navigator.mediaDevices.getUserMedia({
                         video: {
                             facingMode: 'user'
@@ -373,22 +361,15 @@
                         });
                     });
 
-                // Auto-focus ke input barcode
                 barcodeInput.focus();
 
-                // Detect barcode scan (scanner bekerja seperti keyboard)
-                barcodeInput.addEventListener('input', function(e) {
+                barcodeInput.addEventListener('input', function() {
                     clearTimeout(scanTimeout);
-
-                    // Scanner biasanya mengirim data dengan cepat dan diakhiri Enter
                     scanTimeout = setTimeout(() => {
-                        if (barcodeInput.value.length > 0) {
-                            submitWithPhoto();
-                        }
-                    }, 100); // 100ms delay untuk memastikan semua karakter terkirim
+                        if (barcodeInput.value.length > 0) submitWithPhoto();
+                    }, 100);
                 });
 
-                // Handle Enter key dari scanner
                 barcodeInput.addEventListener('keypress', function(e) {
                     if (e.key === 'Enter') {
                         e.preventDefault();
@@ -397,24 +378,17 @@
                     }
                 });
 
-                // Fungsi untuk submit dengan foto dari webcam
                 function submitWithPhoto() {
-                    if (isProcessing || barcodeInput.value.trim() === '') {
-                        return;
-                    }
-
+                    if (isProcessing || barcodeInput.value.trim() === '') return;
                     isProcessing = true;
                     scanStatus.classList.remove('hidden');
 
-                    // Capture foto dari webcam
                     const context = canvas.getContext('2d');
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
 
                     if (video.readyState === video.HAVE_ENOUGH_DATA) {
                         context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-                        // Konversi canvas ke blob
                         canvas.toBlob((blob) => {
                             if (blob) {
                                 const file = new File([blob], "absensi_" + Date.now() + ".png", {
@@ -422,8 +396,6 @@
                                 });
                                 const dataTransfer = new DataTransfer();
                                 dataTransfer.items.add(file);
-
-                                // Buat atau update input file
                                 let fileInput = form.querySelector('input[name="foto"]');
                                 if (!fileInput) {
                                     fileInput = document.createElement('input');
@@ -432,21 +404,15 @@
                                     fileInput.hidden = true;
                                     form.appendChild(fileInput);
                                 }
-
                                 fileInput.files = dataTransfer.files;
                             }
-
-                            // Submit form
                             form.submit();
                         }, 'image/png');
                     } else {
-                        // Jika webcam belum siap, submit tanpa foto
-                        console.warn('Webcam belum siap, submit tanpa foto');
                         form.submit();
                     }
                 }
 
-                // Reset focus ke input setelah beberapa detik
                 setInterval(() => {
                     if (document.activeElement !== barcodeInput && !isProcessing) {
                         barcodeInput.focus();
@@ -454,56 +420,105 @@
                 }, 3000);
             @endif
 
-            // ==================== DELETE FUNCTIONALITY ====================
-            @if (!$isLaporanMode)
-                const deleteForms = document.querySelectorAll('.delete-form');
-                deleteForms.forEach(form => {
-                    const btn = form.querySelector('.delete-btn');
-                    btn.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        Swal.fire({
-                            title: 'Apakah kamu yakin?',
-                            text: "Data absensi yang dihapus tidak bisa dikembalikan!",
-                            icon: 'warning',
-                            showCancelButton: true,
-                            confirmButtonColor: '#e3342f',
-                            cancelButtonColor: '#6c757d',
-                            confirmButtonText: 'Ya, hapus!',
-                            cancelButtonText: 'Batal'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                form.submit();
-                            }
-                        });
-                    });
-                });
-            @endif
+            // ==================== AJAX TABLE ====================
+            const isAdmin = {{ auth()->user()->hasRole('admin') ? 'true' : 'false' }};
+            const isLaporan = {{ $isLaporanMode ? 'true' : 'false' }};
+            const colSpan = (isAdmin && !isLaporan) ? 7 : 6;
 
-            // ==================== ALERT REMOVE BUTTON ====================
-            const removeButtons = document.querySelectorAll('.remove-button');
-            removeButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const alert = this.closest('.alert');
-                    if (alert) {
-                        alert.remove();
+            const perPageSelect = document.getElementById('perPageKehadiran');
+            if (perPageSelect) {
+                perPageSelect.addEventListener('change', function() {
+                    if (window._ajaxTables['tbodyKehadiranMember']) {
+                        window._ajaxTables['tbodyKehadiranMember'].setPerPage(parseInt(this.value));
                     }
                 });
+            }
+
+            AjaxTable.create({
+                url: '{{ route('kehadiranmember.datatable') }}',
+                tbodyId: 'tbodyKehadiranMember',
+                paginationId: 'paginationKehadiranMember',
+                infoId: 'infoKehadiranMember',
+                searchId: 'searchKehadiran',
+                perPage: 10,
+                colSpan: colSpan,
+                renderRow: function(item) {
+                    const foto = item.foto ?
+                        `<img src="${item.foto}" alt="${item.name}"
+                    class="w-10 h-10 rounded-lg object-cover cursor-pointer bg-gray-200"
+                    onclick="showPhoto('${item.foto}', 'Foto Absensi')"
+                    loading="lazy">` :
+                        `<span class="text-gray-400 italic text-xs">No photo</span>`;
+
+                    const statusBadge = item.status === 'in' ?
+                        `<span class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm">CHECK IN</span>` :
+                        `<span class="bg-warning-100 text-warning-600 px-4 py-1.5 rounded-full font-medium text-sm">CHECK OUT</span>`;
+
+                    const aksiCol = (isAdmin && !isLaporan) ? `
+                <td class="whitespace-nowrap">
+                    <button onclick="confirmDeleteKehadiran('${item.delete_url}')"
+                        class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center">
+                        <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
+                    </button>
+                </td>` : '';
+
+                    return `
+                <tr>
+                    <td class="whitespace-nowrap">${item.no}</td>
+                    <td class="whitespace-nowrap">${item.rfid}</td>
+                    <td class="whitespace-nowrap">${foto}</td>
+                    <td class="whitespace-nowrap">${item.name}</td>
+                    <td class="whitespace-nowrap">${statusBadge}</td>
+                    <td class="whitespace-nowrap">${item.time}</td>
+                    ${aksiCol}
+                </tr>
+            `;
+                }
             });
 
-            // ==================== PHOTO POPUP ====================
-            const photos = document.querySelectorAll('.item-photo');
-            photos.forEach(photo => {
-                photo.addEventListener('click', function() {
-                    const imageUrl = this.getAttribute('data-photo');
-                    Swal.fire({
-                        imageUrl: imageUrl,
-                        imageAlt: 'Foto Absensi',
-                        showConfirmButton: false,
-                        background: 'transparent',
-                        width: 'auto',
-                        padding: '0',
-                        showCloseButton: true,
-                    });
+            // Fungsi hapus kehadiran
+            window.confirmDeleteKehadiran = function(url) {
+                Swal.fire({
+                    title: 'Apakah kamu yakin?',
+                    text: "Data absensi yang dihapus tidak bisa dikembalikan!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#e3342f',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Ya, hapus!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = url;
+                        form.innerHTML = `
+                    @csrf
+                    <input type="hidden" name="_method" value="DELETE">
+                `;
+                        document.body.appendChild(form);
+                        form.submit();
+                    }
+                });
+            };
+
+            // Fungsi popup foto
+            window.showPhoto = function(url, alt = 'Foto') {
+                Swal.fire({
+                    imageUrl: url,
+                    imageAlt: alt,
+                    showConfirmButton: false,
+                    background: 'transparent',
+                    width: 'auto',
+                    padding: '0',
+                    showCloseButton: true,
+                });
+            };
+
+            // Alert remove button
+            document.querySelectorAll('.remove-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    this.closest('.alert')?.remove();
                 });
             });
 
@@ -513,23 +528,16 @@
 
             filterRadios.forEach(radio => {
                 radio.addEventListener('change', function() {
-                    if (this.value === 'range') {
-                        rangeFilter.classList.remove('hidden');
-                    } else {
-                        rangeFilter.classList.add('hidden');
-                    }
+                    rangeFilter.classList.toggle('hidden', this.value !== 'range');
                 });
             });
 
-            // Form validation untuk export PDF
             document.getElementById('export-pdf-form').addEventListener('submit', function(e) {
                 const filterType = document.querySelector('input[name="filter_type"]:checked').value;
-
                 if (filterType === 'range') {
-                    const tanggalDari = document.getElementById('tanggal_dari').value;
-                    const tanggalSampai = document.getElementById('tanggal_sampai').value;
-
-                    if (!tanggalDari || !tanggalSampai) {
+                    const dari = document.getElementById('tanggal_dari').value;
+                    const sampai = document.getElementById('tanggal_sampai').value;
+                    if (!dari || !sampai) {
                         e.preventDefault();
                         Swal.fire({
                             icon: 'error',
@@ -538,8 +546,7 @@
                         });
                         return false;
                     }
-
-                    if (new Date(tanggalDari) > new Date(tanggalSampai)) {
+                    if (new Date(dari) > new Date(sampai)) {
                         e.preventDefault();
                         Swal.fire({
                             icon: 'error',
@@ -550,6 +557,7 @@
                     }
                 }
             });
+
         });
     </script>
 @endsection

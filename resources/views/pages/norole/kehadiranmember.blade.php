@@ -13,8 +13,8 @@
     <!-- Remix Icon -->
     <link rel="stylesheet" href="{{ asset('assets/css/remixicon.css') }}">
 
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="{{ asset('assets/css/lib/dataTables.min.css') }}">
+    <!-- Ajax Table CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/css/ajax-table.css') }}">
 
     <!-- Main CSS -->
     <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
@@ -173,7 +173,8 @@
                                 </div>
                             </div>
                         </div>
-                    </div><!-- card end -->
+                    </div>
+
                     <div
                         class="stats-card card shadow-none border border-gray-200 rounded-lg h-full bg-gradient-to-r from-purple-600/10 to-bg-white">
                         <div class="card-body p-5">
@@ -184,7 +185,8 @@
                                 </div>
                             </div>
                         </div>
-                    </div><!-- card end -->
+                    </div>
+
                     <div
                         class="stats-card card shadow-none border border-gray-200 rounded-lg h-full bg-gradient-to-r from-blue-600/10 to-bg-white">
                         <div class="card-body p-5">
@@ -195,7 +197,8 @@
                                 </div>
                             </div>
                         </div>
-                    </div><!-- card end -->
+                    </div>
+
                     <div
                         class="stats-card card shadow-none border border-gray-200 rounded-lg h-full bg-gradient-to-r from-cyan-600/10 to-bg-white">
                         <div class="card-body p-5">
@@ -206,7 +209,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div><!-- card end -->
+                    </div>
                 </div>
 
                 <!-- Data Table -->
@@ -218,69 +221,48 @@
                         </h6>
                     </div>
                     <div class="card-body p-6">
-                        <table id="selection-table" class="w-full">
-                            <thead>
-                                <tr>
-                                    <th class="text-left">No</th>
-                                    <th class="text-left">ID Kartu</th>
-                                    <th class="text-left">Foto</th>
-                                    <th class="text-left">Nama</th>
-                                    <th class="text-center">Status</th>
-                                    <th class="text-left">Waktu</th>
-                                    <th class="text-center">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($kehadiranmembers as $index => $item)
-                                    <tr class="hover:bg-neutral-50 transition-colors">
-                                        <td class="py-3">{{ $index + 1 }}</td>
-                                        <td class="py-3 font-mono text-sm">{{ $item->rfid }}</td>
-                                        <td class="py-3">
-                                            @if ($item->foto)
-                                                <img src="{{ asset('storage/' . $item->foto) }}" alt="Photo"
-                                                    class="w-12 h-12 rounded-lg object-cover cursor-pointer shadow-sm hover:shadow-md transition-shadow item-photo"
-                                                    data-photo="{{ asset('storage/' . $item->foto) }}">
-                                            @else
-                                                <div
-                                                    class="w-12 h-12 bg-neutral-200 rounded-lg flex items-center justify-center">
-                                                    <i class="ri-user-line text-neutral-400 text-xl"></i>
-                                                </div>
-                                            @endif
-                                        </td>
-                                        <td class="py-3 font-semibold">{{ $item->anggota->user->name }}</td>
-                                        <td class="py-3 text-center">
-                                            @if ($item->status === 'in')
-                                                <span
-                                                    class="status-indicator status-in bg-success-100 text-success-700 px-4 py-1.5 rounded-full text-xs font-bold">
-                                                    IN
-                                                </span>
-                                            @else
-                                                <span
-                                                    class="status-indicator status-out bg-warning-100 text-warning-700 px-4 py-1.5 rounded-full text-xs font-bold">
-                                                    OUT
-                                                </span>
-                                            @endif
-                                        </td>
-                                        <td class="py-3 text-sm text-neutral-600">
-                                            <div>{{ $item->created_at->format('d/m/Y') }}</div>
-                                            <div class="text-xs text-neutral-500">
-                                                {{ $item->created_at->format('H:i:s') }}</div>
-                                        </td>
-                                        <td class="py-3 text-center">
-                                            <form action="{{ route('absen.destroy', $item->id) }}" method="POST"
-                                                class="inline-block delete-form">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="button"
-                                                    class="delete-btn w-9 h-9 bg-danger-100 hover:bg-danger-200 text-danger-600 rounded-lg inline-flex items-center justify-center transition-colors">
-                                                    <i class="ri-delete-bin-line text-lg"></i>
-                                                </button>
-                                            </form>
-                                        </td>
+                        {{-- Search & per page --}}
+                        <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+                            <input type="text" id="searchAbsen" placeholder="Search nama, RFID, status..."
+                                class="form-control form-control-sm w-64">
+                            <div class="flex items-center gap-2">
+                                <select id="perPageAbsen" class="form-select form-select-sm w-auto">
+                                    <option value="10" selected>10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                                <span class="text-sm text-gray-500">entries per page</span>
+                            </div>
+                        </div>
+
+                        {{-- Table --}}
+                        <div class="overflow-x-auto">
+                            <table class="ajax-table border border-neutral-200 rounded-lg border-separate">
+                                <thead>
+                                    <tr>
+                                        <th class="text-left">No</th>
+                                        <th class="text-left">ID Kartu</th>
+                                        <th class="text-left">Foto</th>
+                                        <th class="text-left">Nama</th>
+                                        <th class="text-center">Status</th>
+                                        <th class="text-left">Waktu</th>
+                                        <th class="text-center">Aksi</th>
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody id="tbodyAbsen">
+                                    <tr>
+                                        <td colspan="7" class="text-center py-8">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {{-- Pagination & info --}}
+                        <div class="flex justify-between items-center mt-4 flex-wrap gap-2">
+                            <span class="text-sm text-gray-500" id="infoAbsen"></span>
+                            <div id="paginationAbsen" class="flex gap-1 flex-wrap"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -336,22 +318,21 @@
                                     <i class="ri-save-line text-xl"></i>
                                     <span>Simpan Absensi</span>
                                 </button>
+                            </form>
 
-                        </div>
-                        </form>
-
-                        <!-- Instructions -->
-                        <div class="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
-                            <h6 class="font-bold text-blue-800 mb-3 flex items-center">
-                                <i class="ri-lightbulb-line mr-2"></i>
-                                Cara Penggunaan:
-                            </h6>
-                            <ol class="list-decimal list-inside p-4 space-y-2 text-sm text-blue-700">
-                                <li>Pastikan kamera aktif dan terang</li>
-                                <li>Arahkan scanner ke kartu member</li>
-                                <li>Sistem akan otomatis detect IN/OUT</li>
-                                <li>Foto diambil otomatis dari webcam</li>
-                            </ol>
+                            <!-- Instructions -->
+                            <div class="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
+                                <h6 class="font-bold text-blue-800 mb-3 flex items-center">
+                                    <i class="ri-lightbulb-line mr-2"></i>
+                                    Cara Penggunaan:
+                                </h6>
+                                <ol class="list-decimal list-inside p-4 space-y-2 text-sm text-blue-700">
+                                    <li>Pastikan kamera aktif dan terang</li>
+                                    <li>Arahkan scanner ke kartu member</li>
+                                    <li>Sistem akan otomatis detect IN/OUT</li>
+                                    <li>Foto diambil otomatis dari webcam</li>
+                                </ol>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -380,7 +361,8 @@
                                     @endif
                                     <div>
                                         <div class="font-semibold text-sm text-neutral-800">
-                                            {{ $item->anggota->user->name }}</div>
+                                            {{ $item->anggota->user->name }}
+                                        </div>
                                         <div class="text-xs text-neutral-500">{{ $item->created_at->format('H:i:s') }}
                                         </div>
                                     </div>
@@ -406,11 +388,10 @@
             </div>
         </div>
     </div>
-    </div>
 
     <!-- Scripts -->
     <script src="{{ asset('assets/js/jquery-3.7.1.min.js') }}"></script>
-    <script src="{{ asset('assets/js/data-table.js') }}"></script>
+    <script src="{{ asset('assets/js/ajax-table.js') }}"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -418,10 +399,9 @@
             const canvas = document.getElementById('canvas');
             const form = document.getElementById('kehadiranForm');
             const rfidInput = document.getElementById('rfid');
-
             let isProcessing = false;
 
-            // Akses webcam
+            // ==================== WEBCAM ====================
             navigator.mediaDevices.getUserMedia({
                     video: {
                         facingMode: 'user'
@@ -448,21 +428,15 @@
             // Handle form submit
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
-
-                if (isProcessing || rfidInput.value.trim() === '') {
-                    return;
-                }
-
+                if (isProcessing || rfidInput.value.trim() === '') return;
                 isProcessing = true;
 
-                // Capture foto dari webcam
                 const context = canvas.getContext('2d');
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
 
                 if (video.readyState === video.HAVE_ENOUGH_DATA) {
                     context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
                     canvas.toBlob((blob) => {
                         if (blob) {
                             const file = new File([blob], `absensi_${Date.now()}.png`, {
@@ -470,7 +444,6 @@
                             });
                             const dataTransfer = new DataTransfer();
                             dataTransfer.items.add(file);
-
                             let fileInput = form.querySelector('input[name="foto"]');
                             if (!fileInput) {
                                 fileInput = document.createElement('input');
@@ -479,10 +452,8 @@
                                 fileInput.hidden = true;
                                 form.appendChild(fileInput);
                             }
-
                             fileInput.files = dataTransfer.files;
                         }
-
                         form.submit();
                     }, 'image/png');
                 } else {
@@ -490,50 +461,103 @@
                 }
             });
 
-            // Delete functionality
-            const deleteForms = document.querySelectorAll('.delete-form');
-            deleteForms.forEach(form => {
-                const btn = form.querySelector('.delete-btn');
-                btn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    Swal.fire({
-                        title: 'Hapus Data?',
-                        text: "Data yang dihapus tidak bisa dikembalikan!",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#e3342f',
-                        cancelButtonColor: '#6c757d',
-                        confirmButtonText: 'Ya, Hapus!',
-                        cancelButtonText: 'Batal'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            form.submit();
-                        }
-                    });
+            // ==================== AJAX TABLE ====================
+            const perPageSelect = document.getElementById('perPageAbsen');
+            if (perPageSelect) {
+                perPageSelect.addEventListener('change', function() {
+                    if (window._ajaxTables['tbodyAbsen']) {
+                        window._ajaxTables['tbodyAbsen'].setPerPage(parseInt(this.value));
+                    }
                 });
+            }
+
+            AjaxTable.create({
+                url: '{{ route('absen.datatable') }}',
+                tbodyId: 'tbodyAbsen',
+                paginationId: 'paginationAbsen',
+                infoId: 'infoAbsen',
+                searchId: 'searchAbsen',
+                perPage: 10,
+                colSpan: 7,
+                renderRow: function(item) {
+                    const foto = item.foto ?
+                        `<img src="${item.foto}" alt="Photo"
+                            class="w-12 h-12 rounded-lg object-cover cursor-pointer shadow-sm hover:shadow-md transition-shadow"
+                            onclick="showPhoto('${item.foto}')"
+                            loading="lazy">` :
+                        `<div class="w-12 h-12 bg-neutral-200 rounded-lg flex items-center justify-center">
+                            <i class="ri-user-line text-neutral-400 text-xl"></i>
+                           </div>`;
+
+                    const statusBadge = item.status === 'in' ?
+                        `<span class="status-indicator status-in bg-success-100 text-success-700 px-4 py-1.5 rounded-full text-xs font-bold">IN</span>` :
+                        `<span class="status-indicator status-out bg-warning-100 text-warning-700 px-4 py-1.5 rounded-full text-xs font-bold">OUT</span>`;
+
+                    return `
+                        <tr class="hover:bg-neutral-50 transition-colors">
+                            <td class="py-3 whitespace-nowrap">${item.no}</td>
+                            <td class="py-3 font-mono text-sm whitespace-nowrap">${item.rfid}</td>
+                            <td class="py-3 whitespace-nowrap">${foto}</td>
+                            <td class="py-3 font-semibold whitespace-nowrap">${item.name}</td>
+                            <td class="py-3 text-center whitespace-nowrap">${statusBadge}</td>
+                            <td class="py-3 text-sm text-neutral-600 whitespace-nowrap">
+                                <div>${item.date}</div>
+                                <div class="text-xs text-neutral-500">${item.time}</div>
+                            </td>
+                            <td class="py-3 text-center whitespace-nowrap">
+                                <button onclick="confirmDeleteAbsen('${item.delete_url}')"
+                                    class="w-9 h-9 bg-danger-100 hover:bg-danger-200 text-danger-600 rounded-lg inline-flex items-center justify-center transition-colors">
+                                    <i class="ri-delete-bin-line text-lg"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }
             });
 
-            // Remove alert button
-            const removeButtons = document.querySelectorAll('.remove-button');
-            removeButtons.forEach(button => {
+            // ==================== FUNGSI HAPUS ====================
+            window.confirmDeleteAbsen = function(url) {
+                Swal.fire({
+                    title: 'Hapus Data?',
+                    text: "Data yang dihapus tidak bisa dikembalikan!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#e3342f',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const f = document.createElement('form');
+                        f.method = 'POST';
+                        f.action = url;
+                        f.innerHTML = `
+                            @csrf
+                            <input type="hidden" name="_method" value="DELETE">
+                        `;
+                        document.body.appendChild(f);
+                        f.submit();
+                    }
+                });
+            };
+
+            // ==================== FUNGSI POPUP FOTO ====================
+            window.showPhoto = function(url) {
+                Swal.fire({
+                    imageUrl: url,
+                    imageAlt: 'Foto Absensi',
+                    showConfirmButton: false,
+                    background: 'transparent',
+                    width: 'auto',
+                    padding: '0',
+                    showCloseButton: true,
+                });
+            };
+
+            // ==================== ALERT REMOVE BUTTON ====================
+            document.querySelectorAll('.remove-button').forEach(button => {
                 button.addEventListener('click', function() {
                     this.closest('.alert').remove();
-                });
-            });
-
-            // Photo popup
-            const photos = document.querySelectorAll('.item-photo');
-            photos.forEach(photo => {
-                photo.addEventListener('click', function() {
-                    Swal.fire({
-                        imageUrl: this.getAttribute('data-photo'),
-                        imageAlt: 'Foto Absensi',
-                        showConfirmButton: false,
-                        background: 'transparent',
-                        width: 'auto',
-                        padding: '0',
-                        showCloseButton: true,
-                    });
                 });
             });
         });
