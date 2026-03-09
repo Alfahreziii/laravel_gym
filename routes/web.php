@@ -43,7 +43,7 @@ use App\Http\Controllers\Trainer\GajiTrainerController;
 use App\Http\Controllers\Trainer\LevelTrainerController;
 use App\Http\Controllers\Trainer\RiwayatGajiTrainerController;
 use App\Http\Controllers\MemberProfileController;
-
+use App\Http\Controllers\TransaksiKeuanganController;
 
 Route::get('/register/trainer', [TrainerRegisterController::class, 'showForm'])->name('register.trainer');
 Route::post('/register/trainer', [TrainerRegisterController::class, 'register'])->name('register.trainer.submit');
@@ -145,6 +145,12 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     });
     Route::controller(DashboardController::class)->group(function () {
         Route::get('/dashboard', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('index');
+    });
+
+    Route::prefix('keuangan/transaksi')->middleware(RoleMiddleware::class . ':admin|spv')->name('keuangan.transaksi.')->group(function () {
+        Route::get('/',          [TransaksiKeuanganController::class, 'index'])->name('index');
+        Route::get('/datatable', [TransaksiKeuanganController::class, 'datatable'])->name('datatable');
+        Route::get('/export-pdf', [TransaksiKeuanganController::class, 'exportPdf'])->name('exportPdf');
     });
 
     // Route untuk Produk
