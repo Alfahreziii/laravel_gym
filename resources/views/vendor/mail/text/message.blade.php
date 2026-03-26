@@ -59,7 +59,7 @@
     {{-- Footer --}}
     @slot('footer')
         @component('mail::footer')
-            © {{ date('Y') }} Kenzo Fitness Center. All rights reserved.
+            © {{ date('Y') }} {{ config('app.name') }}. All rights reserved.
 
             Build Your Body, Build Your Life
         @endcomponent

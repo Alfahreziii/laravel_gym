@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             KategoriAkunSeeder::class,
             AkunKeuanganSeeder::class,
             RoleSeeder::class,
+            AdminUserSeeder::class,
         ]);
     }
 }
