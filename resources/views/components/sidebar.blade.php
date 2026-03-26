@@ -397,13 +397,6 @@
                         <span>Profile Saya</span>
                     </a>
                 </li>
-
-                <!-- <li class="sidebar-menu-link {{ request()->routeIs('member.barcode') ? 'active' : '' }}">
-                                    <a href="{{ route('member.barcode') }}">
-                                        <iconify-icon icon="mdi:barcode-scan" class="menu-icon"></iconify-icon>
-                                        <span>Kartu Barcode</span>
-                                    </a>
-                                </li> -->
             @endhasanyrole
         </ul>
     </div>
