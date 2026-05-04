@@ -15,14 +15,13 @@ class TrainerListMemberController extends Controller
     {
         $user = Auth::user();
         $trainer = Trainer::where('id', $user->trainer_id ?? 0)->first();
-        
+
         if (!$trainer) {
             return redirect()->back()->with('error', 'Anda tidak terdaftar sebagai trainer.');
         }
 
         // Ambil member yang hadir hari ini dengan status 'in'
-        $memberInGymToday = KehadiranMember::with('anggota')
-            ->whereDate('created_at', now()->toDateString())
+        $memberInGymToday = KehadiranMember::whereDate('created_at', now()->toDateString())
             ->latest()
             ->get()
             ->groupBy('rfid')
@@ -32,31 +31,31 @@ class TrainerListMemberController extends Controller
             ->toArray();
 
         $today = now()->toDateString();
-        
+
         // Ambil semua member trainer dengan grouping berdasarkan id_anggota
         $allMemberTrainers = MemberTrainer::with(['anggota', 'paketPersonalTrainer', 'sesiLogs'])
             ->where('id_trainer', $trainer->id)
             ->get();
 
         // Group by member dan hitung statistik
-        $groupedMembers = $allMemberTrainers->groupBy('id_anggota')->map(function($memberGroup) use ($memberInGymToday, $today) {
+        $groupedMembers = $allMemberTrainers->groupBy('id_anggota')->map(function ($memberGroup) use ($memberInGymToday, $today) {
             $member = $memberGroup->first()->anggota;
-            
+
             // Data paket aktif (dalam rentang tanggal dan sesi > 0)
-            $activeSessions = $memberGroup->filter(function($mt) use ($today) {
-                return $mt->tgl_mulai <= $today 
-                    && $mt->tgl_selesai >= $today 
+            $activeSessions = $memberGroup->filter(function ($mt) use ($today) {
+                return $mt->tgl_mulai <= $today
+                    && $mt->tgl_selesai >= $today
                     && $mt->sesi > 0;
             });
 
             // Data paket kadaluarsa
-            $expiredSessions = $memberGroup->filter(function($mt) use ($today) {
+            $expiredSessions = $memberGroup->filter(function ($mt) use ($today) {
                 return $mt->tgl_selesai < $today || $mt->sesi <= 0;
             });
 
             // Hitung total sesi
             $totalSesiAktif = $activeSessions->sum('sesi');
-            $totalSesiKadaluarsa = $expiredSessions->sum(function($mt) {
+            $totalSesiKadaluarsa = $expiredSessions->sum(function ($mt) {
                 return $mt->paketPersonalTrainer->jumlah_sesi ?? 0;
             });
             $totalSesiSelesai = $memberGroup->sum('sesi_sudah_dijalani');
@@ -91,7 +90,7 @@ class TrainerListMemberController extends Controller
     {
         $user = Auth::user();
         $trainer = Trainer::where('id', $user->trainer_id ?? 0)->first();
-        
+
         if (!$trainer) {
             return redirect()->back()->with('error', 'Anda tidak terdaftar sebagai trainer.');
         }
@@ -109,13 +108,13 @@ class TrainerListMemberController extends Controller
         $today = now()->toDateString();
 
         // Kategorikan paket
-        $activePackages = $memberTrainers->filter(function($mt) use ($today) {
-            return $mt->tgl_mulai <= $today 
-                && $mt->tgl_selesai >= $today 
+        $activePackages = $memberTrainers->filter(function ($mt) use ($today) {
+            return $mt->tgl_mulai <= $today
+                && $mt->tgl_selesai >= $today
                 && $mt->sesi > 0;
         });
 
-        $expiredPackages = $memberTrainers->filter(function($mt) use ($today) {
+        $expiredPackages = $memberTrainers->filter(function ($mt) use ($today) {
             return $mt->tgl_selesai < $today || $mt->sesi <= 0;
         });
 
@@ -123,9 +122,9 @@ class TrainerListMemberController extends Controller
         $totalSesiAktif = $activePackages->sum('sesi');
         $totalSesiSelesai = $memberTrainers->sum('sesi_sudah_dijalani');
         $totalPaket = $memberTrainers->count();
-        
+
         // Total sesi dari paket kadaluarsa
-        $totalSesiKadaluarsa = $expiredPackages->sum(function($mt) {
+        $totalSesiKadaluarsa = $expiredPackages->sum(function ($mt) {
             return $mt->paketPersonalTrainer->jumlah_sesi ?? 0;
         });
 
@@ -141,8 +140,8 @@ class TrainerListMemberController extends Controller
         $activeSession = $activePackages->firstWhere('is_session_active', true);
 
         return view('pages.trainer.trainerlistmember.member-detail', compact(
-            'trainer', 
-            'member', 
+            'trainer',
+            'member',
             'memberTrainers',
             'activePackages',
             'expiredPackages',

@@ -13,7 +13,7 @@ class PlaylistMemberTrainer extends Model
 
     protected $fillable = [
         'id_member_trainer',
-        'id_playlist_trainer',
+        'latihan',
         'sesi_ke',
         'keterangan',
         'completed',
@@ -23,19 +23,8 @@ class PlaylistMemberTrainer extends Model
         'completed' => 'boolean',
     ];
 
-    /**
-     * Relasi ke MemberTrainer
-     */
     public function memberTrainer()
     {
         return $this->belongsTo(MemberTrainer::class, 'id_member_trainer');
-    }
-
-    /**
-     * Relasi ke PlaylistTrainer
-     */
-    public function playlistTrainer()
-    {
-        return $this->belongsTo(PlaylistTrainer::class, 'id_playlist_trainer');
     }
 }

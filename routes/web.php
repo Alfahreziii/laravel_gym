@@ -69,6 +69,7 @@ Route::controller(NoRoleController::class)->group(function () {
     Route::get('/absen-trainer/create', 'createtrainer')->name('absentrainer.create');
     Route::post('/absen-trainer', 'storetrainer')->name('absentrainer.store');
     Route::delete('/absen-trainer/{kehadirantrainer}', 'destroytrainer')->name('absentrainer.destroy');
+    Route::get('/absen-trainer/datatable', 'datatabletrainer')->name('absentrainer.datatable');
 });
 
 // Trainer Route
@@ -121,6 +122,9 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddle
     });
 
     Route::controller(KehadiranTrainerController::class)->group(function () {
+        Route::post('kehadirantrainer/export-pdf', 'exportPdf')->name('kehadirantrainer.export_pdf');
+        Route::get('kehadirantrainer/datatable', 'datatable')->name('kehadirantrainer.datatable');
+        Route::get('laporan/kehadiran-trainer', 'index')->name('laporan.kehadirantrainer');
         Route::get('/kehadiran-trainer', 'index')->name('kehadirantrainer.index');
         Route::get('/kehadiran-trainer/create', 'create')->name('kehadirantrainer.create');
         Route::post('/kehadiran-trainer', 'store')->name('kehadirantrainer.store');
@@ -188,7 +192,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
         Route::get('/anggota/datatable', 'datatable')->middleware(RoleMiddleware::class . ':admin|spv')->name('anggota.datatable');
         Route::get('/laporan/anggota', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('laporan.anggota');
         Route::post('/anggota/export-pdf', 'exportPdf')->middleware(RoleMiddleware::class . ':admin|spv')->name('anggota.export_pdf');
-        Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
+        Route::middleware(RoleMiddleware::class . ':admin|spv')->group(function () {
             Route::get('/anggota/create', 'create')->name('anggota.create');
             Route::post('/anggota', 'store')->name('anggota.store');
             Route::get('/anggota/{anggota}/edit', 'edit')->name('anggota.edit');
@@ -226,7 +230,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
         Route::get('/anggota-membership', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('anggota_membership.index');
         Route::get('/laporan/anggota-membership', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('laporan.membership');
         Route::post('/anggota-membership/export-pdf', 'exportPdf')->middleware(RoleMiddleware::class . ':admin|spv')->name('anggota_membership.export_pdf');
-        Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
+        Route::middleware(RoleMiddleware::class . ':admin|spv')->group(function () {
             Route::get('/anggota-membership/create', 'create')->name('anggota_membership.create');
             Route::post('/anggota-membership', 'store')->name('anggota_membership.store');
             Route::put('/anggota-membership/{id}', 'update')->name('anggota_membership.update');
@@ -285,7 +289,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
         Route::get('/member-trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('membertrainer.index');
         Route::get('/laporan/member-trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('laporan.membertrainer');
         Route::post('/membertrainer/export-pdf', 'exportPdf')->middleware(RoleMiddleware::class . ':admin|spv')->name('membertrainer.export_pdf');
-        Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
+        Route::middleware(RoleMiddleware::class . ':admin|spv')->group(function () {
             Route::get('/member-trainer/create', 'create')->name('membertrainer.create');
             Route::post('/member-trainer', 'store')->name('membertrainer.store');
             Route::put('/member-trainer/{id}', 'update')->name('membertrainer.update');
@@ -394,6 +398,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddle
         Route::get('/riwayat-transaksi-kasir', 'riwayat')->name('kasir.riwayat');
         Route::post('/kasir/bayar', 'bayar')->name('kasirbayar');
         Route::post('/kasir/hold', 'hold')->name('kasir.hold');
+        Route::delete('/kasir/hold/{id}', 'deleteHold')->name('kasir.hold.delete');
         Route::get('/held-transactions', 'getHeldTransactions')->name('getHeldTransactions');
         Route::get('/kasir/print-nota/{transactionId}', 'printNota')->name('kasir.print-nota');
     });

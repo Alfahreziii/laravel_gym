@@ -24,6 +24,7 @@ class Anggota extends Model
         'tgl_daftar',
         'jenis_kelamin',
         'riwayat_kesehatan',
+        'status_finger',
     ];
 
     protected $casts = [
@@ -66,7 +67,7 @@ class Anggota extends Model
     {
         return $this->hasMany(AnggotaMembership::class, 'id_anggota');
     }
-    
+
     /**
      * Get status keanggotaan attribute
      */
@@ -87,7 +88,7 @@ class Anggota extends Model
     public function getActiveMembershipAttribute()
     {
         $today = Carbon::today();
-        
+
         return $this->anggotaMemberships()
             ->where('tgl_mulai', '<=', $today)
             ->where('tgl_selesai', '>=', $today)
@@ -116,7 +117,7 @@ class Anggota extends Model
      */
     public function scopeVerified($query)
     {
-        return $query->whereHas('user', function($q) {
+        return $query->whereHas('user', function ($q) {
             $q->whereNotNull('email_verified_at');
         });
     }
@@ -127,10 +128,10 @@ class Anggota extends Model
     public function scopeActiveMembership($query)
     {
         $today = Carbon::today();
-        
-        return $query->whereHas('anggotaMemberships', function($q) use ($today) {
+
+        return $query->whereHas('anggotaMemberships', function ($q) use ($today) {
             $q->where('tgl_mulai', '<=', $today)
-              ->where('tgl_selesai', '>=', $today);
+                ->where('tgl_selesai', '>=', $today);
         });
     }
 
@@ -142,7 +143,7 @@ class Anggota extends Model
         if (!$this->tgl_lahir) {
             return null;
         }
-        
+
         return $this->tgl_lahir->age;
     }
 
@@ -154,7 +155,7 @@ class Anggota extends Model
         if (!$this->tinggi || !$this->berat) {
             return null;
         }
-        
+
         $tinggiMeter = $this->tinggi / 100;
         return round($this->berat / ($tinggiMeter * $tinggiMeter), 2);
     }

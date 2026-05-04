@@ -21,6 +21,15 @@ Route::post('/gate/check-member', [GateController::class, 'checkMember']);
 // Main absensi endpoint
 Route::post('/gate', [GateController::class, 'absen']);
 
+// Tambahan untuk enrollfinger
+Route::post('/enroll', [GateController::class, 'enrollfinger']);
+
+// Tambahan untuk deletefinger
+Route::post('/deletefinger', [GateController::class, 'deletefinger']);
+
+// Tambahan untuk absent lewat finger
+Route::post('/absenfinger', [GateController::class, 'absenfinger']);
+
 /*
 |--------------------------------------------------------------------------
 | Jika ingin menambahkan authentication (opsional)

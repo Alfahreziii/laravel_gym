@@ -48,7 +48,7 @@
 
                         {{-- Tombol Tambah Data hanya tampil jika BUKAN mode laporan --}}
                         @if (!$isLaporanMode)
-                            @role('admin')
+                            @role('admin|spv')
                                 <a href="{{ route('anggota.create') }}"
                                     class="text-primary-600 focus:bg-primary-600 hover:bg-primary-700 border border-primary-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center dark:text-primary-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-primary-800">
                                     + Tambah Data
@@ -84,13 +84,14 @@
                                             <th scope="col">Aksi</th>
                                         @endrole
                                     @endif
-                                    <th scope="col">ID Kartu</th>
+                                    <th scope="col">Fingerprint</th>
                                     <th scope="col">Photo</th>
                                     <th scope="col">Nama</th>
                                     <th scope="col">Email</th>
                                     <th scope="col">Tanggal Lahir</th>
                                     <th scope="col">No. Telp</th>
                                     <th scope="col">Status</th>
+                                    <th scope="col">Fingerprint</th>
                                 </tr>
                             </thead>
                             <tbody id="tbodyAnggota">
@@ -150,8 +151,8 @@
                                         Aktif</label>
                                 </div>
                                 <div class="flex items-center mb-2">
-                                    <input type="radio" id="status_tidak_aktif" name="status_filter" value="tidak_aktif"
-                                        class="w-4 h-4 text-primary-600">
+                                    <input type="radio" id="status_tidak_aktif" name="status_filter"
+                                        value="tidak_aktif" class="w-4 h-4 text-primary-600">
                                     <label for="status_tidak_aktif" class="ml-2 text-sm font-medium text-gray-900">Anggota
                                         Tidak Aktif</label>
                                 </div>
@@ -211,6 +212,18 @@
                 perPage: 10,
                 colSpan: colSpan,
                 renderRow: function(item) {
+                    const fingerBadge = item.status_finger == 0 ?
+                        `<span class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm flex items-center gap-1 w-fit">
+                                <iconify-icon icon="lucide:scan-line"></iconify-icon> Enroll
+                           </span>` :
+                        item.status_finger == 1 ?
+                        `<span class="bg-danger-100 text-danger-600 px-4 py-1.5 rounded-full font-medium text-sm flex items-center gap-1 w-fit">
+                                <iconify-icon icon="lucide:trash-2"></iconify-icon> Delete
+                           </span>` :
+                        `<span class="bg-neutral-100 text-neutral-500 px-4 py-1.5 rounded-full font-medium text-sm flex items-center gap-1 w-fit">
+                                <iconify-icon icon="lucide:minus-circle"></iconify-icon> Default
+                           </span>`;
+
                     const statusBadge = item.status ?
                         `<span class="bg-success-100 text-success-600 px-6 py-1.5 rounded-full font-medium text-sm">Aktif</span>` :
                         `<span class="bg-warning-100 text-warning-600 px-6 py-1.5 rounded-full font-medium text-sm">Tidak Aktif</span>`;
@@ -246,6 +259,7 @@
                     <td class="whitespace-nowrap">${item.tgl_lahir}</td>
                     <td class="whitespace-nowrap">${item.no_telp}</td>
                     <td class="whitespace-nowrap">${statusBadge}</td>
+                    <td class="whitespace-nowrap">${fingerBadge}</td>
                 </tr>
             `;
                 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Anggota;
+use App\Models\Trainer;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -20,34 +21,23 @@ class AnggotaController extends Controller
         try {
             $statusFilter = $request->input('status_filter', 'all');
 
-            // Hitung statistik dari SEMUA data (tidak terfilter)
             $allAnggotas = Anggota::with(['anggotaMemberships' => function ($query) {
                 $query->latest('tgl_selesai');
             }])->get();
 
             $totalAnggota = $allAnggotas->count();
-            $totalAktif = $allAnggotas->filter(function ($anggota) {
-                return $anggota->status_keanggotaan === true;
-            })->count();
-            $totalTidakAktif = $allAnggotas->filter(function ($anggota) {
-                return $anggota->status_keanggotaan === false;
-            })->count();
+            $totalAktif = $allAnggotas->filter(fn($a) => $a->status_keanggotaan === true)->count();
+            $totalTidakAktif = $allAnggotas->filter(fn($a) => $a->status_keanggotaan === false)->count();
 
-            // Query dengan join dan filter untuk data yang akan ditampilkan
             $query = Anggota::with(['anggotaMemberships', 'user'])
                 ->join('users', 'anggotas.id', '=', 'users.anggota_id')
                 ->select('anggotas.*');
 
-            // Filter berdasarkan status
             if ($statusFilter === 'aktif') {
-                $query->whereHas('anggotaMemberships', function ($q) {
-                    $q->where('is_active', true);
-                });
+                $query->whereHas('anggotaMemberships', fn($q) => $q->where('is_active', true));
                 $title = 'Laporan Anggota Aktif';
             } elseif ($statusFilter === 'tidak_aktif') {
-                $query->whereDoesntHave('anggotaMemberships', function ($q) {
-                    $q->where('is_active', true);
-                });
+                $query->whereDoesntHave('anggotaMemberships', fn($q) => $q->where('is_active', true));
                 $title = 'Laporan Anggota Tidak Aktif';
             } else {
                 $title = 'Laporan Semua Anggota';
@@ -65,7 +55,6 @@ class AnggotaController extends Controller
             ));
 
             $pdf->setPaper('a4', 'landscape');
-
             $filename = 'Laporan_Anggota_' . ucfirst($statusFilter) . '_' . date('Y-m-d_His') . '.pdf';
 
             return $pdf->download($filename);
@@ -75,8 +64,7 @@ class AnggotaController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
 
-            return redirect()->back()
-                ->with('error', 'Gagal export PDF: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal export PDF: ' . $e->getMessage());
         }
     }
 
@@ -84,14 +72,14 @@ class AnggotaController extends Controller
     {
         return view('pages.anggota.index');
     }
+
     public function datatable(Request $request)
     {
-        $search = $request->get('search', '');
-        $perPage = (int) $request->get('perPage', 10);
-        $page = (int) $request->get('page', 1);
-        $isLaporan = $request->get('laporan', false);
+        $search   = $request->get('search', '');
+        $perPage  = (int) $request->get('perPage', 10);
+        $page     = (int) $request->get('page', 1);
 
-        $query = Anggota::with('user')->latest();
+        $query = Anggota::with('user')->orderByRaw("FIELD(status_finger, 0, 1, 2)");
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -107,22 +95,23 @@ class AnggotaController extends Controller
         }
 
         $total = (clone $query)->count();
-        $data = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
+        $data  = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
 
         return response()->json([
             'data' => $data->map(function ($item, $index) use ($page, $perPage) {
                 return [
-                    'no'          => (($page - 1) * $perPage) + $index + 1,
-                    'id'          => $item->id,
-                    'id_kartu'    => $item->id_kartu,
-                    'foto'        => $item->user?->photo ? asset('storage/' . $item->user->photo) : null,
-                    'name'        => $item->user?->name ?? '-',
-                    'email'       => $item->user?->email ?? '-',
-                    'tgl_lahir'   => $item->tgl_lahir ? $item->tgl_lahir->format('d M Y') : '-',
-                    'no_telp'     => $item->no_telp ?? '-',
-                    'status'      => $item->status_keanggotaan,
-                    'edit_url'    => route('anggota.edit', $item->id),
-                    'delete_url'  => route('anggota.destroy', $item->id),
+                    'no'            => (($page - 1) * $perPage) + $index + 1,
+                    'id'            => $item->id,
+                    'id_kartu'      => $item->id_kartu,
+                    'foto'          => $item->user?->photo ? asset('storage/' . $item->user->photo) : null,
+                    'name'          => $item->user?->name ?? '-',
+                    'email'         => $item->user?->email ?? '-',
+                    'tgl_lahir'     => $item->tgl_lahir ? $item->tgl_lahir->format('d M Y') : '-',
+                    'no_telp'       => $item->no_telp ?? '-',
+                    'status'        => $item->status_keanggotaan,
+                    'status_finger' => $item->status_finger,
+                    'edit_url'      => route('anggota.edit', $item->id),
+                    'delete_url'    => route('anggota.destroy', $item->id),
                 ];
             }),
             'total'    => $total,
@@ -140,47 +129,62 @@ class AnggotaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            // Data User
-            'name'             => 'required|string|max:255',
-            'email'            => 'required|email|unique:users,email',
-            'password'         => 'required|string|min:8|confirmed',
-            'photo'            => 'required|image|mimes:jpg,jpeg,png|max:2048',
-
-            // Data Anggota
-            'id_kartu'         => 'required|string|max:30|unique:anggotas,id_kartu',
-            'no_telp'          => 'required|string|max:50',
-            'alamat'           => 'required|string',
-            'gol_darah'        => 'required|string|max:2',
-            'tinggi'           => 'required|integer',
-            'berat'            => 'required|integer',
-            'tempat_lahir'     => 'required|string',
-            'tgl_lahir'        => 'required|date',
-            'tgl_daftar'       => 'required|date',
-            'jenis_kelamin'    => 'required|string|max:20',
+            'name'              => 'required|string|max:255',
+            'email'             => 'required|email|unique:users,email',
+            'password'          => 'required|string|min:8|confirmed',
+            'photo'             => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            'id_kartu'          => 'required|string|max:30|unique:anggotas,id_kartu',
+            'no_telp'           => 'required|string|max:50',
+            'alamat'            => 'required|string',
+            'gol_darah'         => 'required|string|max:2',
+            'tinggi'            => 'required|integer',
+            'berat'             => 'required|integer',
+            'tempat_lahir'      => 'required|string',
+            'tgl_lahir'         => 'required|date',
+            'tgl_daftar'        => 'required|date',
+            'jenis_kelamin'     => 'required|string|max:20',
             'riwayat_kesehatan' => 'nullable|string',
+            'status_finger'     => 'required|in:0,1,2',
         ]);
+
+        // Cek id_kartu tidak boleh sama dengan rfid di tabel trainers
+        if (Trainer::where('rfid', $request->id_kartu)->exists()) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', "ID Kartu '{$request->id_kartu}' sudah digunakan sebagai RFID Trainer.");
+        }
+
+        // Cek status_finger cross-table
+        if (in_array($request->status_finger, ['0', '1'])) {
+            $existsInAnggota = Anggota::where('status_finger', $request->status_finger)->exists();
+            $existsInTrainer = Trainer::where('status_finger', $request->status_finger)->exists();
+            if ($existsInAnggota || $existsInTrainer) {
+                $label = $request->status_finger == '0' ? 'Enroll' : 'Delete';
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', "Sudah ada member/trainer dengan status finger '{$label}'. Hanya boleh ada 1 secara keseluruhan.");
+            }
+        }
 
         DB::beginTransaction();
         try {
-            // 1️⃣ Upload foto ke folder anggotas
             $photoPath = $request->file('photo')->store('anggotas', 'public');
 
-            // 2️⃣ Buat Anggota - TANPA name dan photo
             $anggota = Anggota::create([
-                'id_kartu'         => $request->id_kartu,
-                'no_telp'          => $request->no_telp,
-                'alamat'           => $request->alamat,
-                'gol_darah'        => $request->gol_darah,
-                'tinggi'           => $request->tinggi,
-                'berat'            => $request->berat,
-                'tempat_lahir'     => $request->tempat_lahir,
-                'tgl_lahir'        => $request->tgl_lahir,
-                'tgl_daftar'       => $request->tgl_daftar,
-                'jenis_kelamin'    => $request->jenis_kelamin,
+                'id_kartu'          => $request->id_kartu,
+                'no_telp'           => $request->no_telp,
+                'alamat'            => $request->alamat,
+                'gol_darah'         => $request->gol_darah,
+                'tinggi'            => $request->tinggi,
+                'berat'             => $request->berat,
+                'tempat_lahir'      => $request->tempat_lahir,
+                'tgl_lahir'         => $request->tgl_lahir,
+                'tgl_daftar'        => $request->tgl_daftar,
+                'jenis_kelamin'     => $request->jenis_kelamin,
                 'riwayat_kesehatan' => $request->riwayat_kesehatan,
+                'status_finger'     => $request->status_finger ?? 2,
             ]);
 
-            // 3️⃣ Buat User dan link ke anggota - DENGAN name dan photo
             $user = User::create([
                 'name'       => $request->name,
                 'email'      => $request->email,
@@ -189,13 +193,8 @@ class AnggotaController extends Controller
                 'photo'      => $photoPath,
             ]);
 
-            // 4️⃣ Assign role 'member'
             $user->assignRole('member');
-
-            // 5️⃣ Trigger event untuk kirim email verifikasi
             event(new Registered($user));
-
-            // Kirim email verifikasi secara manual
             $user->sendEmailVerificationNotification();
 
             DB::commit();
@@ -205,7 +204,6 @@ class AnggotaController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            // Hapus foto jika ada error
             if (isset($photoPath) && Storage::disk('public')->exists($photoPath)) {
                 Storage::disk('public')->delete($photoPath);
             }
@@ -230,29 +228,47 @@ class AnggotaController extends Controller
     public function update(Request $request, Anggota $anggota)
     {
         $request->validate([
-            // Data User
-            'name'             => 'required|string|max:255',
-            'email'            => 'required|email|unique:users,email,' . $anggota->user->id,
-            'password'         => 'nullable|string|min:8|confirmed',
-            'photo'            => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-
-            // Data Anggota
-            'id_kartu'         => 'required|string|max:30|unique:anggotas,id_kartu,' . $anggota->id,
-            'no_telp'          => 'required|string|max:50',
-            'alamat'           => 'required|string',
-            'gol_darah'        => 'required|string|max:2',
-            'tinggi'           => 'required|integer',
-            'berat'            => 'required|integer',
-            'tempat_lahir'     => 'required|string',
-            'tgl_lahir'        => 'required|date',
-            'tgl_daftar'       => 'required|date',
-            'jenis_kelamin'    => 'required|string|max:20',
+            'name'              => 'required|string|max:255',
+            'email'             => 'required|email|unique:users,email,' . $anggota->user->id,
+            'password'          => 'nullable|string|min:8|confirmed',
+            'photo'             => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'id_kartu'          => 'required|string|max:30|unique:anggotas,id_kartu,' . $anggota->id,
+            'no_telp'           => 'required|string|max:50',
+            'alamat'            => 'required|string',
+            'gol_darah'         => 'required|string|max:2',
+            'tinggi'            => 'required|integer',
+            'berat'             => 'required|integer',
+            'tempat_lahir'      => 'required|string',
+            'tgl_lahir'         => 'required|date',
+            'tgl_daftar'        => 'required|date',
+            'jenis_kelamin'     => 'required|string|max:20',
             'riwayat_kesehatan' => 'nullable|string',
+            'status_finger'     => 'required|in:0,1,2',
         ]);
+
+        // Cek id_kartu tidak boleh sama dengan rfid di tabel trainers
+        if (Trainer::where('rfid', $request->id_kartu)->exists()) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', "ID Kartu '{$request->id_kartu}' sudah digunakan sebagai RFID Trainer.");
+        }
+
+        // Cek status_finger cross-table (exclude diri sendiri)
+        if (in_array($request->status_finger, ['0', '1'])) {
+            $existsInAnggota = Anggota::where('status_finger', $request->status_finger)
+                ->where('id', '!=', $anggota->id)
+                ->exists();
+            $existsInTrainer = Trainer::where('status_finger', $request->status_finger)->exists();
+            if ($existsInAnggota || $existsInTrainer) {
+                $label = $request->status_finger == '0' ? 'Enroll' : 'Delete';
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', "Sudah ada member/trainer dengan status finger '{$label}'. Hanya boleh ada 1 secara keseluruhan.");
+            }
+        }
 
         DB::beginTransaction();
         try {
-            // 1️⃣ Update User
             $userData = [
                 'name'  => $request->name,
                 'email' => $request->email,
@@ -262,9 +278,7 @@ class AnggotaController extends Controller
                 $userData['password'] = Hash::make($request->password);
             }
 
-            // Handle photo upload untuk USER
             if ($request->hasFile('photo')) {
-                // Hapus foto lama dari USER
                 if ($anggota->user->photo && Storage::disk('public')->exists($anggota->user->photo)) {
                     Storage::disk('public')->delete($anggota->user->photo);
                 }
@@ -273,8 +287,7 @@ class AnggotaController extends Controller
 
             $anggota->user->update($userData);
 
-            // 2️⃣ Update Anggota (TANPA name dan photo)
-            $anggotaData = $request->only([
+            $anggota->update($request->only([
                 'id_kartu',
                 'no_telp',
                 'alamat',
@@ -285,10 +298,9 @@ class AnggotaController extends Controller
                 'tgl_lahir',
                 'tgl_daftar',
                 'jenis_kelamin',
-                'riwayat_kesehatan'
-            ]);
-
-            $anggota->update($anggotaData);
+                'riwayat_kesehatan',
+                'status_finger',
+            ]));
 
             DB::commit();
 
@@ -296,9 +308,7 @@ class AnggotaController extends Controller
                 ->with('success', 'Anggota berhasil diperbarui.');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Gagal update anggota', [
-                'error' => $e->getMessage()
-            ]);
+            Log::error('Gagal update anggota', ['error' => $e->getMessage()]);
 
             return redirect()->back()
                 ->withInput()
@@ -310,18 +320,14 @@ class AnggotaController extends Controller
     {
         DB::beginTransaction();
         try {
-            // Simpan user untuk dihapus
             $user = $anggota->user;
 
-            // Hapus photo dari USER
             if ($user && $user->photo && Storage::disk('public')->exists($user->photo)) {
                 Storage::disk('public')->delete($user->photo);
             }
 
-            // Hapus anggota
             $anggota->delete();
 
-            // Hapus user
             if ($user) {
                 $user->delete();
             }
@@ -332,9 +338,7 @@ class AnggotaController extends Controller
                 ->with('success', 'Anggota dan akun login berhasil dihapus.');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Gagal hapus anggota', [
-                'error' => $e->getMessage()
-            ]);
+            Log::error('Gagal hapus anggota', ['error' => $e->getMessage()]);
 
             return redirect()->back()
                 ->with('error', 'Gagal menghapus anggota: ' . $e->getMessage());

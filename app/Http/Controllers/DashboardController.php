@@ -15,10 +15,11 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
+        $memberLakiLaki = Anggota::where('jenis_kelamin', 'Laki-laki')->count();
+        $memberPerempuan = Anggota::where('jenis_kelamin', 'Perempuan')->count();
         $totalMember = Anggota::count();
         $memberAktif = Anggota::all()->filter(fn($anggota) => $anggota->status_keanggotaan)->count();
-        $memberInGym = KehadiranMember::with('anggota')
-            ->whereDate('created_at', now()->toDateString())
+        $memberInGym = KehadiranMember::whereDate('created_at', now()->toDateString())
             ->latest()
             ->get()
             ->groupBy('rfid')
@@ -193,7 +194,9 @@ class DashboardController extends Controller
             'currentMonth',
             'totalMember',
             'memberAktif',
-            'memberInGym'
+            'memberInGym',
+            'memberLakiLaki',
+            'memberPerempuan'
         ));
     }
 
@@ -269,21 +272,13 @@ class DashboardController extends Controller
         $perPage = (int) $request->get('perPage', 5);
         $page = (int) $request->get('page', 1);
 
-        $query = KehadiranMember::with('anggota.user')->latest();
+        $query = KehadiranMember::latest();
 
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('rfid', 'like', "%{$search}%")
-                    ->orWhere('status', 'like', "%{$search}%")
-                    ->orWhereIn('rfid', function ($sub) use ($search) {
-                        $sub->select('id_kartu')
-                            ->from('anggotas')
-                            ->whereIn('id', function ($userSub) use ($search) {
-                                $userSub->select('anggota_id')
-                                    ->from('users')
-                                    ->where('name', 'like', "%{$search}%");
-                            });
-                    });
+                    ->orWhere('nama', 'like', "%{$search}%")
+                    ->orWhere('status', 'like', "%{$search}%");
             });
         }
 
@@ -296,7 +291,7 @@ class DashboardController extends Controller
                     'no'     => (($page - 1) * $perPage) + $index + 1,
                     'rfid'   => $item->rfid,
                     'foto'   => $item->foto ? asset('storage/' . $item->foto) : null,
-                    'name'   => $item->anggota?->user?->name ?? '-',
+                    'name'   => $item->nama ?? '-',
                     'status' => $item->status,
                     'time'   => $item->created_at->format('d M Y H:i'),
                 ];
@@ -315,8 +310,7 @@ class DashboardController extends Controller
 
         $today = now()->toDateString();
 
-        $all = KehadiranMember::with('anggota')
-            ->whereDate('created_at', $today)
+        $all = KehadiranMember::whereDate('created_at', $today)
             ->latest()
             ->get()
             ->groupBy('rfid')
@@ -328,7 +322,7 @@ class DashboardController extends Controller
             $s = strtolower($search);
             $all = $all->filter(function ($item) use ($s) {
                 return str_contains(strtolower($item->rfid ?? ''), $s)
-                    || str_contains(strtolower($item->anggota?->name ?? ''), $s)
+                    || str_contains(strtolower($item->nama ?? ''), $s)
                     || str_contains(strtolower($item->status ?? ''), $s);
             })->values();
         }
@@ -342,7 +336,7 @@ class DashboardController extends Controller
                     'no'     => (($page - 1) * $perPage) + $index + 1,
                     'rfid'   => $item->rfid,
                     'foto'   => $item->foto ? asset('storage/' . $item->foto) : null,
-                    'name'   => $item->anggota?->name ?? '-',
+                    'name'   => $item->nama ?? '-',
                     'status' => $item->status,
                     'time'   => $item->created_at->format('d M Y H:i'),
                 ];

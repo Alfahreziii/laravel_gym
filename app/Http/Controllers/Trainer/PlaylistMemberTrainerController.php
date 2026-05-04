@@ -19,11 +19,11 @@ class PlaylistMemberTrainerController extends Controller
     private function getTrainerId()
     {
         $trainerId = Auth::user()->trainer_id;
-        
+
         if (!$trainerId) {
             throw new \Exception('User ini tidak memiliki data trainer');
         }
-        
+
         return $trainerId;
     }
 
@@ -34,16 +34,14 @@ class PlaylistMemberTrainerController extends Controller
     {
         try {
             $trainerId = $this->getTrainerId();
-            
-            // Cari trainer
+
             $trainer = Trainer::findOrFail($trainerId);
-            
-            // Ambil member yang sedang dalam sesi aktif
+
             $activeMember = MemberTrainer::with(['anggota', 'paketPersonalTrainer'])
                 ->where('id_trainer', $trainerId)
                 ->where('is_session_active', true)
                 ->first();
-            
+
             if (!$activeMember) {
                 return view('pages.trainer.monitoring', [
                     'trainer' => $trainer,
@@ -53,21 +51,18 @@ class PlaylistMemberTrainerController extends Controller
                     'sesiKe' => null
                 ]);
             }
-            
-            // Ambil semua playlist trainer
+
             $playlists = PlaylistTrainer::where('id_trainer', $trainerId)->get();
-            
-            // Hitung sesi ke berapa untuk member ini
+
             $sesiKe = $activeMember->paketPersonalTrainer->jumlah_sesi - $activeMember->sesi + 1;
-            
-            // Ambil playlist yang sudah disimpan untuk sesi ini (dengan keterangan)
+
+            // keyBy 'latihan' karena sudah tidak ada id_playlist_trainer
             $savedPlaylists = PlaylistMemberTrainer::where('id_member_trainer', $activeMember->id)
                 ->where('sesi_ke', $sesiKe)
                 ->get()
-                ->keyBy('id_playlist_trainer');
-            
+                ->keyBy('latihan');
+
             return view('pages.trainer.monitoring', compact('trainer', 'activeMember', 'playlists', 'savedPlaylists', 'sesiKe'));
-            
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', 'Error: ' . $e->getMessage());
@@ -94,33 +89,42 @@ class PlaylistMemberTrainerController extends Controller
         DB::beginTransaction();
         try {
             $trainerId = $this->getTrainerId();
-            
-            // Validasi bahwa member trainer ini milik trainer yang login
+
             $memberTrainer = MemberTrainer::where('id', $request->id_member_trainer)
                 ->where('id_trainer', $trainerId)
                 ->where('is_session_active', true)
                 ->firstOrFail();
-            
-            // Hapus semua playlist lama untuk sesi ini (fresh start)
-            PlaylistMemberTrainer::where('id_member_trainer', $request->id_member_trainer)
+
+            // Ambil latihan yang sudah tersimpan untuk sesi ini
+            $existingLatihanNames = PlaylistMemberTrainer::where('id_member_trainer', $request->id_member_trainer)
                 ->where('sesi_ke', $request->sesi_ke)
-                ->delete();
-            
-            // Simpan semua playlist yang di-checklist
+                ->pluck('latihan')
+                ->toArray();
+
+            // Ambil semua latihan sekaligus
+            $playlistTrainers = PlaylistTrainer::whereIn('id', $request->playlist_ids)
+                ->pluck('latihan', 'id');
+
             foreach ($request->playlist_ids as $playlistId) {
+                $namaLatihan = $playlistTrainers[$playlistId] ?? 'Latihan tidak ditemukan';
+
+                // Skip jika sudah tersimpan (hindari duplikat)
+                if (in_array($namaLatihan, $existingLatihanNames)) {
+                    continue;
+                }
+
                 PlaylistMemberTrainer::create([
                     'id_member_trainer' => $request->id_member_trainer,
-                    'id_playlist_trainer' => $playlistId,
+                    'latihan' => $namaLatihan,
                     'sesi_ke' => $request->sesi_ke,
                     'keterangan' => $request->keterangan[$playlistId] ?? null,
                     'completed' => true,
                 ]);
             }
-            
+
             DB::commit();
-            
+
             return redirect()->back()->with('success', 'Playlist training berhasil disimpan!');
-            
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Gagal menyimpan: ' . $e->getMessage());
@@ -134,28 +138,26 @@ class PlaylistMemberTrainerController extends Controller
     {
         $request->validate([
             'id_member_trainer' => 'required|exists:member_trainers,id',
-            'id_playlist_trainer' => 'required|exists:playlist_trainers,id',
+            'latihan' => 'required|string',
             'sesi_ke' => 'required|integer|min:1',
         ]);
 
         DB::beginTransaction();
         try {
             $trainerId = $this->getTrainerId();
-            
-            // Validasi bahwa member trainer ini milik trainer yang login
+
             $memberTrainer = MemberTrainer::where('id', $request->id_member_trainer)
                 ->where('id_trainer', $trainerId)
                 ->where('is_session_active', true)
                 ->firstOrFail();
-            
-            // Hapus data
+
             $deleted = PlaylistMemberTrainer::where('id_member_trainer', $request->id_member_trainer)
-                ->where('id_playlist_trainer', $request->id_playlist_trainer)
+                ->where('latihan', $request->latihan)
                 ->where('sesi_ke', $request->sesi_ke)
                 ->delete();
-            
+
             DB::commit();
-            
+
             if ($deleted) {
                 return response()->json([
                     'success' => true,
@@ -167,7 +169,6 @@ class PlaylistMemberTrainerController extends Controller
                     'message' => 'Playlist tidak ditemukan'
                 ], 404);
             }
-            
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -182,7 +183,6 @@ class PlaylistMemberTrainerController extends Controller
      */
     public function updateKeterangan(Request $request)
     {
-        // Method ini tidak diperlukan lagi karena menggunakan submit form
         return response()->json([
             'success' => false,
             'message' => 'Method tidak digunakan'
@@ -196,25 +196,21 @@ class PlaylistMemberTrainerController extends Controller
     {
         try {
             $trainerId = $this->getTrainerId();
-            
-            // Cari trainer
+
             $trainer = Trainer::findOrFail($trainerId);
-            
-            // Ambil data member trainer (langsung berdasarkan ID member_trainer)
+
             $memberTrainer = MemberTrainer::with(['anggota', 'paketPersonalTrainer'])
                 ->where('id', $memberTrainerId)
                 ->where('id_trainer', $trainerId)
                 ->firstOrFail();
-            
-            // Ambil semua riwayat playlist yang sudah dilakukan, dikelompokkan per sesi
-            $history = PlaylistMemberTrainer::with('playlistTrainer')
-                ->where('id_member_trainer', $memberTrainer->id)
+
+            // Hapus with('playlistTrainer') karena relasi sudah tidak ada
+            $history = PlaylistMemberTrainer::where('id_member_trainer', $memberTrainer->id)
                 ->orderBy('sesi_ke', 'asc')
                 ->get()
                 ->groupBy('sesi_ke');
-            
+
             return view('pages.trainer.playlistmembertrainer.index', compact('trainer', 'memberTrainer', 'history'));
-            
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', 'Error: ' . $e->getMessage());

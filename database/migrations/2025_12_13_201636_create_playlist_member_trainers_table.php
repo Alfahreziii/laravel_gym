@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('id_playlist_trainer')->constrained('playlist_trainers')->onDelete('cascade');
             $table->foreignId('id_member_trainer')->constrained('member_trainers')->onDelete('cascade');
-            $table->string('keterangan', 100);
+            $table->text('keterangan')->nullable();
             $table->integer('sesi_ke');
             $table->timestamps();
         });

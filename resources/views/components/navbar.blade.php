@@ -25,9 +25,8 @@
                     @php
                         $totalNotifications = 0;
 
-                        // Hitung notifikasi berdasarkan role
                         if (Auth::user()->hasRole(['admin', 'spv'])) {
-                            $totalNotifications = $lowStockProducts->count();
+                            $totalNotifications = $lowStockProducts->count() + $expiringMemberships->count();
                         } elseif (Auth::user()->hasRole('trainer')) {
                             $totalNotifications = $trainerNotifications->count();
                         }
@@ -49,7 +48,7 @@
                             {{-- Notifikasi untuk Admin & SPV --}}
                             @if (Auth::user()->hasRole(['admin', 'spv']))
                                 @forelse($lowStockProducts as $product)
-                                    <a href="javascript:void(0)"
+                                    <a href="{{ route('products.index') }}" {{-- ← tambah link ke halaman produk --}}
                                         class="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-600 justify-between gap-1">
                                         <div class="flex items-center gap-3">
                                             <div
@@ -70,11 +69,49 @@
                                     </a>
                                 @empty
                                     <div class="text-center py-3 text-sm text-neutral-500">
-                                        Semua stok aman ✅
+                                        Tidak ada notifikasi 🎉
                                     </div>
                                 @endforelse
                             @endif
 
+                            {{-- Notifikasi Membership Hampir Habis untuk Admin & SPV --}}
+                            @if (Auth::user()->hasRole(['admin', 'spv']))
+                                @if ($expiringMemberships->count() > 0)
+                                    <div
+                                        class="px-4 py-2 text-xs font-semibold text-neutral-400 uppercase tracking-wider border-t border-neutral-100">
+                                        Membership Hampir Habis
+                                    </div>
+                                    @foreach ($expiringMemberships as $membership)
+                                        @php
+                                            $sisaHari = \Carbon\Carbon::today()->diffInDays($membership->tgl_selesai);
+                                        @endphp
+                                        <a href="{{ route('anggota_membership.edit', $membership->id) }}"
+                                            {{-- ← edit karena show tidak ada --}}
+                                            class="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-600 justify-between gap-1">
+                                            <div class="flex items-center gap-3">
+                                                <div
+                                                    class="flex-shrink-0 relative w-11 h-11 bg-danger-100 text-danger-600 flex justify-center items-center rounded-full">
+                                                    <iconify-icon icon="mdi:calendar-clock"
+                                                        class="text-2xl"></iconify-icon>
+                                                </div>
+                                                <div>
+                                                    <h6 class="text-sm fw-semibold mb-1">
+                                                        {{ $membership->anggota->name }}</h6>
+                                                    <p class="mb-0 text-sm line-clamp-1">
+                                                        Berakhir: {{ $membership->tgl_selesai->format('d M Y') }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="shrink-0">
+                                                <span
+                                                    class="text-sm {{ $sisaHari <= 2 ? 'text-danger-600 font-semibold' : 'text-warning-500' }}">
+                                                    {{ $sisaHari == 0 ? 'Hari ini' : $sisaHari . ' hari lagi' }}
+                                                </span>
+                                            </div>
+                                        </a>
+                                    @endforeach
+                                @endif
+                            @endif
                             {{-- Notifikasi untuk Trainer --}}
                             @if (Auth::user()->hasRole('trainer'))
                                 @forelse($trainerNotifications as $notif)

@@ -22,18 +22,17 @@ class TrainerDashboardController extends Controller
     {
         // Asumsi: User login memiliki relasi ke Trainer (sesuaikan dengan sistem Anda)
         $user = Auth::user();
-        
+
         // Cari trainer berdasarkan user login (bisa pakai email, atau field lain)
         // Sesuaikan dengan struktur database Anda
         $trainer = Trainer::where('id', $user->trainer_id ?? 0)->first();
-        
+
         if (!$trainer) {
             return redirect()->back()->with('error', 'Anda tidak terdaftar sebagai trainer.');
         }
 
         // Ambil member yang hadir hari ini dengan status 'in'
-        $memberInGymToday = KehadiranMember::with('anggota')
-            ->whereDate('created_at', now()->toDateString())
+        $memberInGymToday = KehadiranMember::whereDate('created_at', now()->toDateString())
             ->latest()
             ->get()
             ->groupBy('rfid')
@@ -41,19 +40,18 @@ class TrainerDashboardController extends Controller
             ->filter(fn($item) => strtolower($item->status) === 'in')
             ->pluck('rfid')
             ->toArray();
-
         // Ambil semua member yang dilatih trainer ini dengan filter:
         // 1. Hari ini berada di antara tgl_mulai dan tgl_selesai
         // 2. Sesi masih tersisa (sesi > 0)
         $today = now()->toDateString();
-        
+
         $memberTrainers = MemberTrainer::with(['anggota', 'paketPersonalTrainer', 'sesiLogs'])
             ->where('id_trainer', $trainer->id)
             ->whereDate('tgl_mulai', '<=', $today)
             ->whereDate('tgl_selesai', '>=', $today)
             ->where('sesi', '>', 0)
             ->get()
-            ->map(function($mt) use ($memberInGymToday) {
+            ->map(function ($mt) use ($memberInGymToday) {
                 // Tambahkan properti is_checked_in untuk setiap member
                 // Kolom di anggota: id_kartu, kolom di kehadiran_member: rfid
                 $mt->is_checked_in = in_array($mt->anggota->id_kartu ?? null, $memberInGymToday);
@@ -125,7 +123,6 @@ class TrainerDashboardController extends Controller
             DB::commit();
 
             return redirect()->back()->with('success', 'Sesi training dimulai untuk ' . $memberTrainer->anggota->name);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Gagal memulai sesi', ['error' => $e->getMessage()]);
@@ -150,8 +147,8 @@ class TrainerDashboardController extends Controller
             }
 
             // Hitung durasi sesi
-            $duration = $memberTrainer->session_started_at 
-                ? now()->diffInMinutes($memberTrainer->session_started_at) 
+            $duration = $memberTrainer->session_started_at
+                ? now()->diffInMinutes($memberTrainer->session_started_at, true)
                 : 0;
 
             // ✅ PERBAIKAN: Kurangi sisa sesi (decrement, bukan increment!)
@@ -188,7 +185,6 @@ class TrainerDashboardController extends Controller
             DB::commit();
 
             return redirect()->back()->with('success', 'Sesi training selesai untuk ' . $memberTrainer->anggota->name . '. Durasi: ' . $duration . ' menit.');
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Gagal menyelesaikan sesi', ['error' => $e->getMessage()]);

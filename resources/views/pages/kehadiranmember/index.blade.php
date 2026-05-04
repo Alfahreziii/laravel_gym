@@ -153,7 +153,7 @@
                                                 </div>
                                             @endif
                                             <div>
-                                                <div class="font-semibold text-sm">{{ $item->anggota->user->name }}</div>
+                                                <div class="font-semibold text-sm">{{ $item->nama ?? '-' }}</div>
                                                 <div class="text-xs text-neutral-500">
                                                     {{ $item->created_at->format('H:i:s') }}</div>
                                             </div>

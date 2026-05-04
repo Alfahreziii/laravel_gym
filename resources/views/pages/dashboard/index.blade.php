@@ -19,13 +19,45 @@
                         <iconify-icon icon="gridicons:multiple-users" class="text-white text-2xl mb-0"></iconify-icon>
                     </div>
                 </div>
-                <p class="font-medium text-sm text-neutral-600 mt-3 mb-0 flex items-center gap-2">
-                    <span class="inline-flex items-center gap-1 text-success-600"><iconify-icon icon="bxs:up-arrow"
-                            class="text-xs"></iconify-icon> +4000</span>
-                    Last 30 days users
-                </p>
             </div>
         </div><!-- card end -->
+        {{-- Card Laki-laki --}}
+        <div
+            class="card shadow-none border border-gray-200 rounded-lg h-full bg-gradient-to-r from-green-600/10 to-bg-white">
+            <div class="card-body p-5">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <p class="font-medium text-neutral-900 mb-1">Member Laki-laki</p>
+                        <h6 class="mb-0">{{ number_format($memberLakiLaki, 0, ',', '.') }}</h6>
+                    </div>
+                    <div class="w-[50px] h-[50px] bg-green-600 rounded-full flex justify-center items-center">
+                        <iconify-icon icon="fa-solid:male" class="text-white text-2xl mb-0"></iconify-icon>
+                    </div>
+                </div>
+                <p class="font-medium text-sm text-neutral-600 mt-3 mb-0">
+                    {{ $totalMember > 0 ? round(($memberLakiLaki / $totalMember) * 100, 1) : 0 }}% dari total member
+                </p>
+            </div>
+        </div>
+
+        {{-- Card Perempuan --}}
+        <div
+            class="card shadow-none border border-gray-200 rounded-lg h-full bg-gradient-to-r from-pink-600/10 to-bg-white">
+            <div class="card-body p-5">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <p class="font-medium text-neutral-900 mb-1">Member Perempuan</p>
+                        <h6 class="mb-0">{{ number_format($memberPerempuan, 0, ',', '.') }}</h6>
+                    </div>
+                    <div class="w-[50px] h-[50px] bg-pink-600 rounded-full flex justify-center items-center">
+                        <iconify-icon icon="fa-solid:female" class="text-white text-2xl mb-0"></iconify-icon>
+                    </div>
+                </div>
+                <p class="font-medium text-sm text-neutral-600 mt-3 mb-0">
+                    {{ $totalMember > 0 ? round(($memberPerempuan / $totalMember) * 100, 1) : 0 }}% dari total member
+                </p>
+            </div>
+        </div>
         <div
             class="card shadow-none border border-gray-200 rounded-lg h-full bg-gradient-to-r from-purple-600/10 to-bg-white">
             <div class="card-body p-5">
@@ -52,11 +84,6 @@
                         <iconify-icon icon="fluent:people-20-filled" class="text-white text-2xl mb-0"></iconify-icon>
                     </div>
                 </div>
-                <p class="font-medium text-sm text-neutral-600 mt-3 mb-0 flex items-center gap-2">
-                    <span class="inline-flex items-center gap-1 text-success-600"><iconify-icon icon="bxs:up-arrow"
-                            class="text-xs"></iconify-icon> +200</span>
-                    Last 30 days users
-                </p>
             </div>
         </div><!-- card end -->
     </div>

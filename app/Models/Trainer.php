@@ -25,6 +25,7 @@ class Trainer extends Model
         'alamat',
         'sesi_sudah_dijalani',
         'sesi_belum_dijalani',
+        'status_finger',
     ];
 
     protected $casts = [
@@ -71,7 +72,7 @@ class Trainer extends Model
     {
         return $this->hasMany(SesiTrainer::class, 'id_trainer');
     }
-        /**
+    /**
      * Relasi ke PlaylistTrainer
      */
     public function playlists()
@@ -165,7 +166,7 @@ class Trainer extends Model
      */
     public function scopeVerified($query)
     {
-        return $query->whereHas('user', function($q) {
+        return $query->whereHas('user', function ($q) {
             $q->whereNotNull('email_verified_at');
         });
     }

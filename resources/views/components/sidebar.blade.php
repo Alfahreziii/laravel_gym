@@ -375,13 +375,13 @@
                 <li class="dropdown {{ request()->routeIs('trainerplaylist.*') ? 'open' : '' }}">
                     <a href="javascript:void(0)">
                         <iconify-icon icon="solar:document-text-outline" class="menu-icon"></iconify-icon>
-                        <span>PlayList</span>
+                        <span>Buku Jurnal Trainer</span>
                     </a>
                     <ul class="sidebar-submenu">
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('trainerplaylist.*') ? 'active-page' : '' }}"
                                 href="{{ route('trainerplaylist.index') }}">
-                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Playlist Trainer
+                                <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Program Member
                             </a>
                         </li>
                     </ul>

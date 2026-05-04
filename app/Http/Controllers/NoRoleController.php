@@ -16,8 +16,7 @@ class NoRoleController extends Controller
      */
     public function index()
     {
-        $kehadiranmembers = KehadiranMember::with('anggota.user')
-            ->whereDate('created_at', now()->toDateString())
+        $kehadiranmembers = KehadiranMember::whereDate('created_at', now()->toDateString())
             ->latest()
             ->get();
 
@@ -26,30 +25,22 @@ class NoRoleController extends Controller
 
     public function datatable(Request $request)
     {
-        $search = $request->get('search', '');
+        $search  = $request->get('search', '');
         $perPage = (int) $request->get('perPage', 10);
-        $page = (int) $request->get('page', 1);
+        $page    = (int) $request->get('page', 1);
 
-        $query = KehadiranMember::with('anggota.user')->latest();
+        $query = KehadiranMember::latest();
 
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('rfid', 'like', "%{$search}%")
-                    ->orWhere('status', 'like', "%{$search}%")
-                    ->orWhereIn('rfid', function ($sub) use ($search) {
-                        $sub->select('id_kartu')
-                            ->from('anggotas')
-                            ->whereIn('id', function ($userSub) use ($search) {
-                                $userSub->select('anggota_id')
-                                    ->from('users')
-                                    ->where('name', 'like', "%{$search}%");
-                            });
-                    });
+                    ->orWhere('nama', 'like', "%{$search}%")
+                    ->orWhere('status', 'like', "%{$search}%");
             });
         }
 
         $total = (clone $query)->count();
-        $data = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
+        $data  = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
 
         return response()->json([
             'data' => $data->map(function ($item, $index) use ($page, $perPage) {
@@ -58,7 +49,7 @@ class NoRoleController extends Controller
                     'id'         => $item->id,
                     'rfid'       => $item->rfid,
                     'foto'       => $item->foto ? asset('storage/' . $item->foto) : null,
-                    'name'       => $item->anggota?->user?->name ?? '-',
+                    'name'       => $item->nama ?? '-',
                     'status'     => $item->status,
                     'date'       => $item->created_at->format('d/m/Y'),
                     'time'       => $item->created_at->format('H:i:s'),
@@ -82,10 +73,8 @@ class NoRoleController extends Controller
             'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        // NORMALISASI RFID: Ubah ke uppercase untuk konsistensi
         $rfid = strtoupper(trim($request->rfid, '0'));
 
-        // Cek apakah kartu terdaftar (case-insensitive)
         $anggota = Anggota::whereRaw('UPPER(id_kartu) = ?', [$rfid])->first();
 
         if (!$anggota) {
@@ -95,16 +84,13 @@ class NoRoleController extends Controller
 
         $today = now()->toDateString();
 
-        // Cari kehadiran terakhir dengan case-insensitive
         $lastAttendance = KehadiranMember::whereRaw('UPPER(rfid) = ?', [$rfid])
             ->whereDate('created_at', $today)
             ->orderByDesc('created_at')
             ->first();
 
-        // Tentukan status otomatis (in/out)
         $status = (!$lastAttendance || $lastAttendance->status === 'out') ? 'in' : 'out';
 
-        // Upload foto jika ada
         $fotoPath = null;
         if ($request->hasFile('foto')) {
             $fotoPath = $request->file('foto')->store('kehadiran_foto', 'public');
@@ -112,7 +98,8 @@ class NoRoleController extends Controller
 
         try {
             KehadiranMember::create([
-                'rfid'   => $anggota->id_kartu, // Gunakan ID kartu asli dari database
+                'rfid'   => $anggota->id_kartu,
+                'nama'   => $anggota->name,
                 'status' => $status,
                 'foto'   => $fotoPath,
             ]);
@@ -131,7 +118,6 @@ class NoRoleController extends Controller
     public function destroy(KehadiranMember $kehadiranmember)
     {
         try {
-            // Hapus foto jika ada
             if ($kehadiranmember->foto && Storage::disk('public')->exists($kehadiranmember->foto)) {
                 Storage::disk('public')->delete($kehadiranmember->foto);
             }
@@ -150,8 +136,54 @@ class NoRoleController extends Controller
      */
     public function indextrainer()
     {
-        $kehadirantrainers = KehadiranTrainer::with('trainer')->latest()->get();
+        $kehadirantrainers = KehadiranTrainer::whereDate('created_at', now()->toDateString())
+            ->latest()
+            ->get();
+
         return view('pages.norole.kehadirantrainer', compact('kehadirantrainers'));
+    }
+
+    /**
+     * Datatable untuk absensi trainer
+     */
+    public function datatabletrainer(Request $request)
+    {
+        $search  = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page    = (int) $request->get('page', 1);
+
+        $query = KehadiranTrainer::latest();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('rfid', 'like', "%{$search}%")
+                    ->orWhere('nama', 'like', "%{$search}%")
+                    ->orWhere('status', 'like', "%{$search}%");
+            });
+        }
+
+        $total = (clone $query)->count();
+        $data  = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        return response()->json([
+            'data' => $data->map(function ($item, $index) use ($page, $perPage) {
+                return [
+                    'no'         => (($page - 1) * $perPage) + $index + 1,
+                    'id'         => $item->id,
+                    'rfid'       => $item->rfid,
+                    'foto'       => $item->foto ? asset('storage/' . $item->foto) : null,
+                    'name'       => $item->nama ?? '-',
+                    'status'     => $item->status,
+                    'date'       => $item->created_at->format('d/m/Y'),
+                    'time'       => $item->created_at->format('H:i:s'),
+                    'delete_url' => route('absentrainer.destroy', $item->id),
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
     }
 
     /**
@@ -164,10 +196,7 @@ class NoRoleController extends Controller
             'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        // NORMALISASI RFID untuk trainer juga
-        $rfid = strtoupper(trim($request->rfid));
-
-        // Cek apakah kartu ada di tabel trainers (case-insensitive)
+        $rfid = strtoupper(trim($request->rfid, '0'));
         $trainer = Trainer::whereRaw('UPPER(rfid) = ?', [$rfid])->first();
 
         if (!$trainer) {
@@ -182,10 +211,8 @@ class NoRoleController extends Controller
             ->orderByDesc('created_at')
             ->first();
 
-        // Tentukan status otomatis (in/out)
         $status = (!$lastAttendance || $lastAttendance->status === 'out') ? 'in' : 'out';
 
-        // Upload foto jika ada
         $fotoPath = null;
         if ($request->hasFile('foto')) {
             $fotoPath = $request->file('foto')->store('kehadiran_foto', 'public');
@@ -193,7 +220,8 @@ class NoRoleController extends Controller
 
         try {
             KehadiranTrainer::create([
-                'rfid'   => $trainer->rfid, // Gunakan RFID asli dari database
+                'rfid'   => $trainer->rfid,
+                'nama'   => $trainer->name,
                 'status' => $status,
                 'foto'   => $fotoPath,
             ]);

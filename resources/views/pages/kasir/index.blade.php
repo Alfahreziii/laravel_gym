@@ -130,7 +130,7 @@
             });
         });
     </script>
-<script src="' . asset('assets/js/data-table.js') . '"></script>
+<script src="{{ asset('assets/js/data-table.js') }}"></script>
 </head>
 <body class="dark:bg-neutral-800 bg-neutral-100">
     <div class="flex">
@@ -250,15 +250,14 @@
                                                 <td class="whitespace-nowrap flex gap-2 items-center justify-center">
                                                     <button 
                                                         type="button" 
-                                                        data-modal-target="tambah-product-modal-{{ $product->id }}" 
-                                                        data-modal-toggle="tambah-product-modal-{{ $product->id }}"
+                                                        data-modal-id="tambah-product-modal-{{ $product->id }}"
                                                         data-name="{{ $product->name }}"
                                                         data-price="{{ $product->price }}"
                                                         data-discount="{{ $product->discount }}"
                                                         data-discount_type="{{ $product->discount_type }}"
                                                         data-image="{{ $product->image }}"
                                                         data-category="{{ $product->kategori->name }}"
-                                                        class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
+                                                        class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center btn-open-product-modal">
                                                         <i class="ri-shopping-bag-fill"></i>
                                                     </button>
                                                 </td>
@@ -285,40 +284,50 @@
                                         </div>
 
                                         <div class="p-6">
-                                            <form 
-                                                data-product-id="{{ $product->id }}"  
-                                                data-name="{{ $product->name }}"
-                                                data-price="{{ $product->price }}"
-                                                data-discount="{{ $product->discount }}"
-                                                data-discount_type="{{ $product->discount_type }}"
-                                                data-image="{{ $product->image }}"
-                                                data-category="{{ $product->kategori->name ?? 'ada nih' }}"
-                                                class="form-tambah-cart">
+<form 
+    data-product-id="{{ $product->id }}"  
+    data-name="{{ $product->name }}"
+    data-price="{{ $product->price }}"
+    data-discount="{{ $product->discount }}"
+    data-discount_type="{{ $product->discount_type }}"
+    data-image="{{ $product->image }}"
+    data-category="{{ $product->kategori->name ?? 'ada nih' }}"
+    class="form-tambah-cart">
 
-                                                @csrf
-                                                @method('PUT')
+    @csrf
+    @method('PUT')
 
-                                                <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-                                                    <div class="col-span-12">
-                                                        <label for="quantity_{{ $product->id }}" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
-                                                            Quantity
-                                                        </label>
-                                                        <input type="text" id="quantity_{{ $product->id }}" name="qty"
-                                                            class="form-control rounded-lg" required>
-                                                    </div>
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+        <div class="col-span-12">
+            <label for="quantity_{{ $product->id }}" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
+                Quantity
+            </label>
+            <input type="text" id="quantity_{{ $product->id }}" name="qty"
+                class="form-control rounded-lg" required>
+        </div>
 
-                                                    <div class="col-span-12 mt-4 flex items-center gap-3">
-                                                        <button type="button" data-modal-hide="tambah-product-modal-{{ $product->id }}"
-                                                            class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
-                                                            Cancel
-                                                        </button>
-                                                        <button type="submit" data-modal-hide="tambah-product-modal-{{ $product->id }}"
-                                                            class="btn btn-primary border border-primary-600 text-base px-6 py-3 rounded-lg">
-                                                            Tambah
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </form>
+        {{-- TAMBAH FIELD INI --}}
+        <div class="col-span-12">
+            <label for="keterangan_{{ $product->id }}" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
+                Keterangan (Opsional)
+            </label>
+            <textarea id="keterangan_{{ $product->id }}" name="keterangan" 
+                class="form-control rounded-lg" rows="3" 
+                placeholder="Catatan tambahan untuk item ini..."></textarea>
+        </div>
+
+        <div class="col-span-12 mt-4 flex items-center gap-3">
+            <button type="button" data-modal-hide="tambah-product-modal-{{ $product->id }}"
+                class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
+                Cancel
+            </button>
+            <button type="submit" data-modal-hide="tambah-product-modal-{{ $product->id }}"
+                class="btn btn-primary border border-primary-600 text-base px-6 py-3 rounded-lg">
+                Tambah
+            </button>
+        </div>
+    </div>
+</form>
                                         </div>
                                     </div>
                                 </div>
@@ -333,7 +342,14 @@
                     <div class="produk-header flex items-center justify-between">
                         <h6 class="card-title mb-0 text-lg">Detail Items</h6>
                     </div>
-                    
+                            <div class="mt-3 mb-3">
+            <label for="customer_name_cart" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
+                Nama Pelanggan
+            </label>
+            <input type="text" id="customer_name_cart" name="customer_name" 
+                placeholder="Masukkan nama pelanggan"
+                class="form-control rounded-lg text-sm">
+        </div>
                     <!-- tempat item cart muncul -->
                     <div class="produk-body-container mt-3"></div>
 
@@ -381,7 +397,7 @@
                         <button id="btn-empty-cart" class="w-full py-2 bg-danger-600 text-white rounded-lg">Empty <i class="ri-delete-bin-line"></i></button>
 
                         <button id="moreToggle"
-                            class="w-full flex justify-center items-center py-2 bg-warning-600 text-white rounded-lg gap-1 relative btn-hold-items"
+                            class="w-full flex justify-center items-center py-2 bg-warning-600 text-white rounded-lg gap-1 relative"
                             type="button">
                             More
                             <iconify-icon id="chevronMore" icon="mdi:chevron-down" class="text-lg transition-transform duration-200"></iconify-icon>
@@ -424,11 +440,13 @@
                             <th>Aksi</th>
                             <th>No</th>
                             <th>Kode Transaksi</th>
+                            <th>Nama Pelanggan</th>
                             <th>Qty</th>
                             <th>Total Sebelum Diskon</th>
                             <th>Total Sesudah Diskon</th>
                             <th>Diskon</th>
                             <th>Diskon Barang</th>
+                            <th>Keterangan</th>
                             <th>Tanggal Hold</th>
                         </tr>
                     </thead>
@@ -574,6 +592,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let currentTransactionId = null;
 
     const cartContainer = document.querySelector('.cart-produk .produk-body-container');
+    const customerNameInput = document.getElementById('customer_name_cart'); // ← TAMBAH INI
     const totalItemEl = document.querySelector('.produk-footer .total-items');
     const totalHargaEl = document.querySelector('.produk-footer .total-harga');
     const totalDiskonEl = document.querySelector('.produk-footer .total-diskon');
@@ -630,12 +649,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                 `;
 
+            const keteranganHTML = item.keterangan 
+                ? `<p class="text-xs text-neutral-400 mt-1 italic">📝 ${item.keterangan}</p>`
+                : '';
+
             cartContainer.innerHTML += `
                 <div class="produk-body flex gap-3 py-2 border-b border-neutral-200">
                     <img src="${imgSrc}" alt="${item.name}" class="rounded w-12 h-12 object-cover">
                     <div class="w-full">
                         <h5 class="font-semibold text-sm">${item.name}</h5>
                         <p class="text-xs text-neutral-500">${item.kategori?.name ?? ''}</p>
+                        ${keteranganHTML}
                         <div class="flex items-center justify-between gap-3 mt-2 w-full">
                             <div class="flex items-center gap-2">
                                 <button class="minus w-6 h-6 text-primary-600 border border-primary-600 rounded flex items-center justify-center" data-id="${item.id}">-</button>
@@ -650,7 +674,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         diskonBarang = totalItemDiscount;
-
         const totalDiskonAll = totalItemDiscount + (Number(diskon) || 0);
         const finalTotal = Math.max(totalBeforeDiscount - totalDiskonAll, 0);
 
@@ -666,56 +689,69 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             totalTagihanEl.innerText = 'Rp ' + formatRp(finalTotal);
         }
-
-        document.querySelectorAll('.plus').forEach(btn => {
-            btn.addEventListener('click', () => adjustQty(btn.dataset.id, 1));
-        });
-        document.querySelectorAll('.minus').forEach(btn => {
-            btn.addEventListener('click', () => adjustQty(btn.dataset.id, -1));
-        });
     }
 
-    // === Tambah ke Cart dari Modal ===
-    document.querySelectorAll('.form-tambah-cart').forEach(form => {
-        form.addEventListener('submit', function (e) {
-            e.preventDefault();
+    // Event delegation untuk tombol +/-
+    cartContainer.addEventListener('click', function(e) {
+        const plusBtn = e.target.closest('.plus');
+        const minusBtn = e.target.closest('.minus');
+        if (plusBtn) adjustQty(plusBtn.dataset.id, 1);
+        if (minusBtn) adjustQty(minusBtn.dataset.id, -1);
+    });
 
-            const productId = this.dataset.productId;
-            const productName = this.dataset.name;
-            const image = this.dataset.image;
-            const categoryName = this.dataset.category;
-            const price = parseFloat(this.dataset.price) || 0;
-            const discount = parseFloat(this.dataset.discount) || 0;
-            const discount_type = this.dataset.discount_type || '';
-            const qty = parseInt(this.querySelector('input[name="qty"]').value) || 1;
+    // === Event delegation untuk form tambah cart ===
+    document.addEventListener('submit', function(e) {
+        const form = e.target.closest('.form-tambah-cart');
+        if (!form) return;
+        e.preventDefault();
 
-            const existing = cart.find(p => p.id === productId);
-            if (existing) {
-                existing.qty += qty;
-            } else {
-                cart.push({
-                    id: productId,
-                    name: productName,
-                    qty,
-                    price,
-                    discount,
-                    discount_type,
-                    kategori: { name: categoryName },
-                    image
-                });
-            }
+        const productId = String(form.dataset.productId);
+        const productName = form.dataset.name;
+        const image = form.dataset.image;
+        const categoryName = form.dataset.category;
+        const price = parseFloat(form.dataset.price) || 0;
+        const discount = parseFloat(form.dataset.discount) || 0;
+        const discount_type = form.dataset.discount_type || '';
+        const qty = parseInt(form.querySelector('input[name="qty"]').value) || 1;
+        const keterangan = form.querySelector('textarea[name="keterangan"]').value || '';
 
-            updateCartUI();
-            this.closest('[id^="tambah-product-modal"]').classList.add('hidden');
-        });
+        const existing = cart.find(p => p.id === productId);
+        if (existing) {
+            existing.qty += qty;
+            existing.keterangan = keterangan;
+        } else {
+            cart.push({
+                id: productId,
+                name: productName,
+                qty,
+                price,
+                discount,
+                discount_type,
+                kategori: { name: categoryName },
+                image,
+                keterangan,
+            });
+        }
+
+        form.querySelector('input[name="qty"]').value = '';
+        form.querySelector('textarea[name="keterangan"]').value = '';
+
+        const modalId = 'tambah-product-modal-' + form.dataset.productId;
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        updateCartUI();
     });
 
     function adjustQty(id, delta) {
-        const item = cart.find(p => p.id === id);
+        const item = cart.find(p => p.id == id);
         if (!item) return;
         item.qty += delta;
         if (item.qty <= 0) {
-            cart = cart.filter(p => p.id !== id);
+            cart = cart.filter(p => p.id != id);
         }
         updateCartUI();
     }
@@ -736,6 +772,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (result.isConfirmed) {
                 cart = [];
                 diskon = 0;
+                if (customerNameInput) customerNameInput.value = '';
                 updateCartUI();
                 Swal.fire('Berhasil', 'Cart dikosongkan', 'success');
             }
@@ -743,36 +780,52 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // === Tombol Hold Transaksi ===
-    document.querySelector('.btn-hold').addEventListener('click', function () {
-        if (cart.length === 0) {
-            Swal.fire('Kosong', 'Tidak ada item dalam cart!', 'warning');
-            return;
-        }
-
-        fetch('{{ route("kasir.hold") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify({ 
-                cart, 
-                diskon, 
-                diskon_barang: diskonBarang
+    const btnHold = document.querySelector('.btn-hold');
+    if (btnHold) {
+        btnHold.addEventListener('click', function () {
+            if (cart.length === 0) {
+                Swal.fire('Kosong', 'Tidak ada item dalam cart!', 'warning');
+                return;
+            }
+            
+            const currentCustomerName = customerNameInput ? customerNameInput.value.trim() : '';
+         
+            fetch('{{ route("kasir.hold") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    cart,
+                    diskon,
+                    diskon_barang: diskonBarang,
+                    customer_name: currentCustomerName,
+                    old_transaction_id: currentTransactionId ?? null
+                })
             })
-        })
-        .then(res => res.json())
-        .then(data => {
-            Swal.fire('Tersimpan', 'Transaksi di-hold!', 'success');
-            cart = [];
-            diskon = 0;
-            updateCartUI();
-        })
-        .catch(err => {
-            console.error(err);
-            Swal.fire('Error', 'Gagal menyimpan transaksi!', 'error');
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        title: 'Tersimpan',
+                        text: 'Transaksi di-hold!',
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire('Gagal', data.message || 'Gagal menyimpan hold.', 'error');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                Swal.fire('Error', 'Gagal menyimpan transaksi!', 'error');
+            });
         });
-    });
+    }
 
     // === Form Diskon ===
     const formDiskon = document.querySelector('#diskon-modal form');
@@ -822,6 +875,32 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // === Buka modal produk manual ===
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('.btn-open-product-modal');
+        if (!btn) return;
+        
+        const modalId = btn.dataset.modalId;
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+    });
+
+    // === Tutup modal produk ===
+    document.addEventListener('click', function(e) {
+        const hideBtn = e.target.closest('[data-modal-hide^="tambah-product-modal"]');
+        if (!hideBtn) return;
+
+        const modalId = hideBtn.dataset.modalHide;
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    });
+
     // === Auto hitung kembalian ===
     document.getElementById('bayar').addEventListener('input', function () {
         const totalBayar = parseInt(this.value.replace(/[^\d]/g, '')) || 0;
@@ -833,31 +912,32 @@ document.addEventListener('DOMContentLoaded', function () {
             : '0';
     });
 
-    // === ✅ FORM PEMBAYARAN DENGAN PRINT NOTA (INI YANG BENAR) ===
+    // === FORM PEMBAYARAN ===
     document.getElementById('form-pembayaran').addEventListener('submit', async (e) => {
         e.preventDefault();
-
+    
         if (cart.length === 0) {
             Swal.fire('Kosong', 'Tidak ada item di cart untuk dibayar!', 'warning');
             return;
         }
-
+    
         const metodePembayaran = document.getElementById('metode_pembayaran').value;
         const dibayarkan = parseFloat(document.getElementById('bayar').value.replace(/[^\d]/g, '')) || 0;
         const kembalian = parseFloat(document.getElementById('kembalian').value.replace(/[^\d]/g, '')) || 0;
         const printNota = document.getElementById('print_nota').checked;
-
+        const customerName = customerNameInput ? customerNameInput.value.trim() : '';
+    
         if (!metodePembayaran) {
             Swal.fire('Oops!', 'Pilih metode pembayaran terlebih dahulu.', 'warning');
             return;
         }
-
+    
         const totalTagihan = parseFloat(document.getElementById('total_harus_bayar').value.replace(/[^\d]/g, '')) || 0;
         if (dibayarkan < totalTagihan) {
             Swal.fire('Oops!', 'Jumlah yang dibayarkan kurang dari total tagihan!', 'warning');
             return;
         }
-
+    
         const payload = {
             cart,
             diskon,
@@ -865,6 +945,7 @@ document.addEventListener('DOMContentLoaded', function () {
             metode_pembayaran: metodePembayaran,
             dibayarkan,
             kembalian,
+            customer_name: customerName,
             transaction_id: currentTransactionId ?? null
         };
 
@@ -917,6 +998,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 cart = [];
                 diskon = 0;
                 diskonBarang = 0;
+                if (customerNameInput) customerNameInput.value = '';
                 updateCartUI();
                 currentTransactionId = null;
 
@@ -955,10 +1037,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(data => {
                     const tbody = tableEl.querySelector('tbody');
                     tbody.innerHTML = '';
-
+             
                     data.forEach((transaction, index) => {
                         const totalItems = transaction.items.reduce((sum, item) => sum + parseInt(item.qty), 0);
-
+             
                         tbody.innerHTML += `
                             <tr>
                                 <td class="whitespace-nowrap">
@@ -970,24 +1052,38 @@ document.addEventListener('DOMContentLoaded', function () {
                                     <button 
                                         type="button" 
                                         class="btn-load-cart w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center"
+                                        data-id="${transaction.id}"
                                         data-items='${JSON.stringify(transaction.items)}'
                                         data-diskon="${transaction.diskon}"
-                                        data-diskon-barang="${transaction.diskon_barang}">
+                                        data-diskon-barang="${transaction.diskon_barang}"
+                                        data-customer-name="${transaction.customer_name || ''}">
                                         <i class="ri-shopping-bag-fill"></i>
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        class="btn-delete-hold w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center"
+                                        data-id="${transaction.id}">
+                                        <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
                                     </button>
                                 </td>
                                 <td class="whitespace-nowrap">${index + 1}</td>
                                 <td class="whitespace-nowrap">${transaction.transaction_code}</td>
+                                <td class="whitespace-nowrap">${transaction.customer_name ?? '-'}</td>
                                 <td class="whitespace-nowrap">${totalItems}</td>
                                 <td class="whitespace-nowrap">Rp ${transaction.harga_sebelum_diskon.toLocaleString()}</td>
                                 <td class="whitespace-nowrap">Rp ${transaction.total_amount.toLocaleString()}</td>
                                 <td class="whitespace-nowrap">Rp ${transaction.diskon.toLocaleString()}</td>
                                 <td class="whitespace-nowrap">Rp ${transaction.diskon_barang.toLocaleString()}</td>
+                                <td class="whitespace-nowrap text-xs italic text-neutral-500">
+                                    ${transaction.items.some(it => it.keterangan) 
+                                        ? '📝 Ada catatan' 
+                                        : '-'}
+                                </td>
                                 <td class="whitespace-nowrap">${new Date(transaction.created_at).toLocaleString()}</td>
                             </tr>
                         `;
                     });
-
+             
                     const datatable = new simpleDatatables.DataTable(tableEl, {
                         searchable: true,
                         fixedHeight: true,
@@ -999,13 +1095,12 @@ document.addEventListener('DOMContentLoaded', function () {
                             info: "Menampilkan {start}–{end} dari {rows} data"
                         }
                     });
-
+             
                     tableEl.classList.add('datatable-initialized');
-                    
+             
                     tableEl.querySelectorAll('.btn-view-detail').forEach(btn => {
                         btn.addEventListener('click', () => {
                             const items = JSON.parse(btn.dataset.items);
-                    
                             let html = `
                                 <div class="card border-0 overflow-hidden">
                                     <div class="card-header">
@@ -1016,61 +1111,47 @@ document.addEventListener('DOMContentLoaded', function () {
                                             <table class="table basic-border-table mb-0">
                                                 <thead>
                                                     <tr>
-                                                        <th class="border-r border-neutral-200 last:border-r-0">No</th>
-                                                        <th class="border-r border-neutral-200 last:border-r-0">Nama Produk</th>
-                                                        <th class="border-r border-neutral-200 last:border-r-0">Qty</th>
-                                                        <th class="border-r border-neutral-200 last:border-r-0">Harga</th>
-                                                        <th class="border-r border-neutral-200 last:border-r-0">Diskon per Barang</th>
-                                                        <th class="border-r border-neutral-200 last:border-r-0">Subtotal</th>
+                                                        <th>No</th>
+                                                        <th>Nama Produk</th>
+                                                        <th>Keterangan</th>
+                                                        <th>Qty</th>
+                                                        <th>Harga</th>
+                                                        <th>Diskon per Barang</th>
+                                                        <th>Subtotal</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                             `;
-                    
                             if (items.length > 0) {
-                                items.forEach((it, index) => {
+                                items.forEach((it, i) => {
                                     const subtotal = (it.qty * it.price) - (it.diskon * it.qty);
                                     html += `
                                         <tr>
-                                            <td class="border-r border-neutral-200 last:border-r-0">${index + 1}</td>
-                                            <td class="border-r border-neutral-200 last:border-r-0">${it.product_name}</td>
-                                            <td class="border-r border-neutral-200 last:border-r-0">${it.qty}</td>
-                                            <td class="border-r border-neutral-200 last:border-r-0">Rp ${it.price.toLocaleString('id-ID')}</td>
-                                            <td class="border-r border-neutral-200 last:border-r-0">Rp ${it.diskon.toLocaleString('id-ID')}</td>
-                                            <td class="border-r border-neutral-200 last:border-r-0">Rp ${subtotal.toLocaleString('id-ID')}</td>
+                                            <td>${i + 1}</td>
+                                            <td>${it.product_name}</td>
+                                            <td>${it.keterangan ?? '-'}</td>
+                                            <td>${it.qty}</td>
+                                            <td>Rp ${it.price.toLocaleString('id-ID')}</td>
+                                            <td>Rp ${it.diskon.toLocaleString('id-ID')}</td>
+                                            <td>Rp ${subtotal.toLocaleString('id-ID')}</td>
                                         </tr>
                                     `;
                                 });
                             } else {
-                                html += `
-                                    <tr>
-                                        <td colspan="6" class="text-center py-3">Tidak ada item dalam transaksi ini.</td>
-                                    </tr>
-                                `;
+                                html += `<tr><td colspan="7" class="text-center py-3">Tidak ada item.</td></tr>`;
                             }
-                    
-                            html += `
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                    
-                            Swal.fire({
-                                html: html,
-                                showConfirmButton: true,
-                                confirmButtonText: 'Tutup',
-                                width: '800px',
-                            });
+                            html += `</tbody></table></div></div></div>`;
+                            Swal.fire({ html, showConfirmButton: true, confirmButtonText: 'Tutup', width: '800px' });
                         });
                     });
-                    
+             
                     tableEl.querySelectorAll('.btn-load-cart').forEach(btn => {
                         btn.addEventListener('click', () => {
                             const items = JSON.parse(btn.dataset.items);
+                            const transaksiId = parseInt(btn.dataset.id);
                             const transaksiDiskon = parseFloat(btn.dataset.diskon) || 0;
                             const transaksiDiskonBarang = parseFloat(btn.dataset.diskonBarang) || 0;
+                            const transaksiCustomerName = btn.dataset.customerName || '';
 
                             Swal.fire({
                                 title: 'Ganti Cart Sekarang?',
@@ -1082,7 +1163,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             }).then((result) => {
                                 if (result.isConfirmed) {
                                     cart = items.map(it => ({
-                                        id: it.product_id,
+                                        id: String(it.product_id),
                                         name: it.product_name,
                                         qty: it.qty,
                                         price: it.price,
@@ -1090,11 +1171,14 @@ document.addEventListener('DOMContentLoaded', function () {
                                         discount_type: 'nominal',
                                         kategori: { name: it.kategori ?? '' },
                                         image: it.image ?? null,
+                                        keterangan: it.keterangan ?? '',
                                     }));
 
                                     diskon = transaksiDiskon;
                                     diskonBarang = transaksiDiskonBarang;
-                                    currentTransactionId = items[0]?.transaction_id ?? null;
+                                    currentTransactionId = transaksiId;
+                                    
+                                    if (customerNameInput) customerNameInput.value = transaksiCustomerName;
 
                                     updateCartUI();
 
@@ -1102,6 +1186,47 @@ document.addEventListener('DOMContentLoaded', function () {
                                     if (closeBtn) closeBtn.click();
 
                                     Swal.fire('Berhasil', 'Transaksi berhasil dimuat ke cart!', 'success');
+                                }
+                            });
+                        });
+                    });
+             
+                    tableEl.querySelectorAll('.btn-delete-hold').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const holdId = btn.dataset.id;
+             
+                            Swal.fire({
+                                title: 'Hapus Transaksi Hold?',
+                                text: 'Data hold ini akan dihapus permanen.',
+                                icon: 'warning',
+                                showCancelButton: true,
+                                confirmButtonColor: '#e3342f',
+                                cancelButtonColor: '#6c757d',
+                                confirmButtonText: 'Ya, hapus!',
+                                cancelButtonText: 'Batal',
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    fetch(`/kasir/hold/${holdId}`, {
+                                        method: 'DELETE',
+                                        headers: {
+                                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                            'Accept': 'application/json',
+                                        }
+                                    })
+                                    .then(res => res.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            Swal.fire('Terhapus!', 'Transaksi hold berhasil dihapus.', 'success');
+                                            btn.closest('tr').remove();
+             
+                                            if (currentTransactionId == holdId) {
+                                                currentTransactionId = null;
+                                            }
+                                        } else {
+                                            Swal.fire('Gagal', data.message, 'error');
+                                        }
+                                    })
+                                    .catch(() => Swal.fire('Error', 'Gagal menghubungi server.', 'error'));
                                 }
                             });
                         });

@@ -14,11 +14,10 @@ use Carbon\Carbon;
 class GateController extends Controller
 {
     /**
-     * ABSENSI MELALUI RFID + FOTO
+     * ABSENSI MELALUI RFID + FOTO Buka gate
      */
     public function absen(Request $request)
     {
-        // Validasi input
         $request->validate([
             'kartu' => 'required|string',
         ]);
@@ -26,7 +25,6 @@ class GateController extends Controller
         $rfid = $request->kartu;
         $today = Carbon::today();
 
-        // CARI MEMBER
         $member = Anggota::where('id_kartu', $rfid)->first();
 
         if (!$member) {
@@ -37,7 +35,6 @@ class GateController extends Controller
             ], 404);
         }
 
-        // CARI MEMBERSHIP
         $membership = AnggotaMembership::where('id_anggota', $member->id)
             ->latest()
             ->first();
@@ -50,10 +47,9 @@ class GateController extends Controller
             ], 403);
         }
 
-        $mulai  = Carbon::parse($membership->tgl_mulai);
-        $akhir  = Carbon::parse($membership->tgl_selesai);
+        $mulai = Carbon::parse($membership->tgl_mulai);
+        $akhir = Carbon::parse($membership->tgl_selesai);
 
-        // BELUM AKTIF
         if ($today->lt($mulai)) {
             return response()->json([
                 'success' => false,
@@ -63,7 +59,6 @@ class GateController extends Controller
             ], 403);
         }
 
-        // KADALUARSA
         if ($today->gt($akhir)) {
             return response()->json([
                 'success' => false,
@@ -73,10 +68,6 @@ class GateController extends Controller
             ], 403);
         }
 
-        /**
-         * CEK STATUS TERAKHIR DI KEHADIRAN MEMBER
-         * Jika masih IN → TOLAK
-         */
         $lastPresence = KehadiranMember::where('rfid', $rfid)
             ->whereDate('created_at', $today)
             ->latest()
@@ -90,12 +81,6 @@ class GateController extends Controller
             ], 403);
         }
 
-        /**
-         * Jika semua valid → gate dibuka
-         * Tidak insert ke database
-         * Tidak upload foto
-         */
-
         return response()->json([
             'success' => true,
             'message' => "Selamat Datang, {$member->name}!",
@@ -104,6 +89,228 @@ class GateController extends Controller
         ], 200);
     }
 
+    /**
+     * ABSENSI MELALUI FINGERPRINT — Buka gate + catat kehadiran
+     */
+    /**
+     * ABSENSI MELALUI FINGERPRINT — Buka gate + catat kehadiran
+     * Cek member dulu, jika tidak ditemukan cek trainer
+     */
+    public function absenfinger(Request $request)
+    {
+        $request->validate([
+            'kartu' => 'required|string',
+        ]);
+
+        $rfid = $request->kartu;
+        $today = Carbon::today();
+
+        // ============================================================
+        // CEK MEMBER DULU
+        // ============================================================
+        $member = Anggota::where('id_kartu', $rfid)->first();
+
+        if ($member) {
+            $membership = AnggotaMembership::where('id_anggota', $member->id)
+                ->latest()
+                ->first();
+
+            if (!$membership) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Member ditemukan tapi tidak memiliki paket membership!',
+                    'gate'    => 'tutup'
+                ], 403);
+            }
+
+            $mulai = Carbon::parse($membership->tgl_mulai);
+            $akhir = Carbon::parse($membership->tgl_selesai);
+
+            if ($today->lt($mulai)) {
+                return response()->json([
+                    'success'        => false,
+                    'message'        => 'Membership belum aktif!',
+                    'tanggal_mulai'  => $mulai->format('d-m-Y'),
+                    'gate'           => 'tutup'
+                ], 403);
+            }
+
+            if ($today->gt($akhir)) {
+                return response()->json([
+                    'success'       => false,
+                    'message'       => 'Membership sudah kadaluarsa!',
+                    'tanggal_akhir' => $akhir->format('d-m-Y'),
+                    'gate'          => 'tutup'
+                ], 403);
+            }
+
+            $lastPresence = KehadiranMember::where('rfid', $rfid)
+                ->whereDate('created_at', $today)
+                ->latest()
+                ->first();
+
+            $status = (!$lastPresence || $lastPresence->status === 'out') ? 'in' : 'out';
+
+            KehadiranMember::create([
+                'rfid'   => $member->id_kartu,
+                'nama'   => $member->name,
+                'status' => $status,
+                'foto'   => null,
+            ]);
+
+            return response()->json([
+                'success'      => true,
+                'tipe'         => 'member',
+                'message'      => "Selamat Datang, {$member->name}!",
+                'status_absen' => $status,
+                'gate'         => 'buka',
+                'waktu'        => Carbon::now()->format('d-m-Y H:i:s')
+            ], 200);
+        }
+
+        // ============================================================
+        // JIKA BUKAN MEMBER, CEK TRAINER
+        // ============================================================
+        $trainer = \App\Models\Trainer::where('rfid', $rfid)->first();
+
+        if (!$trainer) {
+            return response()->json([
+                'success' => false,
+                'message' => 'RFID tidak ditemukan sebagai member maupun trainer!',
+                'gate'    => 'tutup'
+            ], 404);
+        }
+
+        $lastPresenceTrainer = \App\Models\KehadiranTrainer::where('rfid', $rfid)
+            ->whereDate('created_at', $today)
+            ->latest()
+            ->first();
+
+        $statusTrainer = (!$lastPresenceTrainer || $lastPresenceTrainer->status === 'out') ? 'in' : 'out';
+
+        \App\Models\KehadiranTrainer::create([
+            'rfid'   => $trainer->rfid,
+            'nama'   => $trainer->name,
+            'status' => $statusTrainer,
+            'foto'   => null,
+        ]);
+
+        return response()->json([
+            'success'      => true,
+            'tipe'         => 'trainer',
+            'message'      => "Selamat Datang, {$trainer->name}!",
+            'status_absen' => $statusTrainer,
+            'gate'         => 'buka',
+            'waktu'        => Carbon::now()->format('d-m-Y H:i:s')
+        ], 200);
+    }
+
+    /**
+     * ENROLL FINGERPRINT
+     */
+    public function enrollfinger(Request $request)
+    {
+        $request->validate([
+            'kartu' => 'required|string',
+        ]);
+
+        $rfid = $request->kartu;
+        $today = Carbon::today();
+
+        $member = Anggota::where('status_finger', 0)->first();
+
+        if (!$member) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data Member tidak ditemukan!',
+                'gate' => 'tutup'
+            ], 404);
+        }
+
+        $membership = AnggotaMembership::where('id_anggota', $member->id)
+            ->latest()
+            ->first();
+
+        if (!$membership) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Member ditemukan tapi tidak memiliki paket membership!',
+                'gate' => 'tutup'
+            ], 403);
+        }
+
+        $mulai = Carbon::parse($membership->tgl_mulai);
+        $akhir = Carbon::parse($membership->tgl_selesai);
+
+        if ($today->lt($mulai)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Membership belum aktif!',
+                'tanggal_mulai' => $mulai->format('d-m-Y'),
+                'gate' => 'tutup'
+            ], 403);
+        }
+
+        if ($today->gt($akhir)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Membership sudah kadaluarsa!',
+                'tanggal_akhir' => $akhir->format('d-m-Y'),
+                'gate' => 'tutup'
+            ], 403);
+        }
+
+        $lastPresence = KehadiranMember::where('rfid', $rfid)
+            ->whereDate('created_at', $today)
+            ->latest()
+            ->first();
+
+        if ($lastPresence && strtolower($lastPresence->status) === 'out') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Member masih berada di luar Gym (belum absen masuk)',
+                'gate' => 'tutup'
+            ], 403);
+        }
+
+        return response()->json([
+            'success'    => true,
+            'message'    => "Selamat Datang, {$member->name}!",
+            'idmember'   => "{$member->id_kartu}",
+            'namamember' => "{$member->name}",
+            'gate'       => 'buka',
+            'waktu'      => Carbon::now()->format('d-m-Y H:i:s')
+        ], 200);
+    }
+
+    /**
+     * DELETE FINGERPRINT
+     */
+    public function deletefinger(Request $request)
+    {
+        $request->validate([
+            'kartu' => 'required|string',
+        ]);
+
+        $member = Anggota::where('status_finger', 1)->first();
+
+        if (!$member) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data Member tidak ditemukan!',
+                'gate' => 'tutup'
+            ], 404);
+        }
+
+        return response()->json([
+            'success'    => true,
+            'message'    => "Nama Member, {$member->name}!",
+            'idmember'   => "{$member->id_kartu}",
+            'namamember' => "{$member->name}",
+            'gate'       => 'buka',
+            'waktu'      => Carbon::now()->format('d-m-Y H:i:s')
+        ], 200);
+    }
 
     /**
      * SIMPAN BASE64 IMAGE (opsional)
@@ -129,11 +336,14 @@ class GateController extends Controller
         }
     }
 
+    /**
+     * PING
+     */
     public function ping()
     {
         return response()->json([
-            'success' => true,
-            'message' => 'Gate API is running',
+            'success'   => true,
+            'message'   => 'Gate API is running',
             'timestamp' => Carbon::now()->toDateTimeString()
         ], 200);
     }
@@ -160,22 +370,22 @@ class GateController extends Controller
 
         if (!$membership) {
             return response()->json([
-                'success' => true,
+                'success'          => true,
                 'membership_aktif' => false,
-                'reason' => 'no_membership',
-                'member' => $member
+                'reason'           => 'no_membership',
+                'member'           => $member
             ], 200);
         }
 
         return response()->json([
-            'success' => true,
+            'success'          => true,
             'membership_aktif' => true,
-            'member' => [
-                'id' => $member->id,
-                'name' => $member->name,
-                'rfid' => $member->rfid,
-                'membership_mulai' => Carbon::parse($membership->tgl_mulai)->format('d-m-Y'),
-                'membership_akhir' => Carbon::parse($membership->tgl_selesai)->format('d-m-Y'),
+            'member'           => [
+                'id'                 => $member->id,
+                'name'               => $member->name,
+                'rfid'               => $member->rfid,
+                'membership_mulai'   => Carbon::parse($membership->tgl_mulai)->format('d-m-Y'),
+                'membership_akhir'   => Carbon::parse($membership->tgl_selesai)->format('d-m-Y'),
             ]
         ], 200);
     }

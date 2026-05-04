@@ -82,7 +82,7 @@
                                     @if (!$isLaporanMode)
                                         <th>Aksi</th>
                                     @endif
-                                    <th>RFID</th>
+                                    <th>Fingerprint</th>
                                     <th>Foto</th>
                                     <th>Nama</th>
                                     <th>No Telp</th>
@@ -92,6 +92,7 @@
                                     <th>Experience</th>
                                     <th>Tanggal Gabung</th>
                                     <th>Status</th>
+                                    <th>Fingerprint</th>
                                     @if (!$isLaporanMode)
                                         <th></th>
                                     @endif
@@ -224,23 +225,33 @@
                     onclick="showPhoto('${item.foto}', 'Foto Trainer')"
                     loading="lazy">` :
                         `<span class="text-gray-400 italic text-xs">No photo</span>`;
-
+                    const fingerBadge = item.status_finger == 0 ?
+                        `<span class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm flex items-center gap-1 w-fit">
+            <iconify-icon icon="lucide:scan-line"></iconify-icon> Enroll
+       </span>` :
+                        item.status_finger == 1 ?
+                        `<span class="bg-danger-100 text-danger-600 px-4 py-1.5 rounded-full font-medium text-sm flex items-center gap-1 w-fit">
+            <iconify-icon icon="lucide:trash-2"></iconify-icon> Delete
+       </span>` :
+                        `<span class="bg-neutral-100 text-neutral-500 px-4 py-1.5 rounded-full font-medium text-sm flex items-center gap-1 w-fit">
+            <iconify-icon icon="lucide:minus-circle"></iconify-icon> Default
+       </span>`;
                     const aksiCol = !isLaporan ? `
                 <td class="whitespace-nowrap">
                     ${(isAdmin || isSpv) ? `
-                            <a href="${item.show_url}" title="Lihat detail"
-                                class="w-8 h-8 bg-primary-50 text-primary-600 rounded-full inline-flex items-center justify-center">
-                                <iconify-icon icon="iconamoon:eye-light"></iconify-icon>
-                            </a>` : ''}
+                                                <a href="${item.show_url}" title="Lihat detail"
+                                                    class="w-8 h-8 bg-primary-50 text-primary-600 rounded-full inline-flex items-center justify-center">
+                                                    <iconify-icon icon="iconamoon:eye-light"></iconify-icon>
+                                                </a>` : ''}
                     ${isAdmin ? `
-                            <a href="${item.edit_url}" title="Edit Item"
-                                class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
-                                <iconify-icon icon="lucide:edit"></iconify-icon>
-                            </a>
-                            <button onclick="confirmDeleteTrainer('${item.delete_url}')" title="Hapus Item"
-                                class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center">
-                                <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
-                            </button>` : ''}
+                                                <a href="${item.edit_url}" title="Edit Item"
+                                                    class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
+                                                    <iconify-icon icon="lucide:edit"></iconify-icon>
+                                                </a>
+                                                <button onclick="confirmDeleteTrainer('${item.delete_url}')" title="Hapus Item"
+                                                    class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center">
+                                                    <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
+                                                </button>` : ''}
                 </td>` : '';
 
                     const updateStatusCol = !isLaporan ? `
@@ -248,13 +259,13 @@
                     ${(isAdmin || isSpv) ? (
                         item.status !== 'aktif'
                             ? `<button onclick="updateStatus('${item.update_status_url}', 'aktif')"
-                                    class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm">
-                                    Izinkan Akses
-                                   </button>`
+                                                        class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm">
+                                                        Izinkan Akses
+                                                       </button>`
                             : `<button onclick="updateStatus('${item.update_status_url}', 'nonaktif')"
-                                    class="bg-danger-100 text-danger-600 px-4 py-1.5 rounded-full font-medium text-sm">
-                                    Batasi Akses
-                                   </button>`
+                                                        class="bg-danger-100 text-danger-600 px-4 py-1.5 rounded-full font-medium text-sm">
+                                                        Batasi Akses
+                                                       </button>`
                     ) : ''}
                 </td>` : '';
 
@@ -274,6 +285,7 @@
                     <td class="whitespace-nowrap">
                         <span class="${item.status_label.class}">${item.status_label.text}</span>
                     </td>
+                    <td class="whitespace-nowrap">${fingerBadge}</td>
                     ${updateStatusCol}
                 </tr>
             `;

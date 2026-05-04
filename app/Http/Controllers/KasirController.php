@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+
 class KasirController extends Controller
 {
     public function printNota($transactionId)
@@ -36,14 +37,13 @@ class KasirController extends Controller
 
             // Generate PDF
             $pdf = Pdf::loadView('pages.kasir.nota-pdf', $data);
-            
+
             // Ukuran kertas thermal 80mm x custom height
             $pdf->setPaper([0, 0, 226.77, 566.93], 'portrait');
 
             $filename = 'Nota_' . $transaction->transaction_code . '.pdf';
 
             return $pdf->download($filename);
-
         } catch (\Exception $e) {
             Log::error('Gagal generate nota PDF', [
                 'transaction_id' => $transactionId,
@@ -68,18 +68,18 @@ class KasirController extends Controller
 
         try {
             $filterType = $request->filter_type;
-            
+
             // Hitung statistik dari SEMUA data (tidak terfilter)
             $allTransactions = Transaction::with('items')
                 ->where('status', 'completed')
                 ->get();
-            
+
             $totalTransaksi = $allTransactions->count();
             $totalPendapatan = $allTransactions->sum('total_amount');
             $totalDiskonBarang = $allTransactions->sum('diskon_barang');
             $totalDiskonManual = $allTransactions->sum('diskon');
             $totalSebelumDiskon = $allTransactions->sum('harga_sebelum_diskon');
-            
+
             // Hitung total HPP dari semua transaksi
             $totalHPP = 0;
             foreach ($allTransactions as $transaction) {
@@ -90,34 +90,34 @@ class KasirController extends Controller
                     }
                 }
             }
-            
+
             // Query untuk data yang akan ditampilkan
             $query = Transaction::with('items')
                 ->where('status', 'completed');
-            
+
             // Filter berdasarkan tanggal
             $filterInfo = '';
             if ($filterType === 'range') {
                 $tanggalMulai = Carbon::parse($request->tanggal_mulai)->startOfDay();
                 $tanggalSelesai = Carbon::parse($request->tanggal_selesai)->endOfDay();
-                
+
                 $query->whereBetween('created_at', [$tanggalMulai, $tanggalSelesai]);
-                
-                $filterInfo = $tanggalMulai->locale('id')->isoFormat('D MMMM YYYY') . ' - ' . 
-                            $tanggalSelesai->locale('id')->isoFormat('D MMMM YYYY');
+
+                $filterInfo = $tanggalMulai->locale('id')->isoFormat('D MMMM YYYY') . ' - ' .
+                    $tanggalSelesai->locale('id')->isoFormat('D MMMM YYYY');
             } else {
                 $filterInfo = 'Semua Periode';
             }
-            
+
             $transactions = $query->orderBy('created_at', 'desc')->get();
-            
+
             // Hitung statistik data yang terfilter
             $filteredTotalTransaksi = $transactions->count();
             $filteredTotalPendapatan = $transactions->sum('total_amount');
             $filteredTotalDiskonBarang = $transactions->sum('diskon_barang');
             $filteredTotalDiskonManual = $transactions->sum('diskon');
             $filteredTotalSebelumDiskon = $transactions->sum('harga_sebelum_diskon');
-            
+
             // Hitung total HPP untuk data terfilter
             $filteredTotalHPP = 0;
             foreach ($transactions as $transaction) {
@@ -128,7 +128,7 @@ class KasirController extends Controller
                     }
                 }
             }
-            
+
             // Tambahkan HPP ke setiap transaction item untuk ditampilkan di PDF
             foreach ($transactions as $transaction) {
                 foreach ($transaction->items as $item) {
@@ -136,11 +136,11 @@ class KasirController extends Controller
                     $item->hpp = $product ? $product->hpp : 0;
                     $item->total_hpp = $item->hpp * $item->qty;
                 }
-                
+
                 // Hitung total HPP per transaksi
                 $transaction->total_hpp_transaction = $transaction->items->sum('total_hpp');
             }
-            
+
             // Buat title dinamis
             $title = 'Laporan Riwayat Penjualan';
             if ($filterType !== 'all') {
@@ -167,11 +167,10 @@ class KasirController extends Controller
             ));
 
             $pdf->setPaper('a4', 'landscape');
-            
+
             $filename = 'Laporan_Penjualan_' . date('Y-m-d_His') . '.pdf';
-            
+
             return $pdf->download($filename);
-            
         } catch (\Exception $e) {
             Log::error('Gagal export PDF penjualan', [
                 'error' => $e->getMessage(),
@@ -210,6 +209,7 @@ class KasirController extends Controller
         $dibayarkan = floatval($request->input('dibayarkan', 0));
         $kembalian = floatval($request->input('kembalian', 0));
         $transaction_id = $request->input('transaction_id');
+        $customer_name = $request->input('customer_name');
 
         if (empty($cart)) {
             return response()->json(['success' => false, 'message' => 'Cart kosong.'], 400);
@@ -235,6 +235,7 @@ class KasirController extends Controller
             // Buat transaksi utama
             $transaction = Transaction::create([
                 'transaction_code' => $transactionCode,
+                'customer_name' => $customer_name ?: 'Customer',
                 'total_amount' => $totalTagihan,
                 'harga_sebelum_diskon' => $total,
                 'diskon' => $diskon,
@@ -265,6 +266,7 @@ class KasirController extends Controller
                     'price' => $item['price'],
                     'kategori' => $item['kategori']['name'] ?? null,
                     'diskon' => $discount,
+                    'keterangan' => $item['keterangan'] ?? null,
                 ]);
 
                 // Kurangi stok & akumulasi HPP
@@ -304,7 +306,6 @@ class KasirController extends Controller
                 'message' => 'Transaksi berhasil, stok dan keuangan diperbarui.',
                 'transaction_id' => $transaction->id,
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Gagal menyimpan transaksi kasir', [
@@ -324,9 +325,11 @@ class KasirController extends Controller
      */
     public function hold(Request $request)
     {
-        $cart = $request->input('cart', []);
-        $diskon = floatval($request->input('diskon', 0));
-        $diskon_barang = floatval($request->input('diskon_barang', 0));
+        $cart             = $request->input('cart', []);
+        $diskon           = floatval($request->input('diskon', 0));
+        $diskon_barang    = floatval($request->input('diskon_barang', 0));
+        $oldTransactionId = $request->input('old_transaction_id');
+        $customer_name = $request->input('customer_name');
 
         if (empty($cart)) {
             return response()->json(['success' => false, 'message' => 'Cart kosong.'], 400);
@@ -334,18 +337,38 @@ class KasirController extends Controller
 
         DB::beginTransaction();
         try {
-            $transactionCode = 'TRX-' . strtoupper(Str::random(6));
-            $total = collect($cart)->sum(fn($item) => $item['qty'] * $item['price']);
-            $totalDiskon = $diskon_barang + $diskon;
+            // Ambil kode lama SEBELUM dihapus
+            $transactionCode = null;
+
+            if ($oldTransactionId) {
+                $oldTransaction = Transaction::where('id', $oldTransactionId)
+                    ->where('status', 'hold')
+                    ->first();
+
+                if ($oldTransaction) {
+                    $transactionCode = $oldTransaction->transaction_code; // ← simpan kode lama
+                    $oldTransaction->items()->delete();
+                    $oldTransaction->delete();
+                }
+            }
+
+            // Jika tidak ada hold lama, buat kode baru
+            if (!$transactionCode) {
+                $transactionCode = 'TRX-' . strtoupper(Str::random(6));
+            }
+
+            $total        = collect($cart)->sum(fn($item) => $item['qty'] * $item['price']);
+            $totalDiskon  = $diskon_barang + $diskon;
             $totalTagihan = max($total - $totalDiskon, 0);
 
             $transaction = Transaction::create([
-                'transaction_code' => $transactionCode,
-                'total_amount' => $totalTagihan,
+                'transaction_code'     => $transactionCode, // ← pakai kode yang dipertahankan
+                'customer_name' => $customer_name ?: 'Customer',
+                'total_amount'         => $totalTagihan,
                 'harga_sebelum_diskon' => $total,
-                'diskon' => $diskon,
-                'diskon_barang' => $diskon_barang,
-                'status' => 'hold',
+                'diskon'               => $diskon,
+                'diskon_barang'        => $diskon_barang,
+                'status'               => 'hold',
             ]);
 
             foreach ($cart as $item) {
@@ -358,29 +381,27 @@ class KasirController extends Controller
 
                 TransactionItem::create([
                     'transaction_id' => $transaction->id,
-                    'image' => $item['image'] ?? null,
-                    'product_id' => $item['id'],
-                    'product_name' => $item['name'],
-                    'qty' => $item['qty'],
-                    'price' => $item['price'],
-                    'kategori' => $item['kategori']['name'] ?? null,
-                    'diskon' => $discount,
+                    'image'          => $item['image'] ?? null,
+                    'product_id'     => $item['id'],
+                    'product_name'   => $item['name'],
+                    'qty'            => $item['qty'],
+                    'price'          => $item['price'],
+                    'kategori'       => $item['kategori']['name'] ?? null,
+                    'keterangan' => $item['keterangan'] ?? null,
+                    'diskon'         => $discount,
                 ]);
             }
 
             DB::commit();
 
             return response()->json([
-                'success' => true,
+                'success'          => true,
                 'transaction_code' => $transactionCode,
-                'transaction_id' => $transaction->id,
+                'transaction_id'   => $transaction->id,
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Gagal menyimpan transaksi hold', [
-                'error' => $e->getMessage()
-            ]);
+            Log::error('Gagal menyimpan transaksi hold', ['error' => $e->getMessage()]);
 
             return response()->json([
                 'success' => false,
@@ -490,7 +511,38 @@ class KasirController extends Controller
             'transaction_code' => $trxCode,
             'net_bayar'        => $netBayar,
             'total_hpp'        => $totalHPP,
-            'metode_pembayaran'=> $metodePembayaran
+            'metode_pembayaran' => $metodePembayaran
         ]);
+    }
+
+    /**
+     * Hapus transaksi hold berdasarkan ID
+     */
+    public function deleteHold($id)
+    {
+        DB::beginTransaction();
+        try {
+            $transaction = Transaction::where('id', $id)
+                ->where('status', 'hold')
+                ->firstOrFail();
+
+            $transaction->items()->delete();
+            $transaction->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Transaksi hold berhasil dihapus.'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Gagal hapus transaksi hold', ['error' => $e->getMessage()]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus transaksi: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
