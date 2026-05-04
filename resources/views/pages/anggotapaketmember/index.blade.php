@@ -200,6 +200,12 @@
                                     <label for="filter_range" class="ml-2 text-sm font-medium text-gray-900">Range
                                         Bulan</label>
                                 </div>
+                                <div class="flex items-center mb-2">
+                                    <input type="radio" id="filter_daily" name="filter_type" value="daily"
+                                        class="w-4 h-4 text-primary-600">
+                                    <label for="filter_daily" class="ml-2 text-sm font-medium text-gray-900">Range
+                                        Harian</label>
+                                </div>
                             </div>
                         </div>
 
@@ -298,6 +304,26 @@
                             </div>
                         </div>
 
+                        {{-- Filter Range Harian --}}
+                        <div id="daily-filter" class="hidden">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="tgl_dari"
+                                        class="inline-block font-semibold text-neutral-600 text-sm mb-2">Dari
+                                        Tanggal:</label>
+                                    <input type="date" id="tgl_dari" name="tgl_dari"
+                                        class="form-control rounded-lg">
+                                </div>
+                                <div>
+                                    <label for="tgl_sampai"
+                                        class="inline-block font-semibold text-neutral-600 text-sm mb-2">Sampai
+                                        Tanggal:</label>
+                                    <input type="date" id="tgl_sampai" name="tgl_sampai"
+                                        class="form-control rounded-lg">
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Tombol Aksi -->
                         <div class="col-span-12">
                             <div class="flex items-center justify-start gap-3 mt-6">
@@ -349,16 +375,20 @@
             const filterRadios = document.querySelectorAll('input[name="filter_type"]');
             const singleFilter = document.getElementById('single-filter');
             const rangeFilter = document.getElementById('range-filter');
+            const dailyFilter = document.getElementById('daily-filter');
 
             filterRadios.forEach(radio => {
                 radio.addEventListener('change', function() {
                     singleFilter.classList.add('hidden');
                     rangeFilter.classList.add('hidden');
+                    dailyFilter.classList.add('hidden');
 
                     if (this.value === 'single') {
                         singleFilter.classList.remove('hidden');
                     } else if (this.value === 'range') {
                         rangeFilter.classList.remove('hidden');
+                    } else if (this.value === 'daily') {
+                        dailyFilter.classList.remove('hidden');
                     }
                 });
             });
@@ -370,7 +400,6 @@
                 if (filterType === 'single') {
                     const bulan = document.getElementById('bulan').value;
                     const tahun = document.getElementById('tahun').value;
-
                     if (!bulan || !tahun) {
                         e.preventDefault();
                         Swal.fire({
@@ -385,13 +414,33 @@
                     const tahunDari = document.getElementById('tahun_dari').value;
                     const bulanSampai = document.getElementById('bulan_sampai').value;
                     const tahunSampai = document.getElementById('tahun_sampai').value;
-
                     if (!bulanDari || !tahunDari || !bulanSampai || !tahunSampai) {
                         e.preventDefault();
                         Swal.fire({
                             icon: 'error',
                             title: 'Oops...',
                             text: 'Mohon lengkapi range bulan dan tahun!'
+                        });
+                        return false;
+                    }
+                } else if (filterType === 'daily') {
+                    const tglDari = document.getElementById('tgl_dari').value;
+                    const tglSampai = document.getElementById('tgl_sampai').value;
+                    if (!tglDari || !tglSampai) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'Mohon lengkapi tanggal dari dan sampai!'
+                        });
+                        return false;
+                    }
+                    if (tglDari > tglSampai) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'Tanggal "dari" tidak boleh lebih besar dari tanggal "sampai"!'
                         });
                         return false;
                     }

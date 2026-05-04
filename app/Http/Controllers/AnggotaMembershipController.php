@@ -20,13 +20,15 @@ class AnggotaMembershipController extends Controller
     {
         $request->validate([
             'status_filter' => 'required|in:all,lunas,belum_lunas',
-            'filter_type'   => 'required|in:all,single,range',
+            'filter_type'   => 'required|in:all,single,range,daily',
             'bulan'         => 'nullable|required_if:filter_type,single|integer|between:1,12',
             'tahun'         => 'nullable|required_if:filter_type,single|integer|min:2000',
             'bulan_dari'    => 'nullable|required_if:filter_type,range|integer|between:1,12',
             'tahun_dari'    => 'nullable|required_if:filter_type,range|integer|min:2000',
             'bulan_sampai'  => 'nullable|required_if:filter_type,range|integer|between:1,12',
             'tahun_sampai'  => 'nullable|required_if:filter_type,range|integer|min:2000',
+            'tgl_dari'      => 'nullable|required_if:filter_type,daily|date',
+            'tgl_sampai'    => 'nullable|required_if:filter_type,daily|date|after_or_equal:tgl_dari',
         ]);
 
         try {
@@ -72,6 +74,14 @@ class AnggotaMembershipController extends Controller
 
                 $filterInfo = $dariTanggal->locale('id')->isoFormat('MMMM YYYY') . ' - ' .
                     $sampaiTanggal->locale('id')->isoFormat('MMMM YYYY');
+            } elseif ($filterType === 'daily') {
+                $dariTanggal   = Carbon::parse($request->tgl_dari)->startOfDay();
+                $sampaiTanggal = Carbon::parse($request->tgl_sampai)->endOfDay();
+
+                $query->whereBetween('tgl_mulai', [$dariTanggal, $sampaiTanggal]);
+
+                $filterInfo = $dariTanggal->locale('id')->isoFormat('D MMMM YYYY') . ' - ' .
+                    $sampaiTanggal->locale('id')->isoFormat('D MMMM YYYY');
             } else {
                 $filterInfo = 'Semua Periode';
             }

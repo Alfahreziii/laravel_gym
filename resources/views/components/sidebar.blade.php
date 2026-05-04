@@ -282,7 +282,7 @@
                 </li>
             @endhasanyrole
 
-            @hasanyrole('spv|admin')
+            @hasanyrole('admin')
                 <li class="sidebar-menu-group-title">Payroll</li>
 
                 <li
@@ -312,9 +312,6 @@
                         </li>
                     </ul>
                 </li>
-            @endhasanyrole
-
-            @hasanyrole('spv|admin')
                 <li class="sidebar-menu-group-title">Keuangan</li>
 
                 <li

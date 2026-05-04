@@ -21,38 +21,92 @@ class MemberTrainerController extends Controller
 {
     public function exportPdf(Request $request)
     {
+        $request->validate([
+            'status_filter' => 'required|in:all,lunas,belum_lunas',
+            'filter_type'   => 'required|in:all,single,range,daily',
+            'bulan'         => 'nullable|required_if:filter_type,single|integer|between:1,12',
+            'tahun'         => 'nullable|required_if:filter_type,single|integer|min:2000',
+            'bulan_dari'    => 'nullable|required_if:filter_type,range|integer|between:1,12',
+            'tahun_dari'    => 'nullable|required_if:filter_type,range|integer|min:2000',
+            'bulan_sampai'  => 'nullable|required_if:filter_type,range|integer|between:1,12',
+            'tahun_sampai'  => 'nullable|required_if:filter_type,range|integer|min:2000',
+            'tgl_dari'      => 'nullable|required_if:filter_type,daily|date',
+            'tgl_sampai'    => 'nullable|required_if:filter_type,daily|date|after_or_equal:tgl_dari',
+        ]);
+
         try {
-            $statusFilter = $request->input('status_filter', 'all');
-            
+            $statusFilter = $request->status_filter;
+            $filterType   = $request->filter_type;
+
             // Hitung statistik dari SEMUA data (tidak terfilter)
-            $allMemberTrainers = MemberTrainer::with(['anggota', 'paketPersonalTrainer', 'trainer'])->get();
-            
+            $allMemberTrainers = MemberTrainer::with(['anggota', 'paketPersonalTrainer', 'trainer', 'pembayaranMemberTrainers'])->get();
+
             $totalMemberTrainer = $allMemberTrainers->count();
-            $totalLunas = $allMemberTrainers->where('status_pembayaran', 'Lunas')->count();
-            $totalBelumLunas = $allMemberTrainers->where('status_pembayaran', 'Belum Lunas')->count();
-            
-            // Hitung total biaya
+            $totalLunas         = $allMemberTrainers->where('status_pembayaran', 'Lunas')->count();
+            $totalBelumLunas    = $allMemberTrainers->where('status_pembayaran', 'Belum Lunas')->count();
+
             $totalPendapatan = $allMemberTrainers->sum('total_biaya');
-            $totalTerbayar = $allMemberTrainers->sum(function($item) {
-                return $item->pembayaranMemberTrainers()->sum('jumlah_bayar');
+            $totalTerbayar   = $allMemberTrainers->sum(function ($item) {
+                return $item->pembayaranMemberTrainers->sum('jumlah_bayar');
             });
             $totalPiutang = $totalPendapatan - $totalTerbayar;
-            
+
             // Query untuk data yang akan ditampilkan (terfilter)
             $query = MemberTrainer::with(['anggota', 'paketPersonalTrainer', 'trainer', 'pembayaranMemberTrainers']);
-            
-            // Filter berdasarkan status
+
             if ($statusFilter === 'lunas') {
                 $query->where('status_pembayaran', 'Lunas');
-                $title = 'Laporan Member Trainer - Lunas';
             } elseif ($statusFilter === 'belum_lunas') {
                 $query->where('status_pembayaran', 'Belum Lunas');
-                $title = 'Laporan Member Trainer - Belum Lunas';
-            } else {
-                $title = 'Laporan Member Trainer - Semua Data';
             }
-            
-            $memberTrainers = $query->orderBy('created_at', 'desc')->get();
+
+            $filterInfo = '';
+            if ($filterType === 'single') {
+                $bulan = $request->bulan;
+                $tahun = $request->tahun;
+
+                $query->whereYear('tgl_mulai', $tahun)
+                    ->whereMonth('tgl_mulai', $bulan);
+
+                $filterInfo = Carbon::create($tahun, $bulan)->locale('id')->isoFormat('MMMM YYYY');
+            } elseif ($filterType === 'range') {
+                $dariTanggal   = Carbon::create($request->tahun_dari, $request->bulan_dari, 1)->startOfMonth();
+                $sampaiTanggal = Carbon::create($request->tahun_sampai, $request->bulan_sampai, 1)->endOfMonth();
+
+                $query->whereBetween('tgl_mulai', [$dariTanggal, $sampaiTanggal]);
+
+                $filterInfo = $dariTanggal->locale('id')->isoFormat('MMMM YYYY') . ' - ' .
+                    $sampaiTanggal->locale('id')->isoFormat('MMMM YYYY');
+            } elseif ($filterType === 'daily') {
+                $dariTanggal   = Carbon::parse($request->tgl_dari)->startOfDay();
+                $sampaiTanggal = Carbon::parse($request->tgl_sampai)->endOfDay();
+
+                $query->whereBetween('tgl_mulai', [$dariTanggal, $sampaiTanggal]);
+
+                $filterInfo = $dariTanggal->locale('id')->isoFormat('D MMMM YYYY') . ' - ' .
+                    $sampaiTanggal->locale('id')->isoFormat('D MMMM YYYY');
+            } else {
+                $filterInfo = 'Semua Periode';
+            }
+
+            $statusInfo = match ($statusFilter) {
+                'lunas'       => 'Lunas',
+                'belum_lunas' => 'Belum Lunas',
+                default       => 'Semua Data',
+            };
+
+            $memberTrainers = $query->orderBy('tgl_mulai', 'desc')->get();
+
+            $title = 'Laporan Member Trainer';
+            if ($statusFilter !== 'all' || $filterType !== 'all') {
+                $title .= ' - ';
+                if ($statusFilter !== 'all') {
+                    $title .= $statusInfo;
+                }
+                if ($filterType !== 'all') {
+                    $title .= ($statusFilter !== 'all' ? ' - ' : '') . $filterInfo;
+                }
+            }
 
             $pdf = Pdf::loadView('pages.membertrainer.pdf', compact(
                 'memberTrainers',
@@ -63,20 +117,21 @@ class MemberTrainerController extends Controller
                 'totalTerbayar',
                 'totalPiutang',
                 'title',
-                'statusFilter'
+                'statusFilter',
+                'filterType',
+                'filterInfo',
+                'statusInfo'
             ));
 
             $pdf->setPaper('a4', 'landscape');
-            
-            // Generate filename dengan status filter
-            $filename = 'Laporan_Member_Trainer_' . ucfirst($statusFilter) . '_' . date('Y-m-d_His') . '.pdf';
-            
-            return $pdf->download($filename);
 
+            $filename = 'Laporan_Member_Trainer_' . ucfirst($statusFilter) . '_' . date('Y-m-d_His') . '.pdf';
+
+            return $pdf->download($filename);
         } catch (\Exception $e) {
             Log::error('Gagal export PDF member trainer', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return redirect()->back()
@@ -260,8 +315,8 @@ class MemberTrainerController extends Controller
             if ($request->jumlah_bayar > $sisaTagihan) {
                 DB::rollBack();
                 return redirect()->back()
-                    ->with('error', "Jumlah pembayaran (Rp " . number_format($request->jumlah_bayar, 0, ',', '.') . 
-                           ") melebihi sisa tagihan (Rp " . number_format($sisaTagihan, 0, ',', '.') . ")");
+                    ->with('error', "Jumlah pembayaran (Rp " . number_format($request->jumlah_bayar, 0, ',', '.') .
+                        ") melebihi sisa tagihan (Rp " . number_format($sisaTagihan, 0, ',', '.') . ")");
             }
 
             // Simpan pembayaran baru
@@ -330,7 +385,7 @@ class MemberTrainerController extends Controller
             if ($sisaSesi > 0) {
                 $trainer->decrement('sesi_belum_dijalani', $sisaSesi);
             }
-            
+
             // Kurangi sesi_sudah_dijalani trainer (kembalikan sesi yang sudah dijalani)
             if ($sesiSudahDijalani > 0) {
                 $trainer->decrement('sesi_sudah_dijalani', $sesiSudahDijalani);
@@ -400,14 +455,14 @@ class MemberTrainerController extends Controller
             $totalDibayarLain = $memberTrainer->pembayaranMemberTrainers()
                 ->where('id', '!=', $pembayaran->id)
                 ->sum('jumlah_bayar');
-            
+
             $sisaTagihan = $memberTrainer->total_biaya - $totalDibayarLain;
 
             if ($request->jumlah_bayar > $sisaTagihan) {
                 DB::rollBack();
                 return redirect()->back()
-                    ->with('error', "Jumlah pembayaran (Rp " . number_format($request->jumlah_bayar, 0, ',', '.') . 
-                           ") melebihi sisa tagihan (Rp " . number_format($sisaTagihan, 0, ',', '.') . ")");
+                    ->with('error', "Jumlah pembayaran (Rp " . number_format($request->jumlah_bayar, 0, ',', '.') .
+                        ") melebihi sisa tagihan (Rp " . number_format($sisaTagihan, 0, ',', '.') . ")");
             }
 
             // Update pembayaran

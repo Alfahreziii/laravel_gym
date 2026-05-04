@@ -138,8 +138,8 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::get('/neraca', [NeracaController::class, 'index'])->name('neraca.index');
-    Route::post('/neraca/tambah-kas', [NeracaController::class, 'tambahKas'])->name('neraca.tambah-kas');
+    Route::get('/neraca', [NeracaController::class, 'index'])->middleware(RoleMiddleware::class . ':admin')->name('neraca.index');
+    Route::post('/neraca/tambah-kas', [NeracaController::class, 'tambahKas'])->middleware(RoleMiddleware::class . ':admin')->name('neraca.tambah-kas');
 
     Route::get('/dashboard/kehadiran', [DashboardController::class, 'kehadiranDatatable'])->name('dashboard.kehadiran');
     Route::get('/dashboard/member-in-room', [DashboardController::class, 'memberInRoomDatatable'])->name('dashboard.memberInRoom');
@@ -378,7 +378,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     });
     // Route untuk Gaji Trainer
     Route::controller(RiwayatGajiTrainerController::class)->group(function () {
-        Route::get('/riwayat-gaji-trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('riwayat_gaji_trainer.index');
+        Route::get('/riwayat-gaji-trainer', 'index')->middleware(RoleMiddleware::class . ':admin')->name('riwayat_gaji_trainer.index');
         Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
             Route::get('/riwayat-gaji-trainer/create', 'create')->name('riwayat_gaji_trainer.create');
             Route::post('/riwayat-gaji-trainer', 'store')->name('riwayat_gaji_trainer.store');

@@ -28,15 +28,12 @@ class TransaksiKeuanganController extends Controller
             $tglMulai   = $request->get('tgl_mulai', '');
             $tglSelesai = $request->get('tgl_selesai', '');
 
-            // Query utama untuk data tabel (dengan eager load)
             $query = TransaksiKeuangan::with(['akun.kategori'])
                 ->orderBy('tanggal', 'desc')
                 ->orderBy('id', 'desc');
 
-            // Query aggregate TERPISAH — tanpa with() agar sum() bersih
             $aggQuery = TransaksiKeuangan::query();
 
-            // Apply filter ke kedua query
             $this->applyFilters($query, $akunId, $referensi, $tglMulai, $tglSelesai, $search);
             $this->applyFilters($aggQuery, $akunId, $referensi, $tglMulai, $tglSelesai, $search);
 
@@ -47,7 +44,15 @@ class TransaksiKeuanganController extends Controller
             $data = $query->skip(($page - 1) * $perPage)->take($perPage)->get();
 
             return response()->json([
-                'data'         => $data->map(function ($item, $index) use ($page, $perPage) {
+                'data' => $data->map(function ($item, $index) use ($page, $perPage) {
+                    $ref = $this->resolveReferensi($item->referensi_tabel ?? '', $item->referensi_id ?? '');
+
+                    // Enrich deskripsi: ganti fallback "dari Member" dengan nama anggota sebenarnya
+                    $deskripsi = $item->deskripsi ?? '-';
+                    if ($ref['nama_anggota'] && str_contains($deskripsi, ' dari Member')) {
+                        $deskripsi = str_replace(' dari Member', ' dari ' . $ref['nama_anggota'], $deskripsi);
+                    }
+
                     return [
                         'no'              => (($page - 1) * $perPage) + $index + 1,
                         'id'              => $item->id,
@@ -57,9 +62,11 @@ class TransaksiKeuanganController extends Controller
                         'kode_akun'       => $item->akun?->kode ?? '-',
                         'nama_akun'       => $item->akun?->nama ?? '-',
                         'kategori_akun'   => optional(optional($item->akun)->kategori)->nama ?? '-',
-                        'deskripsi'       => $item->deskripsi ?? '-',
+                        'deskripsi'       => $deskripsi,
                         'referensi_tabel' => $item->referensi_tabel ?? '-',
                         'referensi_id'    => $item->referensi_id ?? '-',
+                        'kode_transaksi'  => $ref['kode_transaksi'],
+                        'edit_url'        => $ref['edit_url'],
                         'debit'           => (float) ($item->debit ?? 0),
                         'kredit'          => (float) ($item->kredit ?? 0),
                     ];
@@ -78,6 +85,74 @@ class TransaksiKeuanganController extends Controller
                 'file'  => basename($e->getFile()),
             ], 500);
         }
+    }
+
+    /**
+     * Resolve kode_transaksi dan URL edit berdasarkan referensi_tabel dan referensi_id.
+     */
+    private function resolveReferensi(string $tabel, $id): array
+    {
+        $empty = ['kode_transaksi' => null, 'edit_url' => null, 'nama_anggota' => null];
+
+        if (!$tabel || !$id) {
+            return $empty;
+        }
+
+        try {
+            switch ($tabel) {
+                case 'anggota_memberships':
+                    $record = \App\Models\AnggotaMembership::with('anggota')->find($id);
+                    if ($record) {
+                        return [
+                            'kode_transaksi' => $record->kode_transaksi,
+                            'edit_url'       => route('anggota_membership.edit', $record->id),
+                            'nama_anggota'   => $record->anggota->name ?? null,
+                        ];
+                    }
+                    break;
+
+                case 'pembayaran_memberships':
+                    $record = \App\Models\PembayaranMembership::with('anggotaMembership.anggota')->find($id);
+                    if ($record && $record->anggotaMembership) {
+                        return [
+                            'kode_transaksi' => $record->anggotaMembership->kode_transaksi,
+                            'edit_url'       => route('anggota_membership.edit', $record->anggotaMembership->id),
+                            'nama_anggota'   => $record->anggotaMembership->anggota->name ?? null,
+                        ];
+                    }
+                    break;
+
+                case 'member_trainers':
+                    $record = \App\Models\MemberTrainer::with('anggota')->find($id);
+                    if ($record) {
+                        return [
+                            'kode_transaksi' => $record->kode_transaksi,
+                            'edit_url'       => route('membertrainer.edit', $record->id),
+                            'nama_anggota'   => $record->anggota->name ?? null,
+                        ];
+                    }
+                    break;
+
+                case 'pembayaran_member_trainers':
+                    $record = \App\Models\PembayaranMemberTrainer::with('memberTrainer.anggota')->find($id);
+                    if ($record && $record->memberTrainer) {
+                        return [
+                            'kode_transaksi' => $record->memberTrainer->kode_transaksi,
+                            'edit_url'       => route('membertrainer.edit', $record->memberTrainer->id),
+                            'nama_anggota'   => $record->memberTrainer->anggota->name ?? null,
+                        ];
+                    }
+                    break;
+            }
+        } catch (\Exception $e) {
+            Log::warning('resolveReferensi gagal', [
+                'tabel' => $tabel,
+                'id'    => $id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        return $empty;
     }
 
     /**

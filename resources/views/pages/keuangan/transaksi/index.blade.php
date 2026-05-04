@@ -216,10 +216,25 @@
                 },
                 renderRow: function(item) {
                     var sumberLabel = referensiLabel[item.referensi_tabel] || item.referensi_tabel;
-                    var sumberBadge = item.referensi_tabel ?
-                        '<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-neutral-100 text-neutral-600">' +
-                        sumberLabel + ' #' + item.referensi_id + '</span>' :
-                        '-';
+
+                    var sumberBadge = '-';
+                    if (item.referensi_tabel && item.referensi_tabel !== '-') {
+                        var badge =
+                            '<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-neutral-100 text-neutral-600">' +
+                            sumberLabel + '</span>';
+
+                        var kodeLink = '';
+                        if (item.kode_transaksi && item.edit_url) {
+                            kodeLink = ' <a href="' + item.edit_url + '" target="_blank" ' +
+                                'class="text-primary-600 text-xs font-mono hover:underline font-semibold">' +
+                                item.kode_transaksi + '</a>';
+                        } else if (item.referensi_id && item.referensi_id !== '-') {
+                            kodeLink = ' <span class="text-xs font-mono text-neutral-400">#' + item
+                                .referensi_id + '</span>';
+                        }
+
+                        sumberBadge = badge + kodeLink;
+                    }
 
                     var debitCell = item.debit > 0 ?
                         '<span class="font-semibold text-success-600">' + Number(item.debit)

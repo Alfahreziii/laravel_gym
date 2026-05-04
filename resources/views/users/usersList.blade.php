@@ -53,11 +53,11 @@
                             @foreach ($users as $index => $item)
                                 <tr>
                                     <td class="whitespace-nowrap">{{ $index + 1 }}</td>
+                                    @php
+                                        $currentRole = $item->getRoleNames()->first();
+                                    @endphp
                                     @role('admin')
                                         <td class="whitespace-nowrap">
-                                            @php
-                                                $currentRole = $item->getRoleNames()->first();
-                                            @endphp
 
                                             @if (!in_array($currentRole, ['member', 'trainer']))
                                                 <!-- Tombol Edit -->
@@ -243,4 +243,37 @@
             </div>
         </div>
     </div>
+@endsection
+@section('scripts')
+    <script>
+        document.addEventListener('click', function(e) {
+            // Tombol buka modal
+            const openBtn = e.target.closest('[data-modal-toggle]');
+            if (openBtn) {
+                const modalId = openBtn.getAttribute('data-modal-toggle');
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                }
+            }
+
+            // Tombol tutup modal (data-modal-hide)
+            const closeBtn = e.target.closest('[data-modal-hide]');
+            if (closeBtn) {
+                const modalId = closeBtn.getAttribute('data-modal-hide');
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }
+            }
+
+            // Klik backdrop (area luar modal) untuk tutup
+            if (e.target.classList.contains('fixed') && e.target.classList.contains('z-50')) {
+                e.target.classList.add('hidden');
+                e.target.classList.remove('flex');
+            }
+        });
+    </script>
 @endsection
