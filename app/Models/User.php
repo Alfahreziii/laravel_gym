@@ -6,11 +6,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
-use App\Notifications\VerifyEmailNotification;
 use App\Notifications\ResetPasswordNotification;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable
 {
     use HasFactory, Notifiable, HasRoles;
 
@@ -27,6 +25,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'anggota_id',
         'photo',
         'last_activity',
+        'email_verified_at',
     ];
 
     /**
@@ -48,8 +47,8 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'last_activity' => 'datetime',
+            'password'          => 'hashed',
+            'last_activity'     => 'datetime',
         ];
     }
 
@@ -134,7 +133,6 @@ class User extends Authenticatable implements MustVerifyEmail
             return asset('storage/' . $this->photo);
         }
 
-        // Default avatar
         return asset('assets/images/user-grid/user-grid-img14.png');
     }
 
@@ -143,7 +141,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function getInitialsAttribute()
     {
-        $words = explode(' ', $this->name);
+        $words    = explode(' ', $this->name);
         $initials = '';
 
         foreach ($words as $word) {
@@ -176,16 +174,6 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getLastActivityHumanAttribute()
     {
         return $this->last_activity ? $this->last_activity->diffForHumans() : 'Never';
-    }
-
-    /**
-     * Send the email verification notification.
-     *
-     * @return void
-     */
-    public function sendEmailVerificationNotification()
-    {
-        $this->notify(new VerifyEmailNotification);
     }
 
     /**

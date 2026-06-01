@@ -12,17 +12,11 @@ class TrainerObserver
     public bool $afterCommit = true;
 
     /**
-     * Listen to user email verification
-     * Update trainer status dari 'pending' ke 'nonaktif' setelah email terverifikasi
+     * Handle the Trainer "updated" event.
+     * (Email verification logic removed — no longer required)
      */
     public function updated(Trainer $trainer)
     {
-        // Cek apakah user sudah verifikasi email dan status masih pending
-        if ($trainer->user && 
-            $trainer->user->hasVerifiedEmail() && 
-            $trainer->status === Trainer::STATUS_PENDING) {
-            
-            $trainer->update(['status' => Trainer::STATUS_NONAKTIF]);
-        }
+        //
     }
 }

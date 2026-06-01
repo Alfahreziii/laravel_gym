@@ -425,41 +425,108 @@
                 }
             }, 2000);
 
-            // Handle form submit
+            // Handle form submit — AJAX, tidak reload page
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
                 if (isProcessing || rfidInput.value.trim() === '') return;
                 isProcessing = true;
 
-                const context = canvas.getContext('2d');
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
+                function submitAjax(fotoBlob) {
+                    const fd = new FormData(form);
+                    if (fotoBlob) {
+                        fd.set('foto', new File([fotoBlob], `absensi_${Date.now()}.png`, {
+                            type: 'image/png'
+                        }));
+                    }
 
-                if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    canvas.toBlob((blob) => {
-                        if (blob) {
-                            const file = new File([blob], `absensi_${Date.now()}.png`, {
-                                type: "image/png"
-                            });
-                            const dataTransfer = new DataTransfer();
-                            dataTransfer.items.add(file);
-                            let fileInput = form.querySelector('input[name="foto"]');
-                            if (!fileInput) {
-                                fileInput = document.createElement('input');
-                                fileInput.type = 'file';
-                                fileInput.name = 'foto';
-                                fileInput.hidden = true;
-                                form.appendChild(fileInput);
+                    fetch(form.action, {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: fd
+                        })
+                        .then(async r => {
+                            const text = await r.text();
+                            let res;
+                            try {
+                                res = JSON.parse(text);
+                            } catch (e) {
+                                // Response bukan JSON — tampilkan di console untuk debug
+                                console.error('Non-JSON response (status ' + r.status + '):', text
+                                    .substring(0, 500));
+                                throw new Error('Server error ' + r.status + ': ' + text.substring(
+                                    0, 100));
                             }
-                            fileInput.files = dataTransfer.files;
-                        }
-                        form.submit();
-                    }, 'image/png');
+
+                            rfidInput.value = '';
+                            rfidInput.focus();
+                            isProcessing = false;
+
+                            if (res.success) {
+                                showInlineAlert('success', res.message);
+
+                                if (res.notif) {
+                                    // Update lastSeen ke timestamp absen ini
+                                    // sehingga polling tidak nangkap data yang sama
+                                    window._absenLastSeen = res.notif.timestamp;
+                                    showNotif(res.notif);
+                                    speakText(buildTTS(res.notif));
+                                }
+
+                                // Refresh datatable pakai method refresh() dari ajax-table.js
+                                if (window._ajaxTables && window._ajaxTables['tbodyAbsen']) {
+                                    window._ajaxTables['tbodyAbsen'].refresh();
+                                }
+                            } else {
+                                showInlineAlert('danger', res.message || 'Terjadi kesalahan.');
+                            }
+                        })
+                        .catch(err => {
+                            isProcessing = false;
+                            rfidInput.value = '';
+                            rfidInput.focus();
+                            console.error('Submit error:', err.message);
+                            showInlineAlert('danger', 'Error: ' + err.message);
+                        });
+                }
+
+                const context = canvas.getContext('2d');
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+
+                if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0) {
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    canvas.toBlob(blob => submitAjax(blob), 'image/png');
                 } else {
-                    form.submit();
+                    submitAjax(null);
                 }
             });
+
+            // Tampilkan alert inline (tanpa reload)
+            window.showInlineAlert = function(type, msg) {
+                const existing = document.getElementById('inline-alert');
+                if (existing) existing.remove();
+
+                const isSuccess = type === 'success';
+                const div = document.createElement('div');
+                div.id = 'inline-alert';
+                div.className =
+                    `alert alert-${type} bg-${type}-50 text-${type}-600 border-${type}-200 px-6 py-4 mb-6 rounded-xl flex items-center justify-between shadow-sm`;
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <i class="${isSuccess ? 'ri-checkbox-circle-line' : 'ri-error-warning-line'} text-2xl"></i>
+                        <span class="font-semibold">${msg}</span>
+                    </div>
+                    <button onclick="this.closest('.alert').remove()" class="text-${type}-600 hover:text-${type}-800 text-2xl">
+                        <i class="ri-close-line"></i>
+                    </button>`;
+
+                const wrapper = document.querySelector('.wrapper');
+                wrapper.insertBefore(div, wrapper.firstChild);
+
+                setTimeout(() => div.remove(), 5000);
+            };
 
             // ==================== AJAX TABLE ====================
             const perPageSelect = document.getElementById('perPageAbsen');
@@ -562,6 +629,274 @@
             });
         });
     </script>
+
+    <!-- ===== NOTIF ABSEN REALTIME ===== -->
+    <div id="absen-notif-container"
+        style="position:fixed;top:1.25rem;right:1.25rem;z-index:9999;pointer-events:none;"></div>
+
+    <style>
+        @keyframes notifSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(120%)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0)
+            }
+        }
+
+        @keyframes notifSlideOut {
+            from {
+                opacity: 1;
+                transform: translateX(0)
+            }
+
+            to {
+                opacity: 0;
+                transform: translateX(120%)
+            }
+        }
+
+        #notif-card {
+            animation: notifSlideIn .4s cubic-bezier(.34, 1.56, .64, 1) both;
+        }
+    </style>
+
+    <script>
+        (function() {
+            const POLL_URL = '{{ route('absen_notif.public') }}';
+            const POLL_MS = 3000;
+            const NOTIF_SEC = 8;
+
+            // Expose lastSeen ke window agar bisa di-update dari AJAX handler
+            window._absenLastSeen =
+                {{ session('last_absen_ts') ? session('last_absen_ts') : 'Math.floor(Date.now() / 1000)' }};
+            let lastSeen = window._absenLastSeen;
+            let countTimer = null;
+            let ttsRunning = false;
+            let ttsQueue = [];
+
+            // ─── TTS ──────────────────────────────────────────────
+            function speakText(text) {
+                if (!window.speechSynthesis) return;
+                ttsQueue.push(text);
+                if (!ttsRunning) flushTTS();
+            }
+
+            function flushTTS() {
+                if (!ttsQueue.length) {
+                    ttsRunning = false;
+                    return;
+                }
+                ttsRunning = true;
+                const text = ttsQueue.shift();
+                const utter = new SpeechSynthesisUtterance(text);
+                utter.lang = 'id-ID';
+                utter.rate = 0.95;
+                utter.pitch = 1.05;
+                utter.volume = 1;
+                utter.onend = utter.onerror = flushTTS;
+
+                function doSpeak() {
+                    const voices = window.speechSynthesis.getVoices();
+                    const v = voices.find(x => x.lang === 'id-ID') || voices.find(x => x.lang.startsWith('id')) || null;
+                    if (v) utter.voice = v;
+                    window.speechSynthesis.cancel();
+                    window.speechSynthesis.speak(utter);
+                }
+                window.speechSynthesis.getVoices().length > 0 ? doSpeak() : (window.speechSynthesis.onvoiceschanged =
+                    doSpeak);
+            }
+
+            function buildTTS(d) {
+                const st = d.status === 'in' ? 'Check In' : 'Check Out';
+                const sk = d.is_aktif ? 'Member Aktif' : 'Member Tidak Aktif';
+                let t = st + '. ' + d.nama + '. ' + sk + '.';
+                if (d.is_aktif && d.sisa_hari !== null && d.sisa_hari <= 7)
+                    t += ' Peringatan, membership hampir habis, sisa ' + d.sisa_hari + ' hari.';
+                else if (!d.is_aktif)
+                    t += ' Harap perpanjang membership Anda.';
+                return t;
+            }
+
+            // ─── Render Card ──────────────────────────────────────
+            function showNotif(d) {
+                clearInterval(countTimer);
+
+                const isAktif = d.is_aktif;
+                const grad = isAktif ?
+                    'linear-gradient(135deg,#0f4c2a 0%,#1a7a40 60%,#22c55e 100%)' :
+                    'linear-gradient(135deg,#4c0f0f 0%,#7a1a1a 60%,#ef4444 100%)';
+                const icon = d.status === 'in' ? 'mdi:location-enter' : 'mdi:location-exit';
+                const shieldIcon = isAktif ? 'mdi:shield-check' : 'mdi:shield-alert';
+                const sLabel = isAktif ? '✓ AKTIF' : '✗ TIDAK AKTIF';
+                const sBg = isAktif ? 'rgba(34,197,94,.4)' : 'rgba(239,68,68,.4)';
+                const shBg = isAktif ? 'rgba(34,197,94,.3)' : 'rgba(239,68,68,.3)';
+
+                let membershipLine = '';
+                if (isAktif) {
+                    let sisaStr = '';
+                    if (d.sisa_hari !== null) {
+                        const col = d.sisa_hari <= 7 ? '#fde047' : 'rgba(255,255,255,.8)';
+                        sisaStr =
+                            ` &bull; <span style="color:${col};font-weight:${d.sisa_hari<=7?'700':'400'}">${d.sisa_hari} hari lagi</span>`;
+                    }
+                    membershipLine =
+                        `<p style="color:rgba(255,255,255,.8);font-size:.75rem;margin:.25rem 0 0">Aktif hingga <strong>${d.tgl_selesai}</strong>${sisaStr}</p>`;
+                } else {
+                    membershipLine =
+                        `<p style="color:rgba(255,255,255,.8);font-size:.75rem;margin:.25rem 0 0">${d.alasan_tidak_aktif}</p>`;
+                }
+
+                const fotoHtml = d.foto ?
+                    `<img src="${d.foto}" style="width:56px;height:56px;border-radius:.875rem;object-fit:cover;border:2px solid rgba(255,255,255,.4)">` :
+                    `<div style="width:56px;height:56px;border-radius:.875rem;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center"><i class="ri-user-line" style="color:white;font-size:1.75rem"></i></div>`;
+
+                const html = `
+            <div id="notif-card" style="position:relative;width:320px;border-radius:1.25rem;overflow:hidden;
+                 box-shadow:0 8px 32px rgba(0,0,0,.35);background:${grad};pointer-events:auto;">
+                <div style="position:absolute;top:-40px;right:-40px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.12)"></div>
+                <div style="position:absolute;bottom:-28px;left:-28px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.07)"></div>
+
+                <!-- Header -->
+                <div style="padding:1rem 1.25rem .6rem;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1">
+                    <div style="display:flex;align-items:center;gap:.4rem">
+                        <div style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center">
+                            <i class="${d.status === 'in' ? 'ri-login-box-line' : 'ri-logout-box-line'}" style="color:white;font-size:.9rem"></i>
+                        </div>
+                        <span style="color:white;font-weight:700;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;opacity:.9">
+                            CHECK ${d.status.toUpperCase()}
+                        </span>
+                    </div>
+                    <button onclick="closeNotif()"
+                            style="width:26px;height:26px;border:none;background:rgba(255,255,255,.15);border-radius:50%;cursor:pointer;color:white;font-size:.9rem;display:flex;align-items:center;justify-content:center"
+                            onmouseover="this.style.background='rgba(255,255,255,.3)'" onmouseout="this.style.background='rgba(255,255,255,.15)'">
+                        <i class="ri-close-line"></i>
+                    </button>
+                </div>
+
+                <!-- Body -->
+                <div style="padding:0 1.25rem 1.25rem;position:relative;z-index:1">
+                    <!-- Foto + Nama -->
+                    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem">
+                        ${fotoHtml}
+                        <div>
+                            <p style="color:rgba(255,255,255,.65);font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;margin:0">Nama Member</p>
+                            <h2 style="color:white;font-weight:700;font-size:1.05rem;margin:.1rem 0 0;line-height:1.2">${d.nama}</h2>
+                        </div>
+                    </div>
+
+                    <!-- Status Keanggotaan -->
+                    <div style="border-radius:.65rem;padding:.75rem;background:rgba(0,0,0,.2);margin-bottom:.75rem">
+                        <div style="display:flex;align-items:center;gap:.6rem">
+                            <div style="width:34px;height:34px;border-radius:50%;background:${shBg};flex-shrink:0;display:flex;align-items:center;justify-content:center">
+                                <i class="${isAktif ? 'ri-shield-check-line' : 'ri-shield-cross-line'}" style="color:white;font-size:1.1rem"></i>
+                            </div>
+                            <div style="flex:1">
+                                <p style="color:rgba(255,255,255,.65);font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;margin:0 0 .2rem">Status Keanggotaan</p>
+                                <span style="padding:.12rem .6rem;border-radius:999px;font-size:.7rem;font-weight:700;background:${sBg};color:white">${sLabel}</span>
+                                ${membershipLine}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Waktu + Progress -->
+                    <div style="display:flex;align-items:center;justify-content:space-between">
+                        <span style="color:rgba(255,255,255,.55);font-size:.65rem;display:flex;align-items:center;gap:.2rem">
+                            <i class="ri-time-line"></i> ${d.waktu}
+                        </span>
+                        <div style="display:flex;align-items:center;gap:.35rem">
+                            <div style="width:64px;height:4px;border-radius:999px;background:rgba(255,255,255,.2);overflow:hidden">
+                                <div id="notif-bar" style="height:100%;background:rgba(255,255,255,.75);width:100%;transition:width linear"></div>
+                            </div>
+                            <span id="notif-cd" style="color:rgba(255,255,255,.55);font-size:.65rem">${NOTIF_SEC}s</span>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+
+                const container = document.getElementById('absen-notif-container');
+                container.innerHTML = html;
+                container.style.display = 'block';
+
+                let rem = NOTIF_SEC * 1000;
+                countTimer = setInterval(() => {
+                    rem -= 100;
+                    const bar = document.getElementById('notif-bar');
+                    const cd = document.getElementById('notif-cd');
+                    if (bar) bar.style.width = ((rem / (NOTIF_SEC * 1000)) * 100) + '%';
+                    if (cd) cd.textContent = Math.ceil(rem / 1000) + 's';
+                    if (rem <= 0) {
+                        clearInterval(countTimer);
+                        closeNotif();
+                    }
+                }, 100);
+            }
+
+            // Expose ke window supaya bisa dipanggil dari AJAX form handler
+            window.speakText = speakText;
+            window.showNotif = showNotif;
+            window.buildTTS = buildTTS;
+
+            window.closeNotif = function() {
+                clearInterval(countTimer);
+                const card = document.getElementById('notif-card');
+                if (card) card.style.animation = 'notifSlideOut .3s ease forwards';
+                setTimeout(() => {
+                    const c = document.getElementById('absen-notif-container');
+                    if (c) {
+                        c.style.display = 'none';
+                        c.innerHTML = '';
+                    }
+                }, 300);
+            };
+
+            // ─── Polling ─────────────────────────────────────────────
+            let pollAbort = null;
+            let isFetching = false;
+
+            async function poll() {
+                // Skip kalau request sebelumnya belum selesai
+                if (isFetching) return;
+
+                // Abort request lama jika ada
+                if (pollAbort) pollAbort.abort();
+                pollAbort = new AbortController();
+                isFetching = true;
+
+                try {
+                    const since = window._absenLastSeen;
+                    const res = await fetch(POLL_URL + '?since=' + since, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        signal: pollAbort.signal
+                    });
+                    if (!res.ok) {
+                        isFetching = false;
+                        return;
+                    }
+                    const json = await res.json();
+                    // Double-check: timestamp harus lebih baru dari lastSeen saat ini
+                    // (bukan dari saat fetch dimulai) untuk handle race condition
+                    if (json.has_new && json.data && json.data.timestamp > window._absenLastSeen) {
+                        window._absenLastSeen = json.data.timestamp;
+                        showNotif(json.data);
+                        speakText(buildTTS(json.data));
+                    }
+                } catch (e) {
+                    // Abaikan AbortError (request di-cancel)
+                } finally {
+                    isFetching = false;
+                }
+            }
+
+            setInterval(poll, POLL_MS);
+        })();
+    </script>
+    <!-- ===== END NOTIF ABSEN ===== -->
 </body>
 
 </html>

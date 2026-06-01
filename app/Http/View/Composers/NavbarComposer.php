@@ -14,7 +14,6 @@ class NavbarComposer
     {
         $user = Auth::user();
 
-        // Hanya SPV dan Admin yang bisa lihat notifikasi stok
         if ($user && ($user->hasRole('spv') || $user->hasRole('admin'))) {
             $lowStockProducts = Product::whereColumn('quantity', '<', 'reorder')
                 ->where('is_active', true)
@@ -22,7 +21,6 @@ class NavbarComposer
                 ->take(5)
                 ->get();
 
-            // Membership yang akan habis dalam 7 hari ke depan
             $expiringMemberships = AnggotaMembership::with(['anggota'])
                 ->whereBetween('tgl_selesai', [
                     Carbon::today(),
@@ -31,12 +29,23 @@ class NavbarComposer
                 ->where('status_pembayaran', 'Lunas')
                 ->orderBy('tgl_selesai', 'asc')
                 ->get();
+
+            $expiredMemberships = AnggotaMembership::with(['anggota'])
+                ->whereBetween('tgl_selesai', [
+                    Carbon::today()->subMonths(2),
+                    Carbon::today()->subMonth(),
+                ])
+                ->where('status_pembayaran', 'Lunas')
+                ->orderBy('tgl_selesai', 'desc')
+                ->get();
         } else {
             $lowStockProducts = collect([]);
             $expiringMemberships = collect([]);
+            $expiredMemberships = collect([]);
         }
 
         $view->with('lowStockProducts', $lowStockProducts);
         $view->with('expiringMemberships', $expiringMemberships);
+        $view->with('expiredMemberships', $expiredMemberships);
     }
 }

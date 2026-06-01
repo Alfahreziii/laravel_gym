@@ -24,9 +24,11 @@
 
                     @php
                         $totalNotifications = 0;
-
                         if (Auth::user()->hasRole(['admin', 'spv'])) {
-                            $totalNotifications = $lowStockProducts->count() + $expiringMemberships->count();
+                            $totalNotifications =
+                                $lowStockProducts->count() +
+                                $expiringMemberships->count() +
+                                $expiredMemberships->count();
                         } elseif (Auth::user()->hasRole('trainer')) {
                             $totalNotifications = $trainerNotifications->count();
                         }
@@ -42,64 +44,92 @@
 
                 <div id="dropdownNotification"
                     class="z-10 hidden bg-white dark:bg-neutral-700 rounded-2xl overflow-hidden shadow-lg max-w-[394px] w-full">
-                    <div class="scroll-sm !border-t-0">
-                        <div class="max-h-[400px] overflow-y-auto">
 
-                            {{-- Notifikasi untuk Admin & SPV --}}
-                            @if (Auth::user()->hasRole(['admin', 'spv']))
-                                @forelse($lowStockProducts as $product)
-                                    <a href="{{ route('products.index') }}" {{-- ← tambah link ke halaman produk --}}
-                                        class="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-600 justify-between gap-1">
-                                        <div class="flex items-center gap-3">
-                                            <div
-                                                class="flex-shrink-0 relative w-11 h-11 bg-warning-100 text-warning-600 flex justify-center items-center rounded-full">
-                                                <iconify-icon icon="mdi:alert-outline" class="text-2xl"></iconify-icon>
-                                            </div>
-                                            <div>
-                                                <h6 class="text-sm fw-semibold mb-1">{{ $product->name }}</h6>
-                                                <p class="mb-0 text-sm line-clamp-1">
-                                                    Stok: {{ $product->quantity }} &nbsp;|&nbsp; Reorder:
-                                                    {{ $product->reorder }}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div class="shrink-0">
-                                            <span class="text-sm text-neutral-500">Stok menipis</span>
-                                        </div>
-                                    </a>
-                                @empty
-                                    <div class="text-center py-3 text-sm text-neutral-500">
-                                        Tidak ada notifikasi 🎉
-                                    </div>
-                                @endforelse
-                            @endif
+                    <div class="px-4 py-3 border-b border-neutral-100 flex items-center justify-between">
+                        <span class="font-semibold text-sm">Notifikasi</span>
+                        <span class="text-xs text-neutral-400">{{ $totalNotifications }} notifikasi</span>
+                    </div>
 
-                            {{-- Notifikasi Membership Hampir Habis untuk Admin & SPV --}}
-                            @if (Auth::user()->hasRole(['admin', 'spv']))
-                                @if ($expiringMemberships->count() > 0)
+                    <div class="overflow-y-auto" style="max-height: 480px;">
+
+                        @if (Auth::user()->hasRole(['admin', 'spv']))
+
+                            {{-- SECTION: Stok Menipis --}}
+                            <div class="notif-section">
+                                <button type="button" onclick="toggleNotifSection(this)"
+                                    class="notif-section-header w-full flex items-center justify-between px-4 py-2 bg-neutral-50 border-b border-neutral-100 hover:bg-neutral-100 transition-colors">
                                     <div
-                                        class="px-4 py-2 text-xs font-semibold text-neutral-400 uppercase tracking-wider border-t border-neutral-100">
-                                        Membership Hampir Habis
+                                        class="flex items-center gap-2 text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+                                        <iconify-icon icon="mdi:alert-outline"
+                                            class="text-warning-500 text-base"></iconify-icon>
+                                        Stok Menipis
                                     </div>
-                                    @foreach ($expiringMemberships as $membership)
-                                        @php
-                                            $sisaHari = \Carbon\Carbon::today()->diffInDays($membership->tgl_selesai);
-                                        @endphp
-                                        <a href="{{ route('anggota_membership.edit', $membership->id) }}"
-                                            {{-- ← edit karena show tidak ada --}}
-                                            class="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-600 justify-between gap-1">
+                                    <div class="flex items-center gap-2">
+                                        <span
+                                            class="text-xs bg-neutral-200 text-neutral-600 rounded-full px-2 py-0.5">{{ $lowStockProducts->count() }}</span>
+                                        <iconify-icon icon="mdi:chevron-down"
+                                            class="notif-chevron text-neutral-400 transition-transform duration-200"></iconify-icon>
+                                    </div>
+                                </button>
+                                <div class="notif-section-body overflow-y-auto" style="max-height: 200px;">
+                                    @forelse($lowStockProducts as $product)
+                                        <a href="{{ route('products.index') }}"
+                                            class="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-600 justify-between gap-1 border-b border-neutral-50">
                                             <div class="flex items-center gap-3">
                                                 <div
-                                                    class="flex-shrink-0 relative w-11 h-11 bg-danger-100 text-danger-600 flex justify-center items-center rounded-full">
+                                                    class="flex-shrink-0 w-11 h-11 bg-warning-100 text-warning-600 flex justify-center items-center rounded-full">
+                                                    <iconify-icon icon="mdi:alert-outline"
+                                                        class="text-2xl"></iconify-icon>
+                                                </div>
+                                                <div>
+                                                    <h6 class="text-sm font-semibold mb-1">{{ $product->name }}</h6>
+                                                    <p class="mb-0 text-sm line-clamp-1">Stok: {{ $product->quantity }}
+                                                        &nbsp;|&nbsp; Reorder: {{ $product->reorder }}</p>
+                                                </div>
+                                            </div>
+                                            <div class="shrink-0">
+                                                <span class="text-sm text-neutral-500">Stok menipis</span>
+                                            </div>
+                                        </a>
+                                    @empty
+                                        <p class="text-center py-3 text-sm text-neutral-400">Stok aman 🎉</p>
+                                    @endforelse
+                                </div>
+                            </div>
+
+                            {{-- SECTION: Membership Hampir Habis --}}
+                            <div class="notif-section">
+                                <button type="button" onclick="toggleNotifSection(this)"
+                                    class="notif-section-header w-full flex items-center justify-between px-4 py-2 bg-neutral-50 border-b border-neutral-100 hover:bg-neutral-100 transition-colors">
+                                    <div
+                                        class="flex items-center gap-2 text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+                                        <iconify-icon icon="mdi:calendar-clock"
+                                            class="text-danger-500 text-base"></iconify-icon>
+                                        Membership Hampir Habis
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span
+                                            class="text-xs bg-neutral-200 text-neutral-600 rounded-full px-2 py-0.5">{{ $expiringMemberships->count() }}</span>
+                                        <iconify-icon icon="mdi:chevron-down"
+                                            class="notif-chevron text-neutral-400 transition-transform duration-200"></iconify-icon>
+                                    </div>
+                                </button>
+                                <div class="notif-section-body overflow-y-auto" style="max-height: 200px;">
+                                    @forelse($expiringMemberships as $membership)
+                                        @php $sisaHari = \Carbon\Carbon::today()->diffInDays($membership->tgl_selesai); @endphp
+                                        <a href="{{ route('anggota_membership.edit', $membership->id) }}"
+                                            class="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-600 justify-between gap-1 border-b border-neutral-50">
+                                            <div class="flex items-center gap-3">
+                                                <div
+                                                    class="flex-shrink-0 w-11 h-11 bg-danger-100 text-danger-600 flex justify-center items-center rounded-full">
                                                     <iconify-icon icon="mdi:calendar-clock"
                                                         class="text-2xl"></iconify-icon>
                                                 </div>
                                                 <div>
-                                                    <h6 class="text-sm fw-semibold mb-1">
+                                                    <h6 class="text-sm font-semibold mb-1">
                                                         {{ $membership->anggota->name }}</h6>
-                                                    <p class="mb-0 text-sm line-clamp-1">
-                                                        Berakhir: {{ $membership->tgl_selesai->format('d M Y') }}
-                                                    </p>
+                                                    <p class="mb-0 text-sm line-clamp-1">Berakhir:
+                                                        {{ $membership->tgl_selesai->format('d M Y') }}</p>
                                                 </div>
                                             </div>
                                             <div class="shrink-0">
@@ -109,34 +139,84 @@
                                                 </span>
                                             </div>
                                         </a>
-                                    @endforeach
-                                @endif
-                            @endif
-                            {{-- Notifikasi untuk Trainer --}}
-                            @if (Auth::user()->hasRole('trainer'))
-                                @forelse($trainerNotifications as $notif)
-                                    <a href="{{ $notif['url'] }}"
-                                        class="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-600 justify-between gap-1">
-                                        <div class="flex items-center gap-3">
-                                            <div
-                                                class="flex-shrink-0 relative w-11 h-11 bg-{{ $notif['color'] }}-100 text-{{ $notif['color'] }}-600 flex justify-center items-center rounded-full">
-                                                <iconify-icon icon="{{ $notif['icon'] }}"
-                                                    class="text-2xl"></iconify-icon>
-                                            </div>
-                                            <div>
-                                                <h6 class="text-sm fw-semibold mb-1">{{ $notif['title'] }}</h6>
-                                                <p class="mb-0 text-sm line-clamp-1">{{ $notif['message'] }}</p>
-                                            </div>
-                                        </div>
-                                    </a>
-                                @empty
-                                    <div class="text-center py-3 text-sm text-neutral-500">
-                                        Tidak ada notifikasi 🎉
-                                    </div>
-                                @endforelse
-                            @endif
+                                    @empty
+                                        <p class="text-center py-3 text-sm text-neutral-400">Tidak ada yang hampir habis
+                                            🎉</p>
+                                    @endforelse
+                                </div>
+                            </div>
 
-                        </div>
+                            {{-- SECTION: Membership Tidak Aktif --}}
+                            <div class="notif-section">
+                                <button type="button" onclick="toggleNotifSection(this)"
+                                    class="notif-section-header w-full flex items-center justify-between px-4 py-2 bg-neutral-50 border-b border-neutral-100 hover:bg-neutral-100 transition-colors">
+                                    <div
+                                        class="flex items-center gap-2 text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+                                        <iconify-icon icon="mdi:account-off-outline"
+                                            class="text-purple-500 text-base"></iconify-icon>
+                                        Membership Tidak Aktif
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span
+                                            class="text-xs bg-neutral-200 text-neutral-600 rounded-full px-2 py-0.5">{{ $expiredMemberships->count() }}</span>
+                                        <iconify-icon icon="mdi:chevron-down"
+                                            class="notif-chevron text-neutral-400 transition-transform duration-200"></iconify-icon>
+                                    </div>
+                                </button>
+                                <div class="notif-section-body overflow-y-auto" style="max-height: 200px;">
+                                    @forelse($expiredMemberships as $membership)
+                                        @php $sudahHari = \Carbon\Carbon::today()->diffInDays($membership->tgl_selesai); @endphp
+                                        <a href="{{ route('anggota_membership.edit', $membership->id) }}"
+                                            class="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-600 justify-between gap-1 border-b border-neutral-50">
+                                            <div class="flex items-center gap-3">
+                                                <div
+                                                    class="flex-shrink-0 w-11 h-11 bg-purple-100 text-purple-600 flex justify-center items-center rounded-full">
+                                                    <iconify-icon icon="mdi:account-off-outline"
+                                                        class="text-2xl"></iconify-icon>
+                                                </div>
+                                                <div>
+                                                    <h6 class="text-sm font-semibold mb-1">
+                                                        {{ $membership->anggota->name }}</h6>
+                                                    <p class="mb-0 text-sm line-clamp-1">Berakhir:
+                                                        {{ $membership->tgl_selesai->format('d M Y') }}</p>
+                                                </div>
+                                            </div>
+                                            <div class="shrink-0">
+                                                <span class="text-sm text-neutral-500">{{ $sudahHari }} hari
+                                                    lalu</span>
+                                            </div>
+                                        </a>
+                                    @empty
+                                        <p class="text-center py-3 text-sm text-neutral-400">Tidak ada member tidak
+                                            aktif</p>
+                                    @endforelse
+                                </div>
+                            </div>
+
+                        @endif
+
+                        {{-- TRAINER --}}
+                        @if (Auth::user()->hasRole('trainer'))
+                            @forelse($trainerNotifications as $notif)
+                                <a href="{{ $notif['url'] }}"
+                                    class="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-600 justify-between gap-1">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="flex-shrink-0 w-11 h-11 bg-{{ $notif['color'] }}-100 text-{{ $notif['color'] }}-600 flex justify-center items-center rounded-full">
+                                            <iconify-icon icon="{{ $notif['icon'] }}"
+                                                class="text-2xl"></iconify-icon>
+                                        </div>
+                                        <div>
+                                            <h6 class="text-sm font-semibold mb-1">{{ $notif['title'] }}</h6>
+                                            <p class="mb-0 text-sm line-clamp-1">{{ $notif['message'] }}</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            @empty
+                                <div class="text-center py-3 text-sm text-neutral-400">Tidak ada notifikasi 🎉</div>
+                            @endforelse
+                        @endif
+
                     </div>
                 </div>
                 <!-- Notification End -->
@@ -187,6 +267,19 @@
 </div>
 
 <script>
+    function toggleNotifSection(btn) {
+        const body = btn.closest('.notif-section').querySelector('.notif-section-body');
+        const chevron = btn.querySelector('.notif-chevron');
+        const isOpen = !body.classList.contains('hidden');
+        if (isOpen) {
+            body.classList.add('hidden');
+            chevron.style.transform = 'rotate(-90deg)';
+        } else {
+            body.classList.remove('hidden');
+            chevron.style.transform = 'rotate(0deg)';
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         // ====== PROFILE DROPDOWN ======
         const profileToggle = document.getElementById('profileToggle');
@@ -194,60 +287,46 @@
         const profileChevron = profileToggle?.querySelector('#chevronIcon');
 
         // ====== NOTIF DROPDOWN ======
-        const notifToggle = document.getElementById('notifToggle');
-        const notifDropdown = document.getElementById('dropdownNotif');
-        const notifChevron = notifToggle?.querySelector('#chevronIcon');
+        const notifToggle = document.querySelector('[data-dropdown-toggle="dropdownNotification"]');
+        const notifDropdown = document.getElementById('dropdownNotification');
 
-        function toggleDropdown(toggleBtn, dropdown, chevron) {
-            if (!toggleBtn || !dropdown || !chevron) return;
+        function toggleDropdown(toggleBtn, dropdown) {
+            if (!toggleBtn || !dropdown) return;
 
             toggleBtn.addEventListener('click', function(e) {
-                e.stopPropagation(); // cegah klik bubble ke document
+                e.stopPropagation();
                 const isHidden = dropdown.classList.contains('hidden');
-
-                // Tutup semua dropdown lain dulu
                 closeAllDropdowns();
-
-                // Toggle dropdown ini
                 if (isHidden) {
                     dropdown.classList.remove('hidden');
-                    chevron.classList.add('rotate-180');
-                } else {
-                    dropdown.classList.add('hidden');
-                    chevron.classList.remove('rotate-180');
                 }
             });
         }
 
         function closeAllDropdowns() {
-            [profileDropdown, notifDropdown].forEach((d, i) => {
-                if (d && !d.classList.contains('hidden')) {
-                    d.classList.add('hidden');
-                    const chevron = (i === 0) ? profileChevron : notifChevron;
-                    chevron?.classList.remove('rotate-180');
-                }
-            });
+            if (profileDropdown) profileDropdown.classList.add('hidden');
+            if (profileChevron) profileChevron.classList.remove('rotate-180');
+            if (notifDropdown) notifDropdown.classList.add('hidden');
         }
 
-        // Klik di luar -> tutup semua dropdown
         document.addEventListener('click', function(e) {
-            if (
-                !profileDropdown.contains(e.target) && !profileToggle.contains(e.target) &&
-                !notifDropdown.contains(e.target) && !notifToggle.contains(e.target)
-            ) {
+            const clickedOutsideProfile = profileDropdown && !profileDropdown.contains(e.target) &&
+                profileToggle && !profileToggle.contains(e.target);
+            const clickedOutsideNotif = notifDropdown && !notifDropdown.contains(e.target) &&
+                notifToggle && !notifToggle.contains(e.target);
+
+            if (clickedOutsideProfile && clickedOutsideNotif) {
                 closeAllDropdowns();
             }
         });
 
-        // Tekan ESC -> tutup semua dropdown
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' || e.key === 'Esc') {
                 closeAllDropdowns();
             }
         });
 
-        // Inisialisasi
-        toggleDropdown(profileToggle, profileDropdown, profileChevron);
-        toggleDropdown(notifToggle, notifDropdown, notifChevron);
+        toggleDropdown(profileToggle, profileDropdown);
+        toggleDropdown(notifToggle, notifDropdown);
     });
 </script>

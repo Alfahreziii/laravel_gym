@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Auth\Events\Registered;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 
@@ -198,11 +197,12 @@ class TrainerController extends Controller
             ]);
 
             $user = User::create([
-                'name'       => $request->name,
-                'email'      => $request->email,
-                'password'   => Hash::make($request->password),
-                'trainer_id' => $trainer->id,
-                'photo'      => $photoPath,
+                'name'              => $request->name,
+                'email'             => $request->email,
+                'password'          => Hash::make($request->password),
+                'trainer_id'        => $trainer->id,
+                'photo'             => $photoPath,
+                'email_verified_at' => now(),
             ]);
 
             $user->assignRole('trainer');
@@ -217,13 +217,10 @@ class TrainerController extends Controller
                 }
             }
 
-            event(new Registered($user));
-            $user->sendEmailVerificationNotification();
-
             DB::commit();
 
             return redirect()->route('trainer.index')
-                ->with('success', 'Trainer berhasil ditambahkan. Email verifikasi telah dikirim ke ' . $user->email);
+                ->with('success', 'Trainer berhasil ditambahkan.');
         } catch (\Exception $e) {
             DB::rollBack();
 

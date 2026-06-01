@@ -70,10 +70,10 @@ class AnggotaMembershipController extends Controller
 
             // 4️⃣ Catat transaksi keuangan pembayaran (Debit Kas, Kredit Piutang)
             $this->createTransaksiKeuanganForPembayaran(
-                $pembayaran, 
-                $anggotaMembership, 
-                $request->jumlah_bayar, 
-                $request->tgl_bayar, 
+                $pembayaran,
+                $anggotaMembership,
+                $request->jumlah_bayar,
+                $request->tgl_bayar,
                 'Pembayaran awal membership'
             );
 
@@ -163,7 +163,7 @@ class AnggotaMembershipController extends Controller
         $request->validate([
             'tgl_bayar'        => 'required|date',
             'jumlah_bayar'     => 'required|numeric|min:0',
-            'metode_pembayaran'=> 'required|string',
+            'metode_pembayaran' => 'required|string',
         ]);
 
         DB::beginTransaction();
@@ -176,8 +176,8 @@ class AnggotaMembershipController extends Controller
 
             if ($request->jumlah_bayar > $sisaTagihan) {
                 return redirect()->back()
-                    ->with('warning', "Jumlah pembayaran (Rp " . number_format($request->jumlah_bayar, 0, ',', '.') . 
-                           ") melebihi sisa tagihan (Rp " . number_format($sisaTagihan, 0, ',', '.') . ")");
+                    ->with('warning', "Jumlah pembayaran (Rp " . number_format($request->jumlah_bayar, 0, ',', '.') .
+                        ") melebihi sisa tagihan (Rp " . number_format($sisaTagihan, 0, ',', '.') . ")");
             }
 
             // Simpan pembayaran baru
@@ -190,10 +190,10 @@ class AnggotaMembershipController extends Controller
 
             // Catat transaksi keuangan (Debit Kas, Kredit Piutang)
             $this->createTransaksiKeuanganForPembayaran(
-                $pembayaran, 
-                $anggotaMembership, 
-                $request->jumlah_bayar, 
-                $request->tgl_bayar, 
+                $pembayaran,
+                $anggotaMembership,
+                $request->jumlah_bayar,
+                $request->tgl_bayar,
                 'Pembayaran membership'
             );
 
@@ -285,7 +285,7 @@ class AnggotaMembershipController extends Controller
         $request->validate([
             'tgl_bayar'        => 'required|date',
             'jumlah_bayar'     => 'required|numeric|min:0',
-            'metode_pembayaran'=> 'required|string',
+            'metode_pembayaran' => 'required|string',
         ]);
 
         DB::beginTransaction();
@@ -297,13 +297,13 @@ class AnggotaMembershipController extends Controller
             $totalDibayarLain = $anggotaMembership->pembayaranMemberships()
                 ->where('id', '!=', $pembayaran->id)
                 ->sum('jumlah_bayar');
-            
+
             $sisaTagihan = $anggotaMembership->total_biaya - $totalDibayarLain;
 
             if ($request->jumlah_bayar > $sisaTagihan) {
                 return redirect()->back()
-                    ->with('warning', "Jumlah pembayaran (Rp " . number_format($request->jumlah_bayar, 0, ',', '.') . 
-                           ") melebihi sisa tagihan (Rp " . number_format($sisaTagihan, 0, ',', '.') . ")");
+                    ->with('warning', "Jumlah pembayaran (Rp " . number_format($request->jumlah_bayar, 0, ',', '.') .
+                        ") melebihi sisa tagihan (Rp " . number_format($sisaTagihan, 0, ',', '.') . ")");
             }
 
             // Update pembayaran
@@ -320,10 +320,10 @@ class AnggotaMembershipController extends Controller
 
             // Buat transaksi keuangan baru
             $this->createTransaksiKeuanganForPembayaran(
-                $pembayaran, 
-                $anggotaMembership, 
-                $request->jumlah_bayar, 
-                $request->tgl_bayar, 
+                $pembayaran,
+                $anggotaMembership,
+                $request->jumlah_bayar,
+                $request->tgl_bayar,
                 'Edit pembayaran membership'
             );
 

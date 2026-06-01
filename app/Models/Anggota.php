@@ -73,13 +73,22 @@ class Anggota extends Model
      */
     public function getStatusKeanggotaanAttribute()
     {
-        $latestMembership = $this->anggotaMemberships()->latest('tgl_selesai')->first();
+        $today = Carbon::today();
 
-        if (!$latestMembership) {
-            return false;
+        // Cek dulu apakah ada membership yang aktif hari ini
+        $activeMembership = $this->anggotaMemberships()
+            ->where('tgl_mulai', '<=', $today)
+            ->where('tgl_selesai', '>=', $today)
+            ->first();
+
+        if ($activeMembership) {
+            return true;
         }
 
-        return $latestMembership->is_active;
+        // Fallback: ambil yang terbaru
+        $latestMembership = $this->anggotaMemberships()->latest('tgl_selesai')->first();
+
+        return $latestMembership ? $latestMembership->is_active : false;
     }
 
     /**

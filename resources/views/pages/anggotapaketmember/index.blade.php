@@ -71,6 +71,8 @@
                                 <th>Kode Transaksi</th>
                                 <th>Nama Anggota</th>
                                 <th>Paket</th>
+                                <th>Tgl Bayar Awal</th>
+                                <th>Metode Pembayaran</th>
                                 <th>Tgl Mulai</th>
                                 <th>Tgl Selesai</th>
                                 <th>Status Pembayaran</th>
@@ -105,6 +107,19 @@
                                     </td>
                                     <td class="whitespace-nowrap">{{ $item->anggota->name ?? '-' }}</td>
                                     <td class="whitespace-nowrap">{{ $item->paketMembership->nama_paket ?? '-' }}</td>
+                                    <td class="whitespace-nowrap">
+                                        @php
+                                            $tanggalBayarAwal = $item->pembayaranMemberships->min('tgl_bayar');
+                                        @endphp
+                                        {{ $tanggalBayarAwal ? \Carbon\Carbon::parse($tanggalBayarAwal)->format('d M Y') : '-' }}
+                                    </td>
+                                    <td class="whitespace-nowrap">
+                                        @php
+                                            $metodePembayaran =
+                                                $item->pembayaranMemberships->first()->metode_pembayaran ?? '-';
+                                        @endphp
+                                        {{ $metodePembayaran ?? '-' }}
+                                    </td>
                                     <td class="whitespace-nowrap">
                                         {{ \Carbon\Carbon::parse($item->tgl_mulai)->format('d M Y') }}
                                     </td>

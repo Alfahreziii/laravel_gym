@@ -10,6 +10,7 @@ use App\Models\PlaylistMemberTrainer;
 use App\Models\Trainer;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PlaylistMemberTrainerController extends Controller
 {
@@ -204,16 +205,120 @@ class PlaylistMemberTrainerController extends Controller
                 ->where('id_trainer', $trainerId)
                 ->firstOrFail();
 
-            // Hapus with('playlistTrainer') karena relasi sudah tidak ada
-            $history = PlaylistMemberTrainer::where('id_member_trainer', $memberTrainer->id)
+            // Ambil semua sesi yang sudah selesai dari log (type = out)
+            $sesiSelesai = \App\Models\SesiMemberTrainer::where('id_member_trainer', $memberTrainer->id)
+                ->where('type', 'out')
+                ->orderBy('created_at', 'asc')
+                ->get();
+
+            $jumlahSesi = $memberTrainer->paketPersonalTrainer->jumlah_sesi;
+            $sesiKeList = $sesiSelesai->map(function ($log) use ($jumlahSesi) {
+                return $jumlahSesi - $log->current_sesi;
+            })->unique()->sort()->values();
+
+            // Buat map sesi_ke => durasi dari description log
+            $durasiPerSesi = [];
+            $tanggalPerSesi = [];
+            foreach ($sesiSelesai as $log) {
+                $sesiKe = $jumlahSesi - $log->current_sesi;
+                if (!isset($durasiPerSesi[$sesiKe])) {
+                    preg_match('/durasi:\s*(-?[\d.]+)\s*menit/i', $log->description ?? '', $matches);
+                    $durasiPerSesi[$sesiKe] = isset($matches[1]) ? round(abs((float) $matches[1])) : null;
+                    $tanggalPerSesi[$sesiKe] = $log->created_at;
+                }
+            }
+
+            // Ambil playlist yang tersimpan, group by sesi_ke
+            $playlistGrouped = PlaylistMemberTrainer::where('id_member_trainer', $memberTrainer->id)
                 ->orderBy('sesi_ke', 'asc')
                 ->get()
                 ->groupBy('sesi_ke');
 
-            return view('pages.trainer.playlistmembertrainer.index', compact('trainer', 'memberTrainer', 'history'));
+            // Merge: semua sesi_ke dari log, dengan playlist (atau kosong kalau tidak ada)
+            $history = collect();
+            foreach ($sesiKeList as $sesiKe) {
+                $history[$sesiKe] = $playlistGrouped->get($sesiKe, collect());
+            }
+
+            foreach ($playlistGrouped->keys() as $sesiKe) {
+                if (!$history->has($sesiKe)) {
+                    $history[$sesiKe] = $playlistGrouped->get($sesiKe);
+                }
+            }
+
+            $history = $history->sortKeys();
+
+            return view('pages.trainer.playlistmembertrainer.index', compact('trainer', 'memberTrainer', 'history', 'durasiPerSesi', 'tanggalPerSesi'));
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', 'Error: ' . $e->getMessage());
+        }
+    }
+
+    public function exportHistoryPdf($memberTrainerId)
+    {
+        try {
+            $trainerId = $this->getTrainerId();
+            $trainer = Trainer::findOrFail($trainerId);
+
+            $memberTrainer = MemberTrainer::with(['anggota', 'paketPersonalTrainer'])
+                ->where('id', $memberTrainerId)
+                ->where('id_trainer', $trainerId)
+                ->firstOrFail();
+
+            $sesiSelesai = \App\Models\SesiMemberTrainer::where('id_member_trainer', $memberTrainer->id)
+                ->where('type', 'out')
+                ->orderBy('created_at', 'asc')
+                ->get();
+
+            $jumlahSesi = $memberTrainer->paketPersonalTrainer->jumlah_sesi;
+            $sesiKeList = $sesiSelesai->map(function ($log) use ($jumlahSesi) {
+                return $jumlahSesi - $log->current_sesi;
+            })->unique()->sort()->values();
+
+            $durasiPerSesi = [];
+            $tanggalPerSesi = [];
+            foreach ($sesiSelesai as $log) {
+                $sesiKe = $jumlahSesi - $log->current_sesi;
+                if (!isset($durasiPerSesi[$sesiKe])) {
+                    preg_match('/durasi:\s*(-?[\d.]+)\s*menit/i', $log->description ?? '', $matches);
+                    $durasiPerSesi[$sesiKe] = isset($matches[1]) ? round(abs((float) $matches[1])) : null;
+                    $tanggalPerSesi[$sesiKe] = $log->created_at;
+                }
+            }
+
+            $playlistGrouped = PlaylistMemberTrainer::where('id_member_trainer', $memberTrainer->id)
+                ->orderBy('sesi_ke', 'asc')
+                ->get()
+                ->groupBy('sesi_ke');
+
+            $history = collect();
+            foreach ($sesiKeList as $sesiKe) {
+                $history[$sesiKe] = $playlistGrouped->get($sesiKe, collect());
+            }
+            foreach ($playlistGrouped->keys() as $sesiKe) {
+                if (!$history->has($sesiKe)) {
+                    $history[$sesiKe] = $playlistGrouped->get($sesiKe);
+                }
+            }
+            $history = $history->sortKeys();
+
+            $totalDurasi = array_sum(array_filter($durasiPerSesi));
+
+            $pdf = Pdf::loadView('pages.trainer.playlistmembertrainer.pdf', compact(
+                'trainer',
+                'memberTrainer',
+                'history',
+                'durasiPerSesi',
+                'tanggalPerSesi',
+                'totalDurasi'
+            ))->setPaper('a4', 'portrait');
+
+            $filename = 'riwayat-gym-' . str_replace(' ', '-', strtolower($memberTrainer->anggota->name)) . '-' . now()->format('Ymd') . '.pdf';
+
+            return $pdf->download($filename);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal export PDF: ' . $e->getMessage());
         }
     }
 }

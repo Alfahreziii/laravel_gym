@@ -28,6 +28,7 @@ use App\Http\Controllers\KehadiranTrainerController;
 use App\Http\Controllers\PembayaranMembershipController;
 use App\Http\Controllers\PembayaranTrainerController;
 use App\Http\Controllers\KasirController;
+use App\Http\Controllers\AbsenNotifController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\KategoriProductController;
 use App\Http\Middleware\RoleMiddleware;
@@ -55,6 +56,9 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddle
         Route::get('/member/barcode', 'showBarcode')->name('member.barcode');
     });
 });
+
+// Polling notif untuk halaman norole (tanpa auth)
+Route::get('/absen-notif/public', [AbsenNotifController::class, 'latest'])->name('absen_notif.public');
 
 Route::controller(NoRoleController::class)->group(function () {
     Route::get('/absen', 'index')->name('absen.index');
@@ -89,6 +93,9 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddle
     Route::get('/trainer/session-logs', [TrainerDashboardController::class, 'sessionLogs'])
         ->name('trainer.session.logs');
 
+    Route::post('/trainer/session-logs/export-pdf', [TrainerDashboardController::class, 'exportSessionLogsPdf'])
+        ->name('trainer.session.logs.export_pdf');
+
     Route::controller(TrainerListMemberController::class)->group(function () {
         Route::get('/trainer/member', 'index')->name('trainerlistmember.index');
         Route::get('/trainer/member/{idAnggota}', 'memberDetail')->name('trainerlistmember.detail');
@@ -106,6 +113,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddle
         Route::post('/trainer/playlist-member/store', 'store')->name('playlist-member.store');
         Route::delete('/trainer/playlist-member/destroy', 'destroy')->name('playlist-member.destroy');
         Route::get('/trainer/member/{memberTrainerId}/history', 'memberHistory')->name('trainer.member.history');
+        Route::get('/trainer/member/{memberTrainerId}/history/export-pdf', 'exportHistoryPdf')->name('trainer.member.history.export_pdf');
     });
 });
 
@@ -120,6 +128,9 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddle
         Route::post('/kehadiran-member', 'store')->name('kehadiranmember.store');
         Route::delete('/kehadiran-member/{kehadiranmember}', 'destroy')->name('kehadiranmember.destroy');
     });
+
+    // Polling notif absen - accessible by guest & admin
+    Route::get('/absen-notif/poll', [AbsenNotifController::class, 'latest'])->name('absen_notif.poll');
 
     Route::controller(KehadiranTrainerController::class)->group(function () {
         Route::post('kehadirantrainer/export-pdf', 'exportPdf')->name('kehadirantrainer.export_pdf');
@@ -402,6 +413,9 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddle
         Route::get('/held-transactions', 'getHeldTransactions')->name('getHeldTransactions');
         Route::get('/kasir/print-nota/{transactionId}', 'printNota')->name('kasir.print-nota');
     });
+
+    // Polling notif absen
+    Route::get('/absen-notif/latest', [AbsenNotifController::class, 'latest'])->name('absen_notif.latest');
 });
 
 

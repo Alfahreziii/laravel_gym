@@ -179,7 +179,7 @@ class KehadiranMemberController extends Controller
             ]);
 
             return redirect()->route('kehadiranmember.index')
-                ->with('success', 'Absensi ' . strtoupper($status) . ' untuk anggota ' . e($anggota->name) . ' berhasil dicatat.');
+                ->with('success', 'Absensi ' . strtoupper($status) . ' untuk ' . e($anggota->name) . ' berhasil dicatat.');
         } catch (\Exception $e) {
             return redirect()->route('kehadiranmember.index')
                 ->with('danger', 'Gagal menyimpan data absensi: ' . $e->getMessage());

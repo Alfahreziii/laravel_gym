@@ -30,15 +30,15 @@ class Trainer extends Model
 
     protected $casts = [
         'tgl_gabung' => 'date',
-        'tgl_lahir' => 'date',
+        'tgl_lahir'  => 'date',
     ];
 
     protected $appends = ['training_status', 'name', 'status_label'];
 
     // Status constants
-    const STATUS_PENDING = 'pending';
+    const STATUS_PENDING  = 'pending';
     const STATUS_NONAKTIF = 'nonaktif';
-    const STATUS_AKTIF = 'aktif';
+    const STATUS_AKTIF    = 'aktif';
 
     // Relasi ke User
     public function user()
@@ -72,6 +72,7 @@ class Trainer extends Model
     {
         return $this->hasMany(SesiTrainer::class, 'id_trainer');
     }
+
     /**
      * Relasi ke PlaylistTrainer
      */
@@ -95,6 +96,7 @@ class Trainer extends Model
     {
         return $this->hasMany(RiwayatGajiTrainer::class, 'id_trainer');
     }
+
     /**
      * Get latest riwayat gaji
      */
@@ -118,15 +120,15 @@ class Trainer extends Model
     {
         $labels = [
             self::STATUS_PENDING => [
-                'text' => 'Menunggu Verifikasi Email',
-                'class' => 'bg-warning-600 text-danger-600 px-4 py-1.5 rounded-full font-medium text-sm'
+                'text'  => 'Menunggu Persetujuan',
+                'class' => 'bg-warning-100 text-warning-600 px-4 py-1.5 rounded-full font-medium text-sm'
             ],
             self::STATUS_NONAKTIF => [
-                'text' => 'Tidak Aktif',
+                'text'  => 'Tidak Aktif',
                 'class' => 'bg-danger-100 text-danger-600 px-4 py-1.5 rounded-full font-medium text-sm'
             ],
             self::STATUS_AKTIF => [
-                'text' => 'Aktif',
+                'text'  => 'Aktif',
                 'class' => 'bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm'
             ],
         ];
@@ -159,16 +161,6 @@ class Trainer extends Model
     public function isTraining()
     {
         return $this->training_status === 'open';
-    }
-
-    /**
-     * Scope untuk trainer yang sudah verifikasi email
-     */
-    public function scopeVerified($query)
-    {
-        return $query->whereHas('user', function ($q) {
-            $q->whereNotNull('email_verified_at');
-        });
     }
 
     /**

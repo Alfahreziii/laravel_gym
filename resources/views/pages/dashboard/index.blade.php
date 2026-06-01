@@ -27,7 +27,7 @@
             <div class="card-body p-5">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                        <p class="font-medium text-neutral-900 mb-1">Member Laki-laki</p>
+                        <p class="font-medium text-neutral-900 mb-1">Male Members</p>
                         <h6 class="mb-0">{{ number_format($memberLakiLaki, 0, ',', '.') }}</h6>
                     </div>
                     <div class="w-[50px] h-[50px] bg-green-600 rounded-full flex justify-center items-center">
@@ -46,7 +46,7 @@
             <div class="card-body p-5">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                        <p class="font-medium text-neutral-900 mb-1">Member Perempuan</p>
+                        <p class="font-medium text-neutral-900 mb-1">Female Members</p>
                         <h6 class="mb-0">{{ number_format($memberPerempuan, 0, ',', '.') }}</h6>
                     </div>
                     <div class="w-[50px] h-[50px] bg-pink-600 rounded-full flex justify-center items-center">

@@ -25,9 +25,17 @@
             <div class="card border-0 overflow-hidden">
                 <div class="card-header flex items-center justify-between">
                     <h6 class="card-title mb-0 text-lg">Informasi Member</h6>
-                    <a href="{{ route('trainer.dashboard') }}" class="text-neutral-600 hover:text-primary-600">
-                        <iconify-icon icon="ion:arrow-back" class="text-2xl"></iconify-icon>
-                    </a>
+                    <div class="flex gap-2">
+                        <a href="{{ route('trainer.member.history.export_pdf', $memberTrainer->id) }}"
+                            class="btn btn-primary border border-primary-600 text-sm px-5 py-2 rounded-lg inline-flex items-center">
+                            <iconify-icon icon="carbon:document-pdf" class="mr-2"></iconify-icon>
+                            Export PDF
+                        </a>
+                        <a href="{{ route('trainer.dashboard') }}"
+                            class="text-neutral-600 hover:text-primary-600 inline-flex items-center">
+                            <iconify-icon icon="ion:arrow-back" class="text-2xl"></iconify-icon>
+                        </a>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -72,56 +80,77 @@
                                 <div class="border border-neutral-200 rounded-lg overflow-hidden mb-5">
                                     <!-- Header Sesi -->
                                     <div class="bg-primary-50 border-b border-primary-200 px-6 py-4">
-                                        <div class="flex items-center justify-between">
+                                        <div class="flex items-center justify-between flex-wrap gap-2">
                                             <h6 class="font-semibold text-lg text-neutral-900">
                                                 <iconify-icon icon="mdi:weight-lifter"
                                                     class="text-primary-600 mr-2"></iconify-icon>
                                                 Sesi ke-{{ $sesiKe }}
                                             </h6>
-                                            <span class="text-sm text-neutral-600">
-                                                {{ $playlists->count() }} Latihan
-                                            </span>
+                                            <div class="flex items-center gap-4 text-sm text-neutral-600">
+                                                @if (!empty($tanggalPerSesi[$sesiKe]))
+                                                    <span class="flex items-center gap-1">
+                                                        <iconify-icon icon="mdi:calendar"></iconify-icon>
+                                                        {{ $tanggalPerSesi[$sesiKe]->format('d M Y') }}
+                                                    </span>
+                                                @endif
+                                                @if (!empty($durasiPerSesi[$sesiKe]))
+                                                    <span class="flex items-center gap-1 font-semibold text-primary-600">
+                                                        <iconify-icon icon="mdi:timer-outline"></iconify-icon>
+                                                        {{ $durasiPerSesi[$sesiKe] }} menit
+                                                    </span>
+                                                @endif
+                                                <span>{{ $playlists->count() }} Latihan</span>
+                                            </div>
                                         </div>
                                     </div>
 
                                     <!-- Daftar Playlist -->
                                     <div class="p-6">
-                                        <div class="space-y-4">
-                                            @foreach ($playlists as $playlist)
-                                                <div
-                                                    class="flex items-start gap-4 p-4 rounded-lg border border-neutral-200">
+                                        @if ($playlists->isEmpty())
+                                            <div
+                                                class="flex items-center gap-3 p-4 rounded-lg bg-neutral-50 border border-neutral-200">
+                                                <iconify-icon icon="mdi:playlist-remove"
+                                                    class="text-2xl text-neutral-400"></iconify-icon>
+                                                <p class="text-sm text-neutral-500 italic">Sesi ini diselesaikan tanpa data
+                                                    playlist tercatat.</p>
+                                            </div>
+                                        @else
+                                            <div class="space-y-4">
+                                                @foreach ($playlists as $playlist)
+                                                    <div
+                                                        class="flex items-start gap-4 p-4 rounded-lg border border-neutral-200">
+                                                        <!-- Content -->
+                                                        <div class="flex-1">
+                                                            <h6 class="font-semibold text-base text-neutral-900 mb-2">
+                                                                {{ $playlist->latihan }}
+                                                            </h6>
 
-                                                    <!-- Content -->
-                                                    <div class="flex-1">
-                                                        <h6 class="font-semibold text-base text-neutral-900 mb-2">
-                                                            {{ $playlist->latihan }} {{-- langsung dari kolom, bukan relasi --}}
-                                                        </h6>
+                                                            @if ($playlist->keterangan)
+                                                                <div class="bg-white rounded-lg mt-2">
+                                                                    <p class="text-xs text-neutral-600 mb-1 font-medium">
+                                                                        Keterangan:</p>
+                                                                    <p class="text-sm text-neutral-700">
+                                                                        {{ $playlist->keterangan }}</p>
+                                                                </div>
+                                                            @else
+                                                                <p class="text-sm text-neutral-500 italic">Tidak ada
+                                                                    keterangan</p>
+                                                            @endif
+                                                        </div>
 
-                                                        @if ($playlist->keterangan)
-                                                            <div class="bg-white rounded-lg mt-2">
-                                                                <p class="text-xs text-neutral-600 mb-1 font-medium">
-                                                                    Keterangan:</p>
-                                                                <p class="text-sm text-neutral-700">
-                                                                    {{ $playlist->keterangan }}</p>
-                                                            </div>
-                                                        @else
-                                                            <p class="text-sm text-neutral-500 italic">Tidak ada keterangan
+                                                        <!-- Timestamp -->
+                                                        <div class="flex-shrink-0 text-right">
+                                                            <p class="text-xs text-neutral-500">
+                                                                {{ $playlist->created_at->format('d M Y') }}
                                                             </p>
-                                                        @endif
+                                                            <p class="text-xs text-neutral-500">
+                                                                {{ $playlist->created_at->format('H:i') }}
+                                                            </p>
+                                                        </div>
                                                     </div>
-
-                                                    <!-- Timestamp -->
-                                                    <div class="flex-shrink-0 text-right">
-                                                        <p class="text-xs text-neutral-500">
-                                                            {{ $playlist->created_at->format('d M Y') }}
-                                                        </p>
-                                                        <p class="text-xs text-neutral-500">
-                                                            {{ $playlist->created_at->format('H:i') }}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            @endforeach
-                                        </div>
+                                                @endforeach
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             @endforeach
@@ -140,9 +169,7 @@
             document.querySelectorAll('.remove-button').forEach(button => {
                 button.addEventListener('click', function() {
                     const alert = this.closest('.alert');
-                    if (alert) {
-                        alert.remove();
-                    }
+                    if (alert) alert.remove();
                 });
             });
         });

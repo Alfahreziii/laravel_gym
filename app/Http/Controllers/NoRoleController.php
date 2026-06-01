@@ -68,18 +68,29 @@ class NoRoleController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'rfid' => 'required|string',
-            'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-        ]);
+        $isAjax = $request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest';
+
+        try {
+            $request->validate([
+                'rfid' => 'required|string',
+                'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($isAjax) {
+                return response()->json(['success' => false, 'message' => 'Data tidak valid: ' . collect($e->errors())->flatten()->first()], 422);
+            }
+            throw $e;
+        }
 
         $rfid = strtoupper(trim($request->rfid, '0'));
 
         $anggota = Anggota::whereRaw('UPPER(id_kartu) = ?', [$rfid])->first();
 
         if (!$anggota) {
-            return redirect()->route('absen.index')
-                ->with('danger', 'Kartu dengan RFID ' . e($rfid) . ' tidak ditemukan!');
+            if ($isAjax) {
+                return response()->json(['success' => false, 'message' => 'Kartu RFID ' . e($rfid) . ' tidak ditemukan!'], 404);
+            }
+            return redirect()->route('absen.index')->with('danger', 'Kartu dengan RFID ' . e($rfid) . ' tidak ditemukan!');
         }
 
         $today = now()->toDateString();
@@ -104,9 +115,47 @@ class NoRoleController extends Controller
                 'foto'   => $fotoPath,
             ]);
 
+            if ($isAjax) {
+                // Build notif payload langsung di sini (tidak tunggu observer/cache)
+                $today2   = \Carbon\Carbon::today();
+                $isAktif  = $anggota->status_keanggotaan;
+                $activeMembership = $anggota->active_membership;
+                $sisaHari = null;
+                $tglSelesai = null;
+                $alasanTidakAktif = null;
+                if ($isAktif && $activeMembership) {
+                    $sisaHari   = (int) now()->startOfDay()->diffInDays($activeMembership->tgl_selesai->endOfDay(), false);
+                    $tglSelesai = $activeMembership->tgl_selesai->format('d M Y');
+                } else {
+                    $latest = $anggota->anggotaMemberships()->latest('tgl_selesai')->first();
+                    if (!$latest) $alasanTidakAktif = 'Belum pernah memiliki membership';
+                    elseif ($latest->status_pembayaran !== 'lunas') $alasanTidakAktif = 'Pembayaran membership belum lunas';
+                    else $alasanTidakAktif = 'Membership expired sejak ' . $latest->tgl_selesai->format('d M Y');
+                }
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Absensi ' . strtoupper($status) . ' untuk ' . $anggota->name . ' berhasil dicatat!',
+                    'notif'   => [
+                        'id'                 => 0,
+                        'nama'               => $anggota->name,
+                        'status'             => $status,
+                        'is_aktif'           => $isAktif,
+                        'sisa_hari'          => $sisaHari,
+                        'tgl_selesai'        => $tglSelesai,
+                        'alasan_tidak_aktif' => $alasanTidakAktif,
+                        'foto'               => $fotoPath ? asset('storage/' . $fotoPath) : null,
+                        'waktu'              => now()->format('d M Y - H:i:s'),
+                        'timestamp'          => now()->timestamp,
+                    ],
+                ]);
+            }
+
             return redirect()->route('absen.index')
                 ->with('success', 'Absensi ' . strtoupper($status) . ' untuk ' . e($anggota->name) . ' berhasil dicatat!');
         } catch (\Exception $e) {
+            if ($isAjax) {
+                return response()->json(['success' => false, 'message' => 'Gagal: ' . $e->getMessage()], 500);
+            }
             return redirect()->route('absen.index')
                 ->with('danger', 'Gagal menyimpan data absensi: ' . $e->getMessage());
         }

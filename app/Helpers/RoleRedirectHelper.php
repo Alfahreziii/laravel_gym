@@ -2,8 +2,6 @@
 
 namespace App\Helpers;
 
-use Illuminate\Support\Facades\Route;
-
 class RoleRedirectHelper
 {
     /**
@@ -11,11 +9,6 @@ class RoleRedirectHelper
      */
     public static function redirectBasedOnRole($user)
     {
-        // Cek apakah user sudah verifikasi email
-        if (method_exists($user, 'hasVerifiedEmail') && !$user->hasVerifiedEmail()) {
-            return route('verification.notice'); // arahkan ke halaman verifikasi
-        }
-
         $roleFallbacks = [
             'admin'   => route('dashboard'),
             'guest'   => route('kehadiranmember.index'),
@@ -25,7 +18,7 @@ class RoleRedirectHelper
         ];
 
         foreach ($user->getRoleNames() as $role) {
-            $roleLower = strtolower($role); // aman case-insensitive
+            $roleLower = strtolower($role);
             if (isset($roleFallbacks[$roleLower])) {
                 return $roleFallbacks[$roleLower];
             }
@@ -33,5 +26,4 @@ class RoleRedirectHelper
 
         return route('login');
     }
-
 }

@@ -5,12 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Trainer;
 use App\Models\User;
 use App\Models\Specialisasi;
+use App\Helpers\RoleRedirectHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Auth\Events\Registered;
 
 class TrainerRegisterController extends Controller
 {
@@ -28,7 +28,7 @@ class TrainerRegisterController extends Controller
             'email'           => 'required|email|unique:users,email',
             'password'        => 'required|string|min:8|confirmed',
             'photo'           => 'required|image|mimes:jpg,jpeg,png|max:2048',
-            
+
             // Data Trainer
             'id_specialisasi' => 'required|exists:specialisasis,id',
             'rfid'            => 'required|unique:trainers,rfid|max:30',
@@ -43,7 +43,7 @@ class TrainerRegisterController extends Controller
             'jadwal.*.day_of_week' => 'required|string',
             'jadwal.*.start_time'  => 'required',
             'jadwal.*.end_time'    => 'required',
-            
+
             // Terms & Conditions
             'terms'           => 'required|accepted',
         ]);
@@ -55,36 +55,37 @@ class TrainerRegisterController extends Controller
 
             // 2️⃣ Buat Trainer dengan status 'pending'
             $trainer = Trainer::create([
-                'id_specialisasi' => $request->id_specialisasi,
-                'rfid'            => $request->rfid,
-                'no_telp'         => $request->no_telp,
-                'experience'      => $request->experience,
-                'tgl_gabung'      => now(),
-                'status'          => Trainer::STATUS_PENDING,
-                'keterangan'      => 'Pendaftaran mandiri',
-                'tempat_lahir'    => $request->tempat_lahir,
-                'tgl_lahir'       => $request->tgl_lahir,
-                'jenis_kelamin'   => $request->jenis_kelamin,
-                'alamat'          => $request->alamat,
+                'id_specialisasi'     => $request->id_specialisasi,
+                'rfid'                => $request->rfid,
+                'no_telp'             => $request->no_telp,
+                'experience'          => $request->experience,
+                'tgl_gabung'          => now(),
+                'status'              => Trainer::STATUS_PENDING,
+                'keterangan'          => 'Pendaftaran mandiri',
+                'tempat_lahir'        => $request->tempat_lahir,
+                'tgl_lahir'           => $request->tgl_lahir,
+                'jenis_kelamin'       => $request->jenis_kelamin,
+                'alamat'              => $request->alamat,
                 'sesi_sudah_dijalani' => 0,
                 'sesi_belum_dijalani' => 0,
             ]);
 
             // 3️⃣ Buat User
             $user = User::create([
-                'name'       => $request->name,
-                'email'      => $request->email,
-                'password'   => Hash::make($request->password),
-                'trainer_id' => $trainer->id,
-                'photo'      => $photoPath,
+                'name'              => $request->name,
+                'email'             => $request->email,
+                'password'          => Hash::make($request->password),
+                'trainer_id'        => $trainer->id,
+                'photo'             => $photoPath,
+                'email_verified_at' => now(),
             ]);
 
             // 4️⃣ Assign role 'trainer'
             $user->assignRole('trainer');
 
             // 5️⃣ Simpan jadwal
-            if($request->has('jadwal')){
-                foreach($request->jadwal as $j){
+            if ($request->has('jadwal')) {
+                foreach ($request->jadwal as $j) {
                     $trainer->schedules()->create([
                         'day_of_week' => $j['day_of_week'],
                         'start_time'  => $j['start_time'],
@@ -93,24 +94,19 @@ class TrainerRegisterController extends Controller
                 }
             }
 
-            // 6️⃣ Trigger event untuk kirim email verifikasi
-            event(new Registered($user));
-            $user->sendEmailVerificationNotification();
-
-            // 7️⃣ Login otomatis
+            // 6️⃣ Login otomatis
             \Auth::login($user);
 
             DB::commit();
 
-            return redirect()->route('verification.notice')->with('status', 'verification-link-sent');
-
+            return redirect(RoleRedirectHelper::redirectBasedOnRole($user));
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             if (isset($photoPath) && Storage::disk('public')->exists($photoPath)) {
                 Storage::disk('public')->delete($photoPath);
             }
-            
+
             Log::error('Gagal register trainer', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()

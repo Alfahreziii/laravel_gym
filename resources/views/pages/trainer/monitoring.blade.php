@@ -84,12 +84,15 @@
                         </div>
 
                         @if ($playlists->isEmpty())
-                            <div class="text-center py-8">
+                            <div class="text-center py-12">
                                 <iconify-icon icon="mdi:playlist-remove"
-                                    class="text-5xl text-neutral-400 mb-3"></iconify-icon>
-                                <p class="text-neutral-600">Anda belum memiliki playlist training.</p>
+                                    class="text-6xl text-neutral-400 mb-4"></iconify-icon>
+                                <h5 class="text-xl font-semibold text-neutral-700 mb-2">Belum Ada Playlist</h5>
+                                <p class="text-neutral-500 mb-6">Anda belum memiliki playlist training. Buat playlist
+                                    terlebih dahulu sebelum memulai sesi.</p>
                                 <a href="{{ route('trainerplaylist.index') }}"
-                                    class="text-primary-600 hover:underline mt-2 inline-block">
+                                    class="btn btn-primary px-6 py-3 rounded-lg inline-flex items-center gap-2">
+                                    <iconify-icon icon="mdi:playlist-plus" class="text-xl"></iconify-icon>
                                     Buat Playlist Sekarang
                                 </a>
                             </div>

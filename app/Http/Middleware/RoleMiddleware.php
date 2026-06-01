@@ -14,11 +14,6 @@ class RoleMiddleware
             return redirect()->route('login');
         }
 
-        // Cegah akses jika email belum diverifikasi
-        if (!Auth::user()->hasVerifiedEmail()) {
-            return redirect()->route('verification.notice');
-        }
-
         // Bisa menerima beberapa role, pisahkan dengan '|'
         $rolesArray = explode('|', $roles);
 

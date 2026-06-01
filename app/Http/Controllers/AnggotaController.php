@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Auth\Events\Registered;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 
@@ -25,8 +24,8 @@ class AnggotaController extends Controller
                 $query->latest('tgl_selesai');
             }])->get();
 
-            $totalAnggota = $allAnggotas->count();
-            $totalAktif = $allAnggotas->filter(fn($a) => $a->status_keanggotaan === true)->count();
+            $totalAnggota    = $allAnggotas->count();
+            $totalAktif      = $allAnggotas->filter(fn($a) => $a->status_keanggotaan === true)->count();
             $totalTidakAktif = $allAnggotas->filter(fn($a) => $a->status_keanggotaan === false)->count();
 
             $query = Anggota::with(['anggotaMemberships', 'user'])
@@ -75,9 +74,9 @@ class AnggotaController extends Controller
 
     public function datatable(Request $request)
     {
-        $search   = $request->get('search', '');
-        $perPage  = (int) $request->get('perPage', 10);
-        $page     = (int) $request->get('page', 1);
+        $search  = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page    = (int) $request->get('page', 1);
 
         $query = Anggota::with('user')->orderByRaw("FIELD(status_finger, 0, 1, 2)");
 
@@ -186,21 +185,20 @@ class AnggotaController extends Controller
             ]);
 
             $user = User::create([
-                'name'       => $request->name,
-                'email'      => $request->email,
-                'password'   => Hash::make($request->password),
-                'anggota_id' => $anggota->id,
-                'photo'      => $photoPath,
+                'name'              => $request->name,
+                'email'             => $request->email,
+                'password'          => Hash::make($request->password),
+                'anggota_id'        => $anggota->id,
+                'photo'             => $photoPath,
+                'email_verified_at' => now(),
             ]);
 
             $user->assignRole('member');
-            event(new Registered($user));
-            $user->sendEmailVerificationNotification();
 
             DB::commit();
 
             return redirect()->route('anggota.index')
-                ->with('success', 'Anggota berhasil ditambahkan. Email verifikasi telah dikirim ke ' . $user->email);
+                ->with('success', 'Anggota berhasil ditambahkan.');
         } catch (\Exception $e) {
             DB::rollBack();
 
