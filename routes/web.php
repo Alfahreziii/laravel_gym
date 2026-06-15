@@ -3,38 +3,30 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\AiapplicationController;
-use App\Http\Controllers\AuthenticationController;
-use App\Http\Controllers\ChartController;
-use App\Http\Controllers\ComponentspageController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\FormsController;
-use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\SettingsController;
-use App\Http\Controllers\TableController;
 use App\Http\Controllers\UsersController;
-use App\Http\Controllers\CryptocurrencyController;
-use App\Http\Controllers\AnggotaController;
-use App\Http\Controllers\KategoriPaketController;
-use App\Http\Controllers\PaketMembershipController;
-use App\Http\Controllers\AnggotaMembershipController;
+use App\Http\Controllers\Membership\AnggotaController;
+use App\Http\Controllers\Membership\KategoriPaketController;
+use App\Http\Controllers\Membership\PaketMembershipController;
+use App\Http\Controllers\Membership\AnggotaMembershipController;
 use App\Http\Controllers\TrainerController;
-use App\Http\Controllers\SpecialisasiController;
-use App\Http\Controllers\PaketPersonalTrainerController;
-use App\Http\Controllers\MemberTrainerController;
+use App\Http\Controllers\PersonalTrainer\SpecialisasiController;
+use App\Http\Controllers\PersonalTrainer\PaketPersonalTrainerController;
+use App\Http\Controllers\PersonalTrainer\MemberTrainerController;
 use App\Http\Controllers\AlatGymController;
-use App\Http\Controllers\KehadiranMemberController;
-use App\Http\Controllers\KehadiranTrainerController;
-use App\Http\Controllers\PembayaranMembershipController;
-use App\Http\Controllers\PembayaranTrainerController;
-use App\Http\Controllers\KasirController;
-use App\Http\Controllers\AbsenNotifController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\KategoriProductController;
+use App\Http\Controllers\Kehadiran\KehadiranMemberController;
+use App\Http\Controllers\Kehadiran\KehadiranTrainerController;
+use App\Http\Controllers\Membership\PembayaranMembershipController;
+use App\Http\Controllers\PersonalTrainer\PembayaranTrainerController;
+use App\Http\Controllers\Kasir\KasirController;
+use App\Http\Controllers\Kehadiran\AbsenNotifController;
+use App\Http\Controllers\Kasir\ProductController;
+use App\Http\Controllers\Kasir\KategoriProductController;
 use App\Http\Middleware\RoleMiddleware;
 use App\Http\Middleware\LastActivityMiddleware;
-use App\Http\Controllers\NeracaController;
-use App\Http\Controllers\NoRoleController;
+use App\Http\Controllers\Keuangan\NeracaController;
+use App\Http\Controllers\Kehadiran\NoRoleController;
 use App\Http\Controllers\TrainerRegisterController;
 use App\Http\Controllers\Trainer\TrainerDashboardController;
 use App\Http\Controllers\Trainer\TrainerListMemberController;
@@ -44,7 +36,7 @@ use App\Http\Controllers\Trainer\GajiTrainerController;
 use App\Http\Controllers\Trainer\LevelTrainerController;
 use App\Http\Controllers\Trainer\RiwayatGajiTrainerController;
 use App\Http\Controllers\MemberProfileController;
-use App\Http\Controllers\TransaksiKeuanganController;
+use App\Http\Controllers\Keuangan\TransaksiKeuanganController;
 
 Route::get('/register/trainer', [TrainerRegisterController::class, 'showForm'])->name('register.trainer');
 Route::post('/register/trainer', [TrainerRegisterController::class, 'register'])->name('register.trainer.submit');
@@ -96,6 +88,9 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddle
     Route::post('/trainer/session-logs/export-pdf', [TrainerDashboardController::class, 'exportSessionLogsPdf'])
         ->name('trainer.session.logs.export_pdf');
 
+    Route::post('/trainer/session-logs/export-excel', [TrainerDashboardController::class, 'exportSessionLogsExcel'])
+        ->name('trainer.session.logs.export_excel');
+
     Route::controller(TrainerListMemberController::class)->group(function () {
         Route::get('/trainer/member', 'index')->name('trainerlistmember.index');
         Route::get('/trainer/member/{idAnggota}', 'memberDetail')->name('trainerlistmember.detail');
@@ -114,6 +109,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddle
         Route::delete('/trainer/playlist-member/destroy', 'destroy')->name('playlist-member.destroy');
         Route::get('/trainer/member/{memberTrainerId}/history', 'memberHistory')->name('trainer.member.history');
         Route::get('/trainer/member/{memberTrainerId}/history/export-pdf', 'exportHistoryPdf')->name('trainer.member.history.export_pdf');
+        Route::get('/trainer/member/{memberTrainerId}/history/export-excel', 'exportHistoryExcel')->name('trainer.member.history.export_excel');
     });
 });
 
@@ -122,6 +118,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddle
     Route::controller(KehadiranMemberController::class)->group(function () {
         Route::get('/laporan/kehadiran', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('laporan.kehadiran');
         Route::post('/kehadiranmember/export-pdf', 'exportPdf')->name('kehadiranmember.export_pdf');
+        Route::post('/kehadiranmember/export-excel', 'exportExcel')->name('kehadiranmember.export_excel');
         Route::get('/kehadiran-member', 'index')->name('kehadiranmember.index');
         Route::get('/kehadiranmember/datatable', 'datatable')->name('kehadiranmember.datatable');
         Route::get('/kehadiran-member/create', 'create')->name('kehadiranmember.create');
@@ -134,6 +131,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddle
 
     Route::controller(KehadiranTrainerController::class)->group(function () {
         Route::post('kehadirantrainer/export-pdf', 'exportPdf')->name('kehadirantrainer.export_pdf');
+        Route::post('kehadirantrainer/export-excel', 'exportExcel')->name('kehadirantrainer.export_excel');
         Route::get('kehadirantrainer/datatable', 'datatable')->name('kehadirantrainer.datatable');
         Route::get('laporan/kehadiran-trainer', 'index')->name('laporan.kehadirantrainer');
         Route::get('/kehadiran-trainer', 'index')->name('kehadirantrainer.index');
@@ -166,6 +164,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
         Route::get('/',          [TransaksiKeuanganController::class, 'index'])->name('index');
         Route::get('/datatable', [TransaksiKeuanganController::class, 'datatable'])->name('datatable');
         Route::get('/export-pdf', [TransaksiKeuanganController::class, 'exportPdf'])->name('exportPdf');
+        Route::get('/export-excel', [TransaksiKeuanganController::class, 'exportExcel'])->name('exportExcel');
     });
 
     // Route untuk Produk
@@ -174,6 +173,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
         Route::get('/products', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('products.index');
         Route::get('/laporan/products', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('laporan.products');
         Route::post('/products/export-pdf', 'exportPdf')->middleware(RoleMiddleware::class . ':admin|spv')->name('products.export_pdf');
+        Route::post('/products/export-excel', 'exportExcel')->middleware(RoleMiddleware::class . ':admin|spv')->name('products.export_excel');
         // Route CRUD hanya untuk admin
         Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
             Route::get('/products/create', 'create')->name('products.create');
@@ -203,6 +203,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
         Route::get('/anggota/datatable', 'datatable')->middleware(RoleMiddleware::class . ':admin|spv')->name('anggota.datatable');
         Route::get('/laporan/anggota', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('laporan.anggota');
         Route::post('/anggota/export-pdf', 'exportPdf')->middleware(RoleMiddleware::class . ':admin|spv')->name('anggota.export_pdf');
+        Route::post('/anggota/export-excel', 'exportExcel')->middleware(RoleMiddleware::class . ':admin|spv')->name('anggota.export_excel');
         Route::middleware(RoleMiddleware::class . ':admin|spv')->group(function () {
             Route::get('/anggota/create', 'create')->name('anggota.create');
             Route::post('/anggota', 'store')->name('anggota.store');
@@ -241,6 +242,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
         Route::get('/anggota-membership', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('anggota_membership.index');
         Route::get('/laporan/anggota-membership', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('laporan.membership');
         Route::post('/anggota-membership/export-pdf', 'exportPdf')->middleware(RoleMiddleware::class . ':admin|spv')->name('anggota_membership.export_pdf');
+        Route::post('/anggota-membership/export-excel', 'exportExcel')->middleware(RoleMiddleware::class . ':admin|spv')->name('anggota_membership.export_excel');
         Route::middleware(RoleMiddleware::class . ':admin|spv')->group(function () {
             Route::get('/anggota-membership/create', 'create')->name('anggota_membership.create');
             Route::post('/anggota-membership', 'store')->name('anggota_membership.store');
@@ -284,6 +286,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
         Route::get('/trainer/datatable', 'datatable')->middleware(RoleMiddleware::class . ':admin|spv')->name('trainer.datatable');
         Route::get('/laporan/trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('laporan.trainer');
         Route::post('/trainer/export-pdf', 'exportPdf')->middleware(RoleMiddleware::class . ':admin|spv')->name('trainer.export_pdf');
+        Route::post('/trainer/export-excel', 'exportExcel')->middleware(RoleMiddleware::class . ':admin|spv')->name('trainer.export_excel');
         Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
             Route::get('/trainer/create', 'create')->name('trainer.create');
             Route::post('/trainer', 'store')->name('trainer.store');
@@ -300,6 +303,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
         Route::get('/member-trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('membertrainer.index');
         Route::get('/laporan/member-trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('laporan.membertrainer');
         Route::post('/membertrainer/export-pdf', 'exportPdf')->middleware(RoleMiddleware::class . ':admin|spv')->name('membertrainer.export_pdf');
+        Route::post('/membertrainer/export-excel', 'exportExcel')->middleware(RoleMiddleware::class . ':admin|spv')->name('membertrainer.export_excel');
         Route::middleware(RoleMiddleware::class . ':admin|spv')->group(function () {
             Route::get('/member-trainer/create', 'create')->name('membertrainer.create');
             Route::post('/member-trainer', 'store')->name('membertrainer.store');
@@ -318,6 +322,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
         Route::get('/alat-gym', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('alat_gym.index');
         Route::get('/laporan/alat-gym', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('laporan.alat_gym');
         Route::post('/alat-gym/export-pdf', 'exportPdf')->middleware(RoleMiddleware::class . ':admin|spv')->name('alat_gym.export_pdf');
+        Route::post('/alat-gym/export-excel', 'exportExcel')->middleware(RoleMiddleware::class . ':admin|spv')->name('alat_gym.export_excel');
         Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
             Route::get('/alat-gym/create', 'create')->name('alat_gym.create');
             Route::post('/alat-gym', 'store')->name('alat_gym.store');
@@ -404,6 +409,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddle
 
     Route::controller(KasirController::class)->group(function () {
         Route::post('/kasir/export-pdf', 'exportPdf')->name('kasir.export_pdf');
+        Route::post('/kasir/export-csv', 'exportCsv')->name('kasir.export_csv');
         Route::get('/kasir', 'index')->name('kasir.index');
         Route::get('/laporan/penjualan', 'riwayat')->middleware(RoleMiddleware::class . ':admin|spv')->name('laporan.penjualan');
         Route::get('/riwayat-transaksi-kasir', 'riwayat')->name('kasir.riwayat');

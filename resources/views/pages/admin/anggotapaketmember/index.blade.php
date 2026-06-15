@@ -1,110 +1,147 @@
 @extends('layout.layout')
 @php
-    $title = 'Riwayat Sesi';
-    $subTitle = 'Riwayat Sesi Training';
+    $title = 'Anggota Membership';
+    $subTitle = 'Anggota Membership';
+    $script = '<script src="' . asset('assets/js/data-table.js') . '"></script>';
+    $isLaporanMode = request()->routeIs('laporan.membership');
 @endphp
 
 @section('content')
+    @if (session('success'))
+        <div
+            class="alert alert-success bg-success-50 dark:bg-success-600/25 
+        text-success-600 dark:text-success-400 border-success-50 
+        px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                {{ session('success') }}
+            </div>
+            <button class="remove-button text-success-600 text-2xl">
+                <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
+            </button>
+        </div>
+    @endif
+    @if (session('danger'))
+        <div
+            class="alert alert-danger bg-danger-100 dark:bg-danger-600/25 
+        text-danger-600 dark:text-danger-400 border-danger-100 
+        px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
+            {{ session('danger') }}
+            <button class="remove-button text-danger-600 text-2xl">
+                <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
+            </button>
+        </div>
+    @endif
+
     <div class="grid grid-cols-12">
         <div class="col-span-12">
             <div class="card border-0 overflow-hidden">
                 <div class="card-header flex items-center justify-between">
-                    <div>
-                        <h6 class="card-title mb-0 text-lg">Riwayat Sesi Training</h6>
-                        <p class="text-sm text-neutral-500 mt-1">Trainer: {{ $trainer->name }}</p>
-                    </div>
+                    <h6 class="card-title mb-0 text-lg">
+                        {{ $isLaporanMode ? 'Laporan Data Anggota Membership' : 'Data Anggota Membership' }}
+                    </h6>
                     <div class="flex gap-2">
+                        <!-- Tombol Export PDF -->
                         <button type="button" data-modal-target="export-pdf-modal" data-modal-toggle="export-pdf-modal"
                             class="text-white bg-danger-600 hover:bg-danger-700 focus:ring-4 focus:outline-none focus:ring-danger-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center">
-                            <iconify-icon icon="carbon:export" class="mr-2"></iconify-icon>
+                            <iconify-icon icon="carbon:export" class="mr-2 text-lg"></iconify-icon>
                             Export Laporan
                         </button>
-                        <a href="{{ route('trainer.dashboard') }}"
-                            class="text-primary-600 focus:bg-primary-600 hover:bg-primary-700 border border-primary-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center dark:text-primary-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-primary-800">
-                            <iconify-icon icon="lucide:arrow-left" class="mr-2"></iconify-icon>
-                            Kembali
-                        </a>
+
+                        {{-- Tombol Tambah Data hanya tampil jika BUKAN mode laporan --}}
+                        @if (!$isLaporanMode)
+                            @role('admin|spv')
+                                <a href="{{ route('anggota_membership.create') }}"
+                                    class="text-primary-600 focus:bg-primary-600 hover:bg-primary-700 border border-primary-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center dark:text-primary-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-primary-800">
+                                    + Tambah Data
+                                </a>
+                            @endrole
+                        @endif
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="overflow-x-auto">
-                        <table class="border border-neutral-200 rounded-lg border-separate w-full">
-                            <thead>
+                    <table id="selection-table" class="border border-neutral-200 rounded-lg border-separate w-full">
+                        <thead>
+                            <tr>
+                                <th>S.L</th>
+                                @if (!$isLaporanMode)
+                                    @role('admin')
+                                        <th>Aksi</th>
+                                    @endrole
+                                @endif
+                                <th>Kode Transaksi</th>
+                                <th>Nama Anggota</th>
+                                <th>Paket</th>
+                                <th>Tgl Bayar Awal</th>
+                                <th>Metode Pembayaran</th>
+                                <th>Tgl Mulai</th>
+                                <th>Tgl Selesai</th>
+                                <th>Status Pembayaran</th>
+                                <th>Total Biaya</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($anggotaMemberships as $index => $item)
                                 <tr>
-                                    <th scope="col"
-                                        class="px-4 py-3 text-left text-sm font-semibold text-neutral-600 bg-neutral-50">S.L
-                                    </th>
-                                    <th scope="col"
-                                        class="px-4 py-3 text-left text-sm font-semibold text-neutral-600 bg-neutral-50">
-                                        Tanggal & Waktu</th>
-                                    <th scope="col"
-                                        class="px-4 py-3 text-left text-sm font-semibold text-neutral-600 bg-neutral-50">
-                                        Tipe</th>
-                                    <th scope="col"
-                                        class="px-4 py-3 text-left text-sm font-semibold text-neutral-600 bg-neutral-50">
-                                        Sesi</th>
-                                    <th scope="col"
-                                        class="px-4 py-3 text-left text-sm font-semibold text-neutral-600 bg-neutral-50">
-                                        Total Sesi</th>
-                                    <th scope="col"
-                                        class="px-4 py-3 text-left text-sm font-semibold text-neutral-600 bg-neutral-50">
-                                        Keterangan</th>
+                                    <td class="whitespace-nowrap">{{ $index + 1 }}</td>
+                                    @if (!$isLaporanMode)
+                                        @role('admin')
+                                            <td class="whitespace-nowrap flex gap-2">
+                                                <a href="{{ route('anggota_membership.edit', $item->id) }}" title="Edit Item"
+                                                    class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
+                                                    <iconify-icon icon="lucide:edit"></iconify-icon>
+                                                </a>
+                                                <form action="{{ route('anggota_membership.destroy', $item->id) }}"
+                                                    method="POST" class="inline-block delete-form">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="button" title="Hapus Item"
+                                                        class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center delete-btn">
+                                                        <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        @endrole
+                                    @endif
+                                    <td class="whitespace-nowrap"><a class="text-primary-600"
+                                            href="{{ route('anggota_membership.edit', $item->id) }}">{{ $item->kode_transaksi }}</a>
+                                    </td>
+                                    <td class="whitespace-nowrap">{{ $item->anggota->name ?? '-' }}</td>
+                                    <td class="whitespace-nowrap">{{ $item->paketMembership->nama_paket ?? '-' }}</td>
+                                    <td class="whitespace-nowrap">
+                                        @php
+                                            $tanggalBayarAwal = $item->pembayaranMemberships->min('tgl_bayar');
+                                        @endphp
+                                        {{ $tanggalBayarAwal ? \Carbon\Carbon::parse($tanggalBayarAwal)->format('d M Y') : '-' }}
+                                    </td>
+                                    <td class="whitespace-nowrap">
+                                        @php
+                                            $metodePembayaran =
+                                                $item->pembayaranMemberships->first()->metode_pembayaran ?? '-';
+                                        @endphp
+                                        {{ $metodePembayaran ?? '-' }}
+                                    </td>
+                                    <td class="whitespace-nowrap">
+                                        {{ \Carbon\Carbon::parse($item->tgl_mulai)->format('d M Y') }}
+                                    </td>
+                                    <td class="whitespace-nowrap">
+                                        {{ \Carbon\Carbon::parse($item->tgl_selesai)->format('d M Y') }}
+                                    </td>
+                                    <td class="whitespace-nowrap">
+                                        @if ($item->status_pembayaran === 'Lunas')
+                                            <span
+                                                class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm">Lunas</span>
+                                        @else
+                                            <span
+                                                class="bg-warning-100 text-warning-600 px-4 py-1.5 rounded-full font-medium text-sm">Belum
+                                                Lunas</span>
+                                        @endif
+                                    </td>
+                                    <td class="whitespace-nowrap">Rp {{ number_format($item->total_biaya, 0, ',', '.') }}
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($logs as $index => $log)
-                                    @php
-                                        $description = $log->description;
-                                        $cleanDescription = preg_replace_callback(
-                                            '/durasi:\s*(-?[\d.]+)\s*menit/i',
-                                            function ($matches) {
-                                                $durasi = round(abs((float) $matches[1]));
-                                                return "durasi: {$durasi} menit";
-                                            },
-                                            $description,
-                                        );
-                                    @endphp
-                                    <tr class="border-b border-neutral-100 hover:bg-neutral-50 transition">
-                                        <td class="whitespace-nowrap px-4 py-3 text-sm text-neutral-700">
-                                            {{ $logs->firstItem() + $index }}
-                                        </td>
-                                        <td class="whitespace-nowrap px-4 py-3 text-sm text-neutral-700">
-                                            {{ $log->created_at->format('d M Y H:i') }}
-                                        </td>
-                                        <td class="whitespace-nowrap px-4 py-3">
-                                            @if ($log->type === 'in')
-                                                <span
-                                                    class="bg-success-100 text-success-600 px-6 py-1.5 rounded-full font-medium text-sm">Masuk</span>
-                                            @else
-                                                <span
-                                                    class="bg-danger-100 text-danger-600 px-6 py-1.5 rounded-full font-medium text-sm">Selesai</span>
-                                            @endif
-                                        </td>
-                                        <td class="whitespace-nowrap px-4 py-3 text-sm text-neutral-700">{{ $log->sesi }}
-                                        </td>
-                                        <td class="whitespace-nowrap px-4 py-3 text-sm text-neutral-700">
-                                            {{ $log->current_sesi }}</td>
-                                        <td class="px-4 py-3 text-sm text-neutral-700">{{ $cleanDescription }}</td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="6" class="text-center py-8 text-neutral-400 italic">Belum ada
-                                            riwayat sesi</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {{-- Pagination & info --}}
-                    <div class="flex justify-between items-center mt-4 flex-wrap gap-2">
-                        <span class="text-sm text-gray-500">
-                            Menampilkan {{ $logs->firstItem() }}–{{ $logs->lastItem() }} dari {{ $logs->total() }} data
-                        </span>
-                        <div>
-                            {{ $logs->links() }}
-                        </div>
-                    </div>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -127,13 +164,38 @@
                 </button>
             </div>
             <div class="p-6">
-                <form action="{{ route('trainer.session.logs.export_pdf') }}" method="POST" id="export-pdf-form">
+                <form action="{{ route('anggota_membership.export_pdf') }}" method="POST" id="export-pdf-form">
                     @csrf
                     <div class="grid grid-cols-1 gap-6">
+                        <!-- Filter Status Pembayaran -->
+                        <div class="col-span-12">
+                            <label class="inline-block font-semibold text-neutral-600 text-sm mb-2">Filter Status
+                                Pembayaran:</label>
+                            <div class="space-y-2">
+                                <div class="flex items-center mb-2">
+                                    <input type="radio" id="status_all" name="status_filter" value="all"
+                                        class="w-4 h-4 text-primary-600" checked>
+                                    <label for="status_all" class="ml-2 text-sm font-medium text-gray-900">Semua
+                                        Status</label>
+                                </div>
+                                <div class="flex items-center mb-2">
+                                    <input type="radio" id="status_lunas" name="status_filter" value="lunas"
+                                        class="w-4 h-4 text-primary-600">
+                                    <label for="status_lunas" class="ml-2 text-sm font-medium text-gray-900">Lunas</label>
+                                </div>
+                                <div class="flex items-center mb-2">
+                                    <input type="radio" id="status_belum_lunas" name="status_filter" value="belum_lunas"
+                                        class="w-4 h-4 text-primary-600">
+                                    <label for="status_belum_lunas" class="ml-2 text-sm font-medium text-gray-900">Belum
+                                        Lunas</label>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Pilih Tipe Filter Tanggal -->
                         <div class="col-span-12">
                             <label class="inline-block font-semibold text-neutral-600 text-sm mb-2">Filter Tanggal
-                                (Berdasarkan tanggal sesi):</label>
+                                (Berdasarkan tanggal mulai):</label>
                             <div class="space-y-2">
                                 <div class="flex items-center mb-2">
                                     <input type="radio" id="filter_all" name="filter_type" value="all"
@@ -193,7 +255,7 @@
                             </div>
                         </div>
 
-                        <!-- Filter Range Bulan -->
+                        <!-- Filter Range -->
                         <div id="range-filter" class="hidden">
                             <div class="space-y-4">
                                 <div class="grid grid-cols-2 gap-4">
@@ -257,7 +319,7 @@
                             </div>
                         </div>
 
-                        <!-- Filter Range Harian -->
+                        {{-- Filter Range Harian --}}
                         <div id="daily-filter" class="hidden">
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
@@ -289,7 +351,7 @@
                                     <iconify-icon icon="carbon:document-pdf" class="mr-2"></iconify-icon>
                                     Export PDF
                                 </button>
-                                <button type="submit" formaction="{{ route('trainer.session.logs.export_excel') }}"
+                                <button type="submit" formaction="{{ route('anggota_membership.export_excel') }}"
                                     class="bg-success-600 hover:bg-success-700 text-white text-base px-6 py-3 rounded-lg inline-flex items-center">
                                     <iconify-icon icon="carbon:document-export" class="mr-2"></iconify-icon>
                                     Export Excel
@@ -306,6 +368,30 @@
 @section('scripts')
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            // Delete confirmation
+            const deleteForms = document.querySelectorAll('.delete-form');
+            deleteForms.forEach(form => {
+                const btn = form.querySelector('.delete-btn');
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    Swal.fire({
+                        title: 'Apakah kamu yakin?',
+                        text: "Data anggota membership yang dihapus tidak bisa dikembalikan!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#e3342f',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Ya, hapus!',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                });
+            });
+
+            // Toggle filter sections
             const filterRadios = document.querySelectorAll('input[name="filter_type"]');
             const singleFilter = document.getElementById('single-filter');
             const rangeFilter = document.getElementById('range-filter');
@@ -327,6 +413,7 @@
                 });
             });
 
+            // Form validation
             document.getElementById('export-pdf-form').addEventListener('submit', function(e) {
                 const filterType = document.querySelector('input[name="filter_type"]:checked').value;
 

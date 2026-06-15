@@ -11,9 +11,12 @@ use App\Models\Trainer;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Controllers\Concerns\ExportsExcel;
 
 class PlaylistMemberTrainerController extends Controller
 {
+    use ExportsExcel;
+
     /**
      * Get the trainer ID for the authenticated user
      */
@@ -319,6 +322,117 @@ class PlaylistMemberTrainerController extends Controller
             return $pdf->download($filename);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal export PDF: ' . $e->getMessage());
+        }
+    }
+
+    public function exportHistoryExcel($memberTrainerId)
+    {
+        try {
+            $trainerId = $this->getTrainerId();
+            $trainer = Trainer::findOrFail($trainerId);
+
+            $memberTrainer = MemberTrainer::with(['anggota', 'paketPersonalTrainer'])
+                ->where('id', $memberTrainerId)
+                ->where('id_trainer', $trainerId)
+                ->firstOrFail();
+
+            $sesiSelesai = \App\Models\SesiMemberTrainer::where('id_member_trainer', $memberTrainer->id)
+                ->where('type', 'out')
+                ->orderBy('created_at', 'asc')
+                ->get();
+
+            $jumlahSesi = $memberTrainer->paketPersonalTrainer->jumlah_sesi;
+            $sesiKeList = $sesiSelesai->map(function ($log) use ($jumlahSesi) {
+                return $jumlahSesi - $log->current_sesi;
+            })->unique()->sort()->values();
+
+            $durasiPerSesi = [];
+            $tanggalPerSesi = [];
+            foreach ($sesiSelesai as $log) {
+                $sesiKe = $jumlahSesi - $log->current_sesi;
+                if (!isset($durasiPerSesi[$sesiKe])) {
+                    preg_match('/durasi:\s*(-?[\d.]+)\s*menit/i', $log->description ?? '', $matches);
+                    $durasiPerSesi[$sesiKe] = isset($matches[1]) ? round(abs((float) $matches[1])) : null;
+                    $tanggalPerSesi[$sesiKe] = $log->created_at;
+                }
+            }
+
+            $playlistGrouped = PlaylistMemberTrainer::where('id_member_trainer', $memberTrainer->id)
+                ->orderBy('sesi_ke', 'asc')
+                ->get()
+                ->groupBy('sesi_ke');
+
+            $history = collect();
+            foreach ($sesiKeList as $sesiKe) {
+                $history[$sesiKe] = $playlistGrouped->get($sesiKe, collect());
+            }
+            foreach ($playlistGrouped->keys() as $sesiKe) {
+                if (!$history->has($sesiKe)) {
+                    $history[$sesiKe] = $playlistGrouped->get($sesiKe);
+                }
+            }
+            $history = $history->sortKeys();
+
+            $totalDurasi = array_sum(array_filter($durasiPerSesi));
+
+            $rows = '';
+            foreach ($history as $sesiKe => $playlists) {
+                $tanggal = !empty($tanggalPerSesi[$sesiKe]) ? $tanggalPerSesi[$sesiKe]->format('d/m/Y') : '-';
+                $durasi  = !empty($durasiPerSesi[$sesiKe]) ? $durasiPerSesi[$sesiKe] : '-';
+
+                if ($playlists->isEmpty()) {
+                    $rows .= '<tr>'
+                        . '<td class="center">' . $sesiKe . '</td>'
+                        . '<td class="center">' . $tanggal . '</td>'
+                        . '<td class="center">' . $durasi . '</td>'
+                        . '<td colspan="2">Sesi diselesaikan tanpa data playlist tercatat</td>'
+                        . '<td class="center">-</td>'
+                        . '</tr>';
+                    continue;
+                }
+
+                foreach ($playlists as $playlist) {
+                    $rows .= '<tr>'
+                        . '<td class="center">' . $sesiKe . '</td>'
+                        . '<td class="center">' . $tanggal . '</td>'
+                        . '<td class="center">' . $durasi . '</td>'
+                        . '<td>' . $this->exEsc($playlist->latihan) . '</td>'
+                        . '<td>' . $this->exEsc($playlist->keterangan ?? '-') . '</td>'
+                        . '<td class="center">' . $playlist->created_at->format('d/m/Y H:i') . '</td>'
+                        . '</tr>';
+                }
+            }
+
+            if ($history->isEmpty()) {
+                $rows = '<tr><td colspan="6" class="center">Belum ada riwayat training.</td></tr>';
+            }
+
+            $title = 'Riwayat Gym - ' . $memberTrainer->anggota->name;
+
+            $html = '<table>';
+            $html .= '<tr><td colspan="6" class="title">' . $this->exEsc($title) . '</td></tr>';
+            $html .= '<tr><td colspan="6" class="subtitle">Dicetak: ' . now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') . ' WIB &nbsp;|&nbsp; Trainer: ' . $this->exEsc($trainer->name) . '</td></tr>';
+            $html .= '<tr><td colspan="6"></td></tr>';
+            $html .= '<tr>'
+                . '<td colspan="1" class="summary-label">Paket</td><td colspan="2" class="summary-val">' . $this->exEsc($memberTrainer->paketPersonalTrainer->nama_paket) . '</td>'
+                . '<td colspan="1" class="summary-label">Progress Sesi</td><td colspan="2" class="summary-val">' . $memberTrainer->sesi . ' / ' . $memberTrainer->paketPersonalTrainer->jumlah_sesi . ' (Sisa: ' . $memberTrainer->sisa_sesi . ')</td>'
+                . '</tr>';
+            $html .= '<tr>'
+                . '<td colspan="1" class="summary-label">Total Sesi Selesai</td><td colspan="2" class="summary-val">' . $history->count() . ' sesi</td>'
+                . '<td colspan="1" class="summary-label">Total Durasi</td><td colspan="2" class="summary-val">' . ($totalDurasi > 0 ? $totalDurasi . ' menit' : '-') . '</td>'
+                . '</tr>';
+            $html .= '<tr><td colspan="6"></td></tr>';
+            $html .= '<tr>'
+                . '<th>Sesi Ke</th><th>Tanggal</th><th>Durasi (menit)</th><th>Latihan</th><th>Keterangan</th><th>Waktu Dicatat</th>'
+                . '</tr>';
+            $html .= $rows;
+            $html .= '</table>';
+
+            $filename = 'riwayat-gym-' . str_replace(' ', '-', strtolower($memberTrainer->anggota->name)) . '-' . now()->format('Ymd') . '.xls';
+
+            return $this->excelDownload($html, $title, $filename);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal export Excel: ' . $e->getMessage());
         }
     }
 }

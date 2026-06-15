@@ -13,9 +13,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use App\Http\Controllers\Concerns\ExportsExcel;
 
 class TrainerController extends Controller
 {
+    use ExportsExcel;
+
     public function exportPdf(Request $request)
     {
         try {
@@ -67,6 +70,92 @@ class TrainerController extends Controller
             ]);
 
             return redirect()->back()->with('error', 'Gagal export PDF: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Export data trainer ke Excel (.xls) — filter status sama seperti exportPdf.
+     */
+    public function exportExcel(Request $request)
+    {
+        try {
+            $statusFilter = $request->input('status_filter', 'all');
+
+            $allTrainers   = Trainer::all();
+            $totalTrainer  = $allTrainers->count();
+            $totalAktif    = $allTrainers->where('status', Trainer::STATUS_AKTIF)->count();
+            $totalNonaktif = $allTrainers->where('status', Trainer::STATUS_NONAKTIF)->count();
+            $totalPending  = $allTrainers->where('status', Trainer::STATUS_PENDING)->count();
+
+            $query = Trainer::with(['specialisasi', 'user', 'schedules'])
+                ->join('users', 'trainers.id', '=', 'users.trainer_id')
+                ->select('trainers.*', 'users.name', 'users.email');
+
+            if ($statusFilter === 'aktif') {
+                $query->where('trainers.status', Trainer::STATUS_AKTIF);
+                $title = 'Laporan Trainer Aktif';
+            } elseif ($statusFilter === 'nonaktif') {
+                $query->where('trainers.status', Trainer::STATUS_NONAKTIF);
+                $title = 'Laporan Trainer Non-Aktif';
+            } elseif ($statusFilter === 'pending') {
+                $query->where('trainers.status', Trainer::STATUS_PENDING);
+                $title = 'Laporan Trainer Pending';
+            } else {
+                $title = 'Laporan Semua Trainer';
+            }
+
+            $trainers = $query->orderBy('users.name', 'asc')->get();
+
+            $rows = '';
+            foreach ($trainers as $i => $trainer) {
+                $jadwal = $trainer->schedules->map(function ($s) {
+                    return $s->day_of_week . ': ' .
+                        Carbon::parse($s->start_time)->format('H:i') . '-' .
+                        Carbon::parse($s->end_time)->format('H:i');
+                })->implode('; ');
+
+                $rows .= '<tr>'
+                    . '<td class="center">' . ($i + 1) . '</td>'
+                    . '<td>' . $this->exEsc($trainer->rfid) . '</td>'
+                    . '<td>' . $this->exEsc($trainer->name) . '</td>'
+                    . '<td>' . $this->exEsc($trainer->email) . '</td>'
+                    . '<td>' . $this->exEsc($trainer->no_telp) . '</td>'
+                    . '<td>' . $this->exEsc($trainer->specialisasi->nama_specialisasi ?? '-') . '</td>'
+                    . '<td>' . $this->exEsc($trainer->experience) . '</td>'
+                    . '<td class="center">' . $trainer->tgl_gabung->format('d/m/Y') . '</td>'
+                    . '<td class="center">' . $trainer->sesi_belum_dijalani . '</td>'
+                    . '<td class="center">' . $trainer->sesi_sudah_dijalani . '</td>'
+                    . '<td class="center">' . $this->exEsc(ucfirst($trainer->status)) . '</td>'
+                    . '<td>' . $this->exEsc($jadwal ?: '-') . '</td>'
+                    . '</tr>';
+            }
+
+            $html = '<table>';
+            $html .= '<tr><td colspan="12" class="title">' . $this->exEsc($title) . '</td></tr>';
+            $html .= '<tr><td colspan="12" class="subtitle">Dicetak: ' . now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') . ' WIB</td></tr>';
+            $html .= '<tr><td colspan="12"></td></tr>';
+            $html .= '<tr>'
+                . '<td colspan="3" class="summary-label">Total Trainer</td><td colspan="3" class="summary-val">' . $totalTrainer . '</td>'
+                . '<td colspan="3" class="summary-label">Aktif / Non-Aktif / Pending</td><td colspan="3" class="summary-val">' . $totalAktif . ' / ' . $totalNonaktif . ' / ' . $totalPending . '</td>'
+                . '</tr>';
+            $html .= '<tr><td colspan="12"></td></tr>';
+            $html .= '<tr>'
+                . '<th>No</th><th>RFID</th><th>Nama</th><th>Email</th><th>No. Telp</th><th>Spesialisasi</th>'
+                . '<th>Experience</th><th>Tgl Gabung</th><th>Sesi Belum</th><th>Sesi Sudah</th><th>Status</th><th>Jadwal</th>'
+                . '</tr>';
+            $html .= $rows;
+            $html .= '</table>';
+
+            $filename = 'Laporan_Trainer_' . ucfirst($statusFilter) . '_' . date('Y-m-d_His') . '.xls';
+
+            return $this->excelDownload($html, $title, $filename);
+        } catch (\Exception $e) {
+            Log::error('Gagal export Excel trainer', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->back()->with('error', 'Gagal export Excel: ' . $e->getMessage());
         }
     }
 

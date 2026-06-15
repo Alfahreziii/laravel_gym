@@ -16,9 +16,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Controllers\Concerns\ExportsExcel;
 
 class TrainerDashboardController extends Controller
 {
+    use ExportsExcel;
+
     public function index()
     {
         $user    = Auth::user();
@@ -262,5 +265,102 @@ class TrainerDashboardController extends Controller
             ->setPaper('a4', 'portrait');
 
         return $pdf->download('riwayat-sesi-' . $trainer->name . '-' . now()->format('Ymd') . '.pdf');
+    }
+
+    public function exportSessionLogsExcel(Request $request)
+    {
+        $request->validate([
+            'filter_type' => 'required|in:all,single,range,daily',
+            'bulan'       => 'nullable|required_if:filter_type,single|integer|between:1,12',
+            'tahun'       => 'nullable|required_if:filter_type,single|integer|min:2000',
+            'bulan_dari'  => 'nullable|required_if:filter_type,range|integer|between:1,12',
+            'tahun_dari'  => 'nullable|required_if:filter_type,range|integer|min:2000',
+            'bulan_sampai' => 'nullable|required_if:filter_type,range|integer|between:1,12',
+            'tahun_sampai' => 'nullable|required_if:filter_type,range|integer|min:2000',
+            'tgl_dari'    => 'nullable|required_if:filter_type,daily|date',
+            'tgl_sampai'  => 'nullable|required_if:filter_type,daily|date|after_or_equal:tgl_dari',
+        ]);
+
+        $user    = Auth::user();
+        $trainer = Trainer::where('id', $user->trainer_id ?? 0)->first();
+
+        if (!$trainer) {
+            return redirect()->back()->with('error', 'Anda tidak terdaftar sebagai trainer.');
+        }
+
+        $filterType = $request->filter_type;
+        $filterInfo = 'Semua Tanggal';
+
+        $query = SesiTrainer::where('id_trainer', $trainer->id)->latest();
+
+        if ($filterType === 'single') {
+            $bulan = $request->bulan;
+            $tahun = $request->tahun;
+            $query->whereYear('created_at', $tahun)->whereMonth('created_at', $bulan);
+            $filterInfo = Carbon::create($tahun, $bulan)->locale('id')->isoFormat('MMMM YYYY');
+        } elseif ($filterType === 'range') {
+            $dariTanggal   = Carbon::create($request->tahun_dari, $request->bulan_dari, 1)->startOfMonth();
+            $sampaiTanggal = Carbon::create($request->tahun_sampai, $request->bulan_sampai, 1)->endOfMonth();
+            $query->whereBetween('created_at', [$dariTanggal, $sampaiTanggal]);
+            $filterInfo = $dariTanggal->locale('id')->isoFormat('MMMM YYYY') . ' - ' .
+                $sampaiTanggal->locale('id')->isoFormat('MMMM YYYY');
+        } elseif ($filterType === 'daily') {
+            $dariTanggal   = Carbon::parse($request->tgl_dari)->startOfDay();
+            $sampaiTanggal = Carbon::parse($request->tgl_sampai)->endOfDay();
+            $query->whereBetween('created_at', [$dariTanggal, $sampaiTanggal]);
+            $filterInfo = $dariTanggal->format('d M Y') . ' - ' . $sampaiTanggal->format('d M Y');
+        }
+
+        $logs = $query->get()->map(function ($log) {
+            $log->clean_description = preg_replace_callback(
+                '/durasi:\s*(-?[\d.]+)\s*menit/i',
+                function ($matches) {
+                    $durasi = round(abs((float) $matches[1]));
+                    return "durasi: {$durasi} menit";
+                },
+                $log->description,
+            );
+            return $log;
+        });
+
+        $totalSesi = $logs->where('type', 'out')->count();
+
+        $title = 'Riwayat Sesi Training - ' . $trainer->name;
+
+        $rows = '';
+        foreach ($logs as $index => $log) {
+            $tipe = $log->type === 'in' ? 'Masuk' : 'Selesai';
+            $rows .= '<tr>'
+                . '<td class="center">' . ($index + 1) . '</td>'
+                . '<td class="center">' . $log->created_at->format('d/m/Y H:i') . '</td>'
+                . '<td class="center">' . $tipe . '</td>'
+                . '<td class="center">' . $log->sesi . '</td>'
+                . '<td class="center">' . $log->current_sesi . '</td>'
+                . '<td>' . $this->exEsc($log->clean_description) . '</td>'
+                . '</tr>';
+        }
+
+        if ($logs->isEmpty()) {
+            $rows = '<tr><td colspan="6" class="center">Tidak ada data pada periode ini</td></tr>';
+        }
+
+        $html = '<table>';
+        $html .= '<tr><td colspan="6" class="title">' . $this->exEsc($title) . '</td></tr>';
+        $html .= '<tr><td colspan="6" class="subtitle">Dicetak: ' . now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') . ' WIB &nbsp;|&nbsp; Periode: ' . $this->exEsc($filterInfo) . '</td></tr>';
+        $html .= '<tr><td colspan="6"></td></tr>';
+        $html .= '<tr>'
+            . '<td colspan="2" class="summary-label">Total Data</td><td colspan="1" class="summary-val">' . $logs->count() . ' log</td>'
+            . '<td colspan="2" class="summary-label">Total Sesi Selesai</td><td colspan="1" class="summary-val">' . $totalSesi . ' sesi</td>'
+            . '</tr>';
+        $html .= '<tr><td colspan="6"></td></tr>';
+        $html .= '<tr>'
+            . '<th>No</th><th>Tanggal & Waktu</th><th>Tipe</th><th>Sesi</th><th>Total Sesi</th><th>Keterangan</th>'
+            . '</tr>';
+        $html .= $rows;
+        $html .= '</table>';
+
+        $filename = 'riwayat-sesi-' . $trainer->name . '-' . now()->format('Ymd') . '.xls';
+
+        return $this->excelDownload($html, $title, $filename);
     }
 }

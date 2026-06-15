@@ -1,8 +1,8 @@
 @extends('layout.layout')
 @php
-    $title = 'Trainer';
-    $subTitle = 'Trainer';
-    $isLaporanMode = request()->routeIs('laporan.trainer');
+    $title = 'Anggota';
+    $subTitle = 'Anggota';
+    $isLaporanMode = request()->routeIs('laporan.anggota');
 @endphp
 
 @section('content')
@@ -36,7 +36,7 @@
             <div class="card border-0 overflow-hidden">
                 <div class="card-header flex items-center justify-between">
                     <h6 class="card-title mb-0 text-lg">
-                        {{ $isLaporanMode ? 'Laporan Data Trainer' : 'Data Trainer' }}
+                        {{ $isLaporanMode ? 'Laporan Data Anggota GYM' : 'Data Anggota GYM' }}
                     </h6>
                     <div class="flex gap-2">
                         <!-- Tombol Export PDF -->
@@ -48,8 +48,8 @@
 
                         {{-- Tombol Tambah Data hanya tampil jika BUKAN mode laporan --}}
                         @if (!$isLaporanMode)
-                            @role('admin')
-                                <a href="{{ route('trainer.create') }}"
+                            @role('admin|spv')
+                                <a href="{{ route('anggota.create') }}"
                                     class="text-primary-600 focus:bg-primary-600 hover:bg-primary-700 border border-primary-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center dark:text-primary-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-primary-800">
                                     + Tambah Data
                                 </a>
@@ -60,10 +60,10 @@
                 <div class="card-body">
                     {{-- Search & per page --}}
                     <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
-                        <input type="text" id="searchTrainer" placeholder="Search..."
+                        <input type="text" id="searchAnggota" placeholder="Search..."
                             class="form-control form-control-sm w-64">
                         <div class="flex items-center gap-2">
-                            <select id="perPageTrainer" class="form-select form-select-sm w-auto">
+                            <select id="perPageAnggota" class="form-select form-select-sm w-auto">
                                 <option value="10" selected>10</option>
                                 <option value="25">25</option>
                                 <option value="50">50</option>
@@ -78,29 +78,26 @@
                         <table class="ajax-table border border-neutral-200 rounded-lg border-separate">
                             <thead>
                                 <tr>
-                                    <th>S.L</th>
+                                    <th scope="col">S.L</th>
                                     @if (!$isLaporanMode)
-                                        <th>Aksi</th>
+                                        @role('admin')
+                                            <th scope="col">Aksi</th>
+                                        @endrole
                                     @endif
-                                    <th>Fingerprint</th>
-                                    <th>Foto</th>
-                                    <th>Nama</th>
-                                    <th>No Telp</th>
-                                    <th>Spesialisasi</th>
-                                    <th>Sesi Belum Dijalani</th>
-                                    <th>Sesi Sudah Dijalani</th>
-                                    <th>Experience</th>
-                                    <th>Tanggal Gabung</th>
-                                    <th>Status</th>
-                                    <th>Fingerprint</th>
-                                    @if (!$isLaporanMode)
-                                        <th></th>
-                                    @endif
+                                    <th scope="col">Fingerprint</th>
+                                    <th scope="col">Photo</th>
+                                    <th scope="col">Nama</th>
+                                    <th scope="col">Email</th>
+                                    <th scope="col">Tanggal Lahir</th>
+                                    <th scope="col">No. Telp</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Fingerprint</th>
                                 </tr>
                             </thead>
-                            <tbody id="tbodyTrainer">
+                            <tbody id="tbodyAnggota">
                                 <tr>
-                                    <td colspan="{{ !$isLaporanMode ? 13 : 11 }}" class="text-center py-8">Loading...</td>
+                                    <td colspan="{{ !$isLaporanMode && auth()->user()->hasRole('admin') ? 9 : 8 }}"
+                                        class="text-center py-8">Loading...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -108,8 +105,8 @@
 
                     {{-- Pagination & info --}}
                     <div class="flex justify-between items-center mt-4 flex-wrap gap-2">
-                        <span class="text-sm text-gray-500" id="infoTrainer"></span>
-                        <div id="paginationTrainer" class="flex gap-1 flex-wrap"></div>
+                        <span class="text-sm text-gray-500" id="infoAnggota"></span>
+                        <div id="paginationAnggota" class="flex gap-1 flex-wrap"></div>
                     </div>
                 </div>
             </div>
@@ -133,13 +130,13 @@
                 </button>
             </div>
             <div class="p-6">
-                <form action="{{ route('trainer.export_pdf') }}" method="POST" id="export-pdf-form">
+                <form action="{{ route('anggota.export_pdf') }}" method="POST" id="export-pdf-form">
                     @csrf
                     <div class="grid grid-cols-1 gap-6">
                         <!-- Pilih Status Filter -->
                         <div class="col-span-12">
                             <label class="inline-block font-semibold text-neutral-600 text-sm mb-2">Pilih Status
-                                Trainer:</label>
+                                Keanggotaan:</label>
                             <div class="space-y-2">
                                 <div class="flex items-center mb-2">
                                     <input type="radio" id="status_all" name="status_filter" value="all"
@@ -150,20 +147,14 @@
                                 <div class="flex items-center mb-2">
                                     <input type="radio" id="status_aktif" name="status_filter" value="aktif"
                                         class="w-4 h-4 text-primary-600">
-                                    <label for="status_aktif" class="ml-2 text-sm font-medium text-gray-900">Trainer
+                                    <label for="status_aktif" class="ml-2 text-sm font-medium text-gray-900">Anggota
                                         Aktif</label>
                                 </div>
                                 <div class="flex items-center mb-2">
-                                    <input type="radio" id="status_nonaktif" name="status_filter" value="nonaktif"
-                                        class="w-4 h-4 text-primary-600">
-                                    <label for="status_nonaktif" class="ml-2 text-sm font-medium text-gray-900">Trainer
-                                        Non-Aktif</label>
-                                </div>
-                                <div class="flex items-center mb-2">
-                                    <input type="radio" id="status_pending" name="status_filter" value="pending"
-                                        class="w-4 h-4 text-primary-600">
-                                    <label for="status_pending" class="ml-2 text-sm font-medium text-gray-900">Trainer
-                                        Pending</label>
+                                    <input type="radio" id="status_tidak_aktif" name="status_filter"
+                                        value="tidak_aktif" class="w-4 h-4 text-primary-600">
+                                    <label for="status_tidak_aktif" class="ml-2 text-sm font-medium text-gray-900">Anggota
+                                        Tidak Aktif</label>
                                 </div>
                             </div>
                         </div>
@@ -180,7 +171,7 @@
                                     <iconify-icon icon="carbon:document-pdf" class="mr-2"></iconify-icon>
                                     Export PDF
                                 </button>
-                                <button type="submit" formaction="{{ route('trainer.export_excel') }}"
+                                <button type="submit" formaction="{{ route('anggota.export_excel') }}"
                                     class="bg-success-600 hover:bg-success-700 text-white text-base px-6 py-3 rounded-lg inline-flex items-center">
                                     <iconify-icon icon="carbon:document-export" class="mr-2"></iconify-icon>
                                     Export Excel
@@ -199,109 +190,91 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
 
+            // Cek apakah user adalah admin (untuk tampilkan kolom aksi)
             const isAdmin = {{ auth()->user()->hasRole('admin') ? 'true' : 'false' }};
-            const isSpv = {{ auth()->user()->hasRole('spv') ? 'true' : 'false' }};
             const isLaporan = {{ $isLaporanMode ? 'true' : 'false' }};
-            const colSpan = isLaporan ? 11 : 13;
+            const colSpan = (isAdmin && !isLaporan) ? 9 : 8;
 
-            // Per page change
-            const perPageSelect = document.getElementById('perPageTrainer');
+            // Inisialisasi perPage dari select
+            let perPage = 10;
+            const perPageSelect = document.getElementById('perPageAnggota');
             if (perPageSelect) {
                 perPageSelect.addEventListener('change', function() {
-                    if (window._ajaxTables['tbodyTrainer']) {
-                        window._ajaxTables['tbodyTrainer'].setPerPage(parseInt(this.value));
+                    perPage = parseInt(this.value);
+                    // Refresh table dengan perPage baru
+                    if (window._ajaxTables['tbodyAnggota']) {
+                        window._ajaxTables['tbodyAnggota'].setPerPage(perPage);
                     }
                 });
             }
 
             AjaxTable.create({
-                url: '{{ route('trainer.datatable') }}',
-                tbodyId: 'tbodyTrainer',
-                paginationId: 'paginationTrainer',
-                infoId: 'infoTrainer',
-                searchId: 'searchTrainer',
+                url: '{{ route('anggota.datatable') }}',
+                tbodyId: 'tbodyAnggota',
+                paginationId: 'paginationAnggota',
+                infoId: 'infoAnggota',
+                searchId: 'searchAnggota',
                 perPage: 10,
                 colSpan: colSpan,
                 renderRow: function(item) {
+                    const fingerBadge = item.status_finger == 0 ?
+                        `<span class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm flex items-center gap-1 w-fit">
+                                <iconify-icon icon="lucide:scan-line"></iconify-icon> Enroll
+                           </span>` :
+                        item.status_finger == 1 ?
+                        `<span class="bg-danger-100 text-danger-600 px-4 py-1.5 rounded-full font-medium text-sm flex items-center gap-1 w-fit">
+                                <iconify-icon icon="lucide:trash-2"></iconify-icon> Delete
+                           </span>` :
+                        `<span class="bg-neutral-100 text-neutral-500 px-4 py-1.5 rounded-full font-medium text-sm flex items-center gap-1 w-fit">
+                                <iconify-icon icon="lucide:minus-circle"></iconify-icon> Default
+                           </span>`;
+
+                    const statusBadge = item.status ?
+                        `<span class="bg-success-100 text-success-600 px-6 py-1.5 rounded-full font-medium text-sm">Aktif</span>` :
+                        `<span class="bg-warning-100 text-warning-600 px-6 py-1.5 rounded-full font-medium text-sm">Tidak Aktif</span>`;
+
+                    const aksiCol = (isAdmin && !isLaporan) ? `
+                <td class="whitespace-nowrap">
+                    <a href="${item.edit_url}" title="Edit Item"
+                        class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
+                        <iconify-icon icon="lucide:edit"></iconify-icon>
+                    </a>
+                    <button onclick="confirmDelete('${item.delete_url}')" title="Hapus Item" type="button"
+                        class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center">
+                        <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
+                    </button>
+                </td>` : '';
 
                     const foto = item.foto ?
                         `<img src="${item.foto}" alt="${item.name}"
-                    class="w-10 h-10 rounded-full object-cover cursor-pointer bg-gray-200"
-                    onclick="showPhoto('${item.foto}', 'Foto Trainer')"
+                    class="w-10 h-10 rounded-full object-cover cursor-pointer bg-gray-200 anggota-photo"
+                    data-photo="${item.foto}"
+                    onclick="showPhoto('${item.foto}')"
                     loading="lazy">` :
-                        `<span class="text-gray-400 italic text-xs">No photo</span>`;
-                    const fingerBadge = item.status_finger == 0 ?
-                        `<span class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm flex items-center gap-1 w-fit">
-            <iconify-icon icon="lucide:scan-line"></iconify-icon> Enroll
-       </span>` :
-                        item.status_finger == 1 ?
-                        `<span class="bg-danger-100 text-danger-600 px-4 py-1.5 rounded-full font-medium text-sm flex items-center gap-1 w-fit">
-            <iconify-icon icon="lucide:trash-2"></iconify-icon> Delete
-       </span>` :
-                        `<span class="bg-neutral-100 text-neutral-500 px-4 py-1.5 rounded-full font-medium text-sm flex items-center gap-1 w-fit">
-            <iconify-icon icon="lucide:minus-circle"></iconify-icon> Default
-       </span>`;
-                    const aksiCol = !isLaporan ? `
-                <td class="whitespace-nowrap">
-                    ${(isAdmin || isSpv) ? `
-                                                    <a href="${item.show_url}" title="Lihat detail"
-                                                        class="w-8 h-8 bg-primary-50 text-primary-600 rounded-full inline-flex items-center justify-center">
-                                                        <iconify-icon icon="iconamoon:eye-light"></iconify-icon>
-                                                    </a>` : ''}
-                    ${isAdmin ? `
-                                                    <a href="${item.edit_url}" title="Edit Item"
-                                                        class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
-                                                        <iconify-icon icon="lucide:edit"></iconify-icon>
-                                                    </a>
-                                                    <button onclick="confirmDeleteTrainer('${item.delete_url}')" title="Hapus Item"
-                                                        class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center">
-                                                        <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
-                                                    </button>` : ''}
-                </td>` : '';
-
-                    const updateStatusCol = !isLaporan ? `
-                <td class="whitespace-nowrap">
-                    ${(isAdmin || isSpv) ? (
-                        item.status !== 'aktif'
-                            ? `<button onclick="updateStatus('${item.update_status_url}', 'aktif')"
-                                                            class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm">
-                                                            Izinkan Akses
-                                                           </button>`
-                            : `<button onclick="updateStatus('${item.update_status_url}', 'nonaktif')"
-                                                            class="bg-danger-100 text-danger-600 px-4 py-1.5 rounded-full font-medium text-sm">
-                                                            Batasi Akses
-                                                           </button>`
-                    ) : ''}
-                </td>` : '';
+                        `<span class="text-gray-400 italic">No photo</span>`;
 
                     return `
                 <tr>
                     <td class="whitespace-nowrap">${item.no}</td>
                     ${aksiCol}
-                    <td class="whitespace-nowrap">${item.rfid}</td>
+                    <td class="whitespace-nowrap">${item.id_kartu}</td>
                     <td class="whitespace-nowrap">${foto}</td>
                     <td class="whitespace-nowrap">${item.name}</td>
+                    <td class="whitespace-nowrap">${item.email}</td>
+                    <td class="whitespace-nowrap">${item.tgl_lahir}</td>
                     <td class="whitespace-nowrap">${item.no_telp}</td>
-                    <td class="whitespace-nowrap">${item.specialisasi}</td>
-                    <td class="whitespace-nowrap">${item.sesi_belum_dijalani}</td>
-                    <td class="whitespace-nowrap">${item.sesi_sudah_dijalani}</td>
-                    <td class="whitespace-nowrap">${item.experience}</td>
-                    <td class="whitespace-nowrap">${item.tgl_gabung}</td>
-                    <td class="whitespace-nowrap">
-                        <span class="${item.status_label.class}">${item.status_label.text}</span>
-                    </td>
+                    <td class="whitespace-nowrap">${statusBadge}</td>
                     <td class="whitespace-nowrap">${fingerBadge}</td>
-                    ${updateStatusCol}
                 </tr>
             `;
                 }
             });
 
-            // Fungsi hapus trainer
-            window.confirmDeleteTrainer = function(url) {
+            // Fungsi hapus dengan konfirmasi SweetAlert
+            window.confirmDelete = function(url) {
                 Swal.fire({
                     title: 'Apakah kamu yakin?',
-                    text: "Data trainer yang dihapus tidak bisa dikembalikan!",
+                    text: "Data anggota dan akun login yang dihapus tidak bisa dikembalikan!",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#e3342f',
@@ -323,25 +296,11 @@
                 });
             };
 
-            // Fungsi update status trainer
-            window.updateStatus = function(url, status) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = url;
-                form.innerHTML = `
-            @csrf
-            <input type="hidden" name="_method" value="PATCH">
-            <input type="hidden" name="status" value="${status}">
-        `;
-                document.body.appendChild(form);
-                form.submit();
-            };
-
-            // Fungsi popup foto - reusable
-            window.showPhoto = function(url, alt = 'Foto') {
+            // Fungsi popup foto
+            window.showPhoto = function(url) {
                 Swal.fire({
                     imageUrl: url,
-                    imageAlt: alt,
+                    imageAlt: 'Foto Anggota',
                     showConfirmButton: false,
                     background: 'transparent',
                     width: 'auto',

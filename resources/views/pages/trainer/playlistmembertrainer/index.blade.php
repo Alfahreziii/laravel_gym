@@ -31,6 +31,11 @@
                             <iconify-icon icon="carbon:document-pdf" class="mr-2"></iconify-icon>
                             Export PDF
                         </a>
+                        <a href="{{ route('trainer.member.history.export_excel', $memberTrainer->id) }}"
+                            class="bg-success-600 hover:bg-success-700 text-white text-sm px-5 py-2 rounded-lg inline-flex items-center">
+                            <iconify-icon icon="carbon:document-export" class="mr-2"></iconify-icon>
+                            Export Excel
+                        </a>
                         <a href="{{ route('trainer.dashboard') }}"
                             class="text-neutral-600 hover:text-primary-600 inline-flex items-center">
                             <iconify-icon icon="ion:arrow-back" class="text-2xl"></iconify-icon>

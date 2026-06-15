@@ -7,9 +7,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use App\Http\Controllers\Concerns\ExportsExcel;
 
 class AlatGymController extends Controller
 {
+    use ExportsExcel;
+
     /**
      * Export data alat gym ke PDF
      */
@@ -30,7 +33,7 @@ class AlatGymController extends Controller
             $kondisiRusak = $alatGyms->where('kondisi_alat', 'Rusak')->count();
             $kondisiPerluPerbaikan = $alatGyms->where('kondisi_alat', 'Perlu Perbaikan')->count();
 
-            $pdf = Pdf::loadView('pages.alatgym.pdf', compact(
+            $pdf = Pdf::loadView('pages.admin.alatgym.pdf', compact(
                 'alatGyms',
                 'totalAlat',
                 'totalJumlah',
@@ -58,12 +61,90 @@ class AlatGymController extends Controller
     }
 
     /**
+     * Export data alat gym ke Excel (.xls) — kolom sama seperti Laporan PDF
+     * (plus kolom Keterangan karena di Excel tidak perlu halaman detail terpisah).
+     */
+    public function exportExcel()
+    {
+        try {
+            $alatGyms = AlatGym::orderBy('nama_alat_gym', 'asc')->get();
+
+            $totalAlat   = $alatGyms->count();
+            $totalJumlah = $alatGyms->sum('jumlah');
+            $totalNilai  = $alatGyms->sum(fn($item) => $item->harga * $item->jumlah);
+
+            $kondisiBaik           = $alatGyms->where('kondisi_alat', 'Baik')->count();
+            $kondisiRusak          = $alatGyms->where('kondisi_alat', 'Rusak')->count();
+            $kondisiPerluPerbaikan = $alatGyms->where('kondisi_alat', 'Perlu Perbaikan')->count();
+
+            $rows = '';
+            foreach ($alatGyms as $i => $item) {
+                $nilaiTotal = $item->harga * $item->jumlah;
+                $tglBeli    = $item->tgl_pembelian ? Carbon::parse($item->tgl_pembelian)->format('d/m/Y') : '-';
+
+                $rows .= '<tr>'
+                    . '<td class="center">' . ($i + 1) . '</td>'
+                    . '<td>' . $this->exEsc($item->barcode) . '</td>'
+                    . '<td>' . $this->exEsc($item->nama_alat_gym) . '</td>'
+                    . '<td class="center">' . $item->jumlah . '</td>'
+                    . '<td class="num">Rp ' . $this->exNum($item->harga) . '</td>'
+                    . '<td class="num">Rp ' . $this->exNum($nilaiTotal) . '</td>'
+                    . '<td class="center">' . $tglBeli . '</td>'
+                    . '<td>' . $this->exEsc($item->lokasi_alat ?? '-') . '</td>'
+                    . '<td class="center">' . $this->exEsc($item->kondisi_alat ?? '-') . '</td>'
+                    . '<td>' . $this->exEsc($item->vendor ?? '-') . '</td>'
+                    . '<td>' . $this->exEsc($item->keterangan ?? '-') . '</td>'
+                    . '</tr>';
+            }
+
+            $html = '<table>';
+            $html .= '<tr><td colspan="11" class="title">Laporan Inventaris Alat Gym</td></tr>';
+            $html .= '<tr><td colspan="11" class="subtitle">Dicetak: ' . now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') . ' WIB</td></tr>';
+            $html .= '<tr><td colspan="11"></td></tr>';
+            $html .= '<tr>'
+                . '<td colspan="3" class="summary-label">Total Jenis Alat</td><td colspan="2" class="summary-val">' . $totalAlat . '</td>'
+                . '<td colspan="3" class="summary-label">Total Unit</td><td colspan="3" class="summary-val">' . $this->exNum($totalJumlah) . '</td>'
+                . '</tr>';
+            $html .= '<tr>'
+                . '<td colspan="3" class="summary-label">Total Nilai Aset</td><td colspan="2" class="summary-val">Rp ' . $this->exNum($totalNilai) . '</td>'
+                . '<td colspan="3" class="summary-label">Baik / Perlu Perbaikan / Rusak</td><td colspan="3" class="summary-val">' . $kondisiBaik . ' / ' . $kondisiPerluPerbaikan . ' / ' . $kondisiRusak . '</td>'
+                . '</tr>';
+            $html .= '<tr><td colspan="11"></td></tr>';
+            $html .= '<tr>'
+                . '<th>No</th><th>Barcode</th><th>Nama Alat</th><th>Qty</th><th>Harga/Unit</th><th>Total Nilai</th>'
+                . '<th>Tgl Beli</th><th>Lokasi</th><th>Kondisi</th><th>Vendor</th><th>Keterangan</th>'
+                . '</tr>';
+            $html .= $rows;
+            $html .= '<tr class="grand-row">'
+                . '<td colspan="3" class="center">TOTAL</td>'
+                . '<td class="center">' . $this->exNum($totalJumlah) . '</td>'
+                . '<td></td>'
+                . '<td class="num">Rp ' . $this->exNum($totalNilai) . '</td>'
+                . '<td colspan="5"></td>'
+                . '</tr>';
+            $html .= '</table>';
+
+            $filename = 'Laporan_Alat_Gym_' . date('Y-m-d_His') . '.xls';
+
+            return $this->excelDownload($html, 'Laporan Inventaris Alat Gym', $filename);
+        } catch (\Exception $e) {
+            Log::error('Gagal export Excel alat gym', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Gagal export Excel: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Tampilkan semua data alat gym
      */
     public function index()
     {
         $alatGyms = AlatGym::latest()->get();
-        return view('pages.alatgym.index', compact('alatGyms'));
+        return view('pages.admin.alatgym.index', compact('alatGyms'));
     }
 
     /**
@@ -71,7 +152,7 @@ class AlatGymController extends Controller
      */
     public function create()
     {
-        return view('pages.alatgym.create');
+        return view('pages.admin.alatgym.create');
     }
 
     /**
@@ -106,7 +187,7 @@ class AlatGymController extends Controller
      */
     public function edit(AlatGym $alatgym)
     {
-        return view('pages.alatgym.edit', compact('alatgym'));
+        return view('pages.admin.alatgym.edit', compact('alatgym'));
     }
 
     /**
