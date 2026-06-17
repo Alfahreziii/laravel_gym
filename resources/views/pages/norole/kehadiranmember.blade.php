@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/ajax-table.css') }}">
 
     <!-- Main CSS -->
-    <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
+    @vite(['public/assets/scss/style.scss'])
     <link rel="stylesheet" href="{{ asset('assets/css/custom.css') }}">
 
     <!-- SweetAlert2 -->

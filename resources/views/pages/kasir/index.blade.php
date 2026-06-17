@@ -34,8 +34,8 @@
     <link rel="stylesheet" href="{{ asset('assets/css/lib/file-upload.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/lib/audioplayer.css') }}">
     <!-- main css -->
-    <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
-        
+    @vite(['public/assets/scss/style.scss'])
+
     <link rel="stylesheet" href="{{ asset('assets/css/custom.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
