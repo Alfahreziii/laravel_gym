@@ -194,6 +194,7 @@ class AnggotaController extends Controller
                     'status_finger' => $item->status_finger,
                     'edit_url'      => route('anggota.edit', $item->id),
                     'delete_url'    => route('anggota.destroy', $item->id),
+                    'status_finger_url' => route('anggota.update_status_finger', $item->id),
                 ];
             }),
             'total'    => $total,
@@ -395,6 +396,37 @@ class AnggotaController extends Controller
                 ->withInput()
                 ->with('error', 'Gagal update anggota: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Update status_finger saja (dipakai dari popup di halaman index, via AJAX).
+     */
+    public function updateStatusFinger(Request $request, Anggota $anggota)
+    {
+        $request->validate([
+            'status_finger' => 'required|in:0,1,2',
+        ]);
+
+        // Cek status_finger cross-table (exclude diri sendiri) — sama seperti di update()
+        if (in_array($request->status_finger, ['0', '1'])) {
+            $existsInAnggota = Anggota::where('status_finger', $request->status_finger)
+                ->where('id', '!=', $anggota->id)
+                ->exists();
+            $existsInTrainer = Trainer::where('status_finger', $request->status_finger)->exists();
+            if ($existsInAnggota || $existsInTrainer) {
+                $label = $request->status_finger == '0' ? 'Enroll' : 'Delete';
+                return response()->json([
+                    'message' => "Sudah ada member/trainer dengan status finger '{$label}'. Hanya boleh ada 1 secara keseluruhan.",
+                ], 422);
+            }
+        }
+
+        $anggota->update(['status_finger' => $request->status_finger]);
+
+        return response()->json([
+            'message'       => 'Status fingerprint berhasil diperbarui.',
+            'status_finger' => (int) $request->status_finger,
+        ]);
     }
 
     public function destroy(Anggota $anggota)

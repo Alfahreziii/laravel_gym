@@ -85,13 +85,13 @@
                                         @endrole
                                     @endif
                                     <th scope="col">Fingerprint</th>
+                                    <th scope="col">Fingerprint</th>
                                     <th scope="col">Photo</th>
                                     <th scope="col">Nama</th>
                                     <th scope="col">Email</th>
                                     <th scope="col">Tanggal Lahir</th>
                                     <th scope="col">No. Telp</th>
                                     <th scope="col">Status</th>
-                                    <th scope="col">Fingerprint</th>
                                 </tr>
                             </thead>
                             <tbody id="tbodyAnggota">
@@ -183,6 +183,65 @@
             </div>
         </div>
     </div>
+
+    <!-- Backdrop manual untuk status-finger-modal (modal ini dibuka via JS custom, bukan
+         Flowbite data-modal-toggle, jadi backdrop bawaan Flowbite tidak ikut muncul) -->
+    <div id="status-finger-backdrop" class="hidden fixed inset-0 z-40 bg-gray-900/50 dark:bg-gray-900/80"></div>
+
+    <!-- Modal Ubah Status Fingerprint -->
+    <div id="status-finger-modal" tabindex="-1"
+        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+        <div class="rounded-2xl bg-white max-w-[600px] w-full">
+            <div class="py-4 px-6 border-b border-neutral-200 flex items-center justify-between">
+                <h1 class="text-xl font-semibold">Ubah Status Fingerprint</h1>
+                <button data-modal-hide="status-finger-modal" type="button"
+                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="status-finger-form">
+                    <div class="grid grid-cols-1 gap-6">
+                        <div class="col-span-12">
+                            <label class="inline-block font-semibold text-neutral-600 text-sm mb-2">Anggota:</label>
+                            <p id="statusFingerAnggotaInfo" class="text-neutral-800 font-medium"></p>
+                        </div>
+
+                        <div class="col-span-12">
+                            <label class="inline-block font-semibold text-neutral-600 text-sm mb-2">Status
+                                Fingerprint:</label>
+                            <select id="statusFingerSelect" class="form-control" required>
+                                <option value="2">— Default (Tidak Ada Aksi) —</option>
+                                <option value="0">🟢 Enroll Fingerprint</option>
+                                <option value="1">🔴 Delete Fingerprint</option>
+                            </select>
+                            <small class="text-muted">Enroll = daftarkan sidik jari, Delete = hapus sidik jari,
+                                Default = tidak ada aksi</small>
+                        </div>
+
+                        <div class="col-span-12">
+                            <div class="flex items-center justify-start gap-3 mt-6">
+                                <button type="button" data-modal-hide="status-finger-modal"
+                                    class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
+                                    Cancel
+                                </button>
+                                <button type="submit" id="statusFingerSubmitBtn"
+                                    class="btn btn-primary border border-primary-600 text-base px-6 py-3 rounded-lg">
+                                    <iconify-icon icon="lucide:save" class="mr-2"></iconify-icon>
+                                    Simpan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('scripts')
@@ -208,6 +267,37 @@
                 });
             }
 
+            // Modal dibuka/ditutup manual via classList (Flowbite kehilangan state internalnya
+            // begitu modal dibuka dari JS dinamis seperti di tabel ini, jadi data-modal-hide
+            // jadi tidak berfungsi). Pola sama seperti fix di users/usersList.blade.php.
+            document.addEventListener('click', function(e) {
+                const openBtn = e.target.closest('[data-modal-toggle]');
+                if (openBtn) {
+                    const modal = document.getElementById(openBtn.getAttribute('data-modal-toggle'));
+                    if (modal) {
+                        modal.classList.remove('hidden');
+                        modal.classList.add('flex');
+                    }
+                }
+
+                const closeBtn = e.target.closest('[data-modal-hide]');
+                if (closeBtn) {
+                    const modal = document.getElementById(closeBtn.getAttribute('data-modal-hide'));
+                    if (modal) {
+                        modal.classList.add('hidden');
+                        modal.classList.remove('flex');
+                    }
+                    document.getElementById('status-finger-backdrop')?.classList.add('hidden');
+                }
+
+                // Klik backdrop (area luar modal) untuk tutup
+                if (e.target.classList.contains('fixed') && e.target.classList.contains('z-50')) {
+                    e.target.classList.add('hidden');
+                    e.target.classList.remove('flex');
+                    document.getElementById('status-finger-backdrop')?.classList.add('hidden');
+                }
+            });
+
             AjaxTable.create({
                 url: '{{ route('anggota.datatable') }}',
                 tbodyId: 'tbodyAnggota',
@@ -217,7 +307,7 @@
                 perPage: 10,
                 colSpan: colSpan,
                 renderRow: function(item) {
-                    const fingerBadge = item.status_finger == 0 ?
+                    const fingerBadgeInner = item.status_finger == 0 ?
                         `<span class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm flex items-center gap-1 w-fit">
                                 <iconify-icon icon="lucide:scan-line"></iconify-icon> Enroll
                            </span>` :
@@ -228,6 +318,19 @@
                         `<span class="bg-neutral-100 text-neutral-500 px-4 py-1.5 rounded-full font-medium text-sm flex items-center gap-1 w-fit">
                                 <iconify-icon icon="lucide:minus-circle"></iconify-icon> Default
                            </span>`;
+
+                    const escapeAttr = (val) => String(val ?? '').replace(/&/g, '&amp;').replace(/"/g,
+                        '&quot;');
+
+                    const fingerBadge = `
+                <button type="button" onclick="openStatusFingerModal(this)"
+                    data-url="${item.status_finger_url}"
+                    data-status="${item.status_finger}"
+                    data-name="${escapeAttr(item.name)}"
+                    data-kartu="${escapeAttr(item.id_kartu)}"
+                    class="cursor-pointer hover:opacity-80 transition" title="Klik untuk ubah status fingerprint">
+                    ${fingerBadgeInner}
+                </button>`;
 
                     const statusBadge = item.status ?
                         `<span class="bg-success-100 text-success-600 px-6 py-1.5 rounded-full font-medium text-sm">Aktif</span>` :
@@ -257,6 +360,7 @@
                 <tr>
                     <td class="whitespace-nowrap">${item.no}</td>
                     ${aksiCol}
+                    <td class="whitespace-nowrap">${fingerBadge}</td>
                     <td class="whitespace-nowrap">${item.id_kartu}</td>
                     <td class="whitespace-nowrap">${foto}</td>
                     <td class="whitespace-nowrap">${item.name}</td>
@@ -264,7 +368,6 @@
                     <td class="whitespace-nowrap">${item.tgl_lahir}</td>
                     <td class="whitespace-nowrap">${item.no_telp}</td>
                     <td class="whitespace-nowrap">${statusBadge}</td>
-                    <td class="whitespace-nowrap">${fingerBadge}</td>
                 </tr>
             `;
                 }
@@ -295,6 +398,83 @@
                     }
                 });
             };
+
+            // Fungsi popup ubah status fingerprint
+            let statusFingerUrl = null;
+
+            window.openStatusFingerModal = function(btn) {
+                statusFingerUrl = btn.dataset.url;
+                document.getElementById('statusFingerSelect').value = btn.dataset.status;
+                document.getElementById('statusFingerAnggotaInfo').textContent =
+                    `${btn.dataset.name} (ID Kartu: ${btn.dataset.kartu})`;
+
+                const modal = document.getElementById('status-finger-modal');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                document.getElementById('status-finger-backdrop')?.classList.remove('hidden');
+            };
+
+            const statusFingerForm = document.getElementById('status-finger-form');
+            if (statusFingerForm) {
+                statusFingerForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    if (!statusFingerUrl) return;
+
+                    const submitBtn = document.getElementById('statusFingerSubmitBtn');
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]');
+                    submitBtn.disabled = true;
+
+                    fetch(statusFingerUrl, {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken.content,
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: JSON.stringify({
+                                status_finger: document.getElementById('statusFingerSelect')
+                                    .value
+                            })
+                        })
+                        .then(res => res.json().then(data => ({
+                            ok: res.ok,
+                            data
+                        })))
+                        .then(({
+                            ok,
+                            data
+                        }) => {
+                            submitBtn.disabled = false;
+                            if (!ok) {
+                                Swal.fire('Gagal', data.message ||
+                                    'Gagal memperbarui status fingerprint.', 'error');
+                                return;
+                            }
+
+                            const modal = document.getElementById('status-finger-modal');
+                            modal.classList.add('hidden');
+                            modal.classList.remove('flex');
+                            document.getElementById('status-finger-backdrop')?.classList.add('hidden');
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: data.message,
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+
+                            if (window._ajaxTables['tbodyAnggota']) {
+                                window._ajaxTables['tbodyAnggota'].refresh();
+                            }
+                        })
+                        .catch(() => {
+                            submitBtn.disabled = false;
+                            Swal.fire('Gagal', 'Terjadi kesalahan koneksi.', 'error');
+                        });
+                });
+            }
 
             // Fungsi popup foto
             window.showPhoto = function(url) {

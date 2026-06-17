@@ -209,6 +209,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
             Route::post('/anggota', 'store')->name('anggota.store');
             Route::get('/anggota/{anggota}/edit', 'edit')->name('anggota.edit');
             Route::put('/anggota/{anggota}', 'update')->name('anggota.update');
+            Route::patch('/anggota/{anggota}/status-finger', 'updateStatusFinger')->name('anggota.update_status_finger');
             Route::delete('/anggota/{anggota}', 'destroy')->name('anggota.destroy');
         });
     });
