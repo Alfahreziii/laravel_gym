@@ -15,7 +15,7 @@ class PaketPersonalTrainerController extends Controller
     public function index()
     {
         $paketPersonalTrainers = PaketPersonalTrainer::all();
-        return view('pages.admin.pakettrainer.index', compact('paketPersonalTrainers'));
+        return view('pages.admin.personal-trainer.paket-trainer.index', compact('paketPersonalTrainers'));
     }
 
     /**
@@ -23,7 +23,7 @@ class PaketPersonalTrainerController extends Controller
      */
     public function create()
     {
-        return view('pages.admin.pakettrainer.create');
+        return view('pages.admin.personal-trainer.paket-trainer.create');
     }
 
     /**
@@ -56,7 +56,7 @@ class PaketPersonalTrainerController extends Controller
      */
     public function edit(PaketPersonalTrainer $paket_personal_trainer)
     {
-        return view('pages.admin.pakettrainer.edit', compact('paket_personal_trainer'));
+        return view('pages.admin.personal-trainer.paket-trainer.edit', compact('paket_personal_trainer'));
     }
 
     /**

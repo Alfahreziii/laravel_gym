@@ -61,7 +61,7 @@ class KehadiranMemberController extends Controller
                 $title .= ' - ' . $filterInfo;
             }
 
-            $pdf = Pdf::loadView('pages.admin.kehadiranmember.pdf', compact(
+            $pdf = Pdf::loadView('pages.admin.kehadiran.kehadiran-member.pdf', compact(
                 'kehadiranMembers',
                 'totalKehadiran',
                 'totalIn',
@@ -187,7 +187,7 @@ class KehadiranMemberController extends Controller
             ->latest()
             ->get();
 
-        return view('pages.admin.kehadiranmember.index', compact('kehadiranmembers'));
+        return view('pages.admin.kehadiran.kehadiran-member.index', compact('kehadiranmembers'));
     }
 
     /**

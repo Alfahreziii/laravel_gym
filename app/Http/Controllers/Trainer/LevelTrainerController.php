@@ -15,7 +15,7 @@ class LevelTrainerController extends Controller
     public function index()
     {
         $levels = LevelTrainer::all();
-        return view('pages.trainer.leveltrainer.index', compact('levels'));
+        return view('pages.trainer.level-trainer.index', compact('levels'));
     }
 
     /**

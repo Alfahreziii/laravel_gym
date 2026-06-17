@@ -53,12 +53,12 @@ class TrainerDashboardController extends Controller
                 return $mt;
             });
 
-        return view('pages.trainer.dashboard', compact('trainer', 'memberTrainers'));
+        return view('pages.trainer.dashboard.index', compact('trainer', 'memberTrainers'));
     }
 
     public function waiting()
     {
-        return view('pages.trainer.waiting');
+        return view('pages.trainer.dashboard.waiting');
     }
 
     public function startSession($memberTrainerId)
@@ -200,7 +200,7 @@ class TrainerDashboardController extends Controller
             ->latest()
             ->paginate(20);
 
-        return view('pages.trainer.session-logs', compact('trainer', 'logs'));
+        return view('pages.trainer.dashboard.session-logs', compact('trainer', 'logs'));
     }
 
     public function exportSessionLogsPdf(Request $request)
@@ -261,7 +261,7 @@ class TrainerDashboardController extends Controller
 
         $totalSesi = $logs->where('type', 'out')->count();
 
-        $pdf = Pdf::loadView('pages.trainer.session-logs-pdf', compact('trainer', 'logs', 'filterInfo', 'totalSesi'))
+        $pdf = Pdf::loadView('pages.trainer.dashboard.session-logs-pdf', compact('trainer', 'logs', 'filterInfo', 'totalSesi'))
             ->setPaper('a4', 'portrait');
 
         return $pdf->download('riwayat-sesi-' . $trainer->name . '-' . now()->format('Ymd') . '.pdf');

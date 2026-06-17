@@ -15,14 +15,14 @@ class PembayaranTrainerController extends Controller
     {
         $memberTrainers = MemberTrainer::with(['anggota', 'paketPersonalTrainer', 'trainer', 'pembayaranMemberTrainers'])
             ->latest()->get();
-        return view('pages.admin.pembayarantrainer.index', compact('memberTrainers'));
+        return view('pages.admin.personal-trainer.pembayaran-trainer.index', compact('memberTrainers'));
     }
 
     public function detail_pembayaran(Request $request, $id)
     {
         $memberTrainers = MemberTrainer::with(['anggota', 'paketPersonalTrainer', 'trainer', 'pembayaranMemberTrainers'])
             ->latest()->findOrFail($id);
-        return view('pages.admin.pembayarantrainer.index', compact('memberTrainers'));
+        return view('pages.admin.personal-trainer.pembayaran-trainer.index', compact('memberTrainers'));
     }
 
     public function tambahPembayaran(Request $request, $id)
@@ -73,7 +73,7 @@ class PembayaranTrainerController extends Controller
             'totalDibayar' => $memberTrainer->pembayaranMemberTrainers->sum('jumlah_bayar'),
         ];
 
-        $pdf = Pdf::loadView('pages.admin.pembayarantrainer.nota-pdf', $data);
+        $pdf = Pdf::loadView('pages.admin.personal-trainer.pembayaran-trainer.nota-pdf', $data);
         
         return $pdf->download('Nota-Trainer-' . $memberTrainer->kode_transaksi . '.pdf');
     }

@@ -33,7 +33,7 @@ class AlatGymController extends Controller
             $kondisiRusak = $alatGyms->where('kondisi_alat', 'Rusak')->count();
             $kondisiPerluPerbaikan = $alatGyms->where('kondisi_alat', 'Perlu Perbaikan')->count();
 
-            $pdf = Pdf::loadView('pages.admin.alatgym.pdf', compact(
+            $pdf = Pdf::loadView('pages.admin.alat-gym.pdf', compact(
                 'alatGyms',
                 'totalAlat',
                 'totalJumlah',
@@ -144,7 +144,7 @@ class AlatGymController extends Controller
     public function index()
     {
         $alatGyms = AlatGym::latest()->get();
-        return view('pages.admin.alatgym.index', compact('alatGyms'));
+        return view('pages.admin.alat-gym.index', compact('alatGyms'));
     }
 
     /**
@@ -152,7 +152,7 @@ class AlatGymController extends Controller
      */
     public function create()
     {
-        return view('pages.admin.alatgym.create');
+        return view('pages.admin.alat-gym.create');
     }
 
     /**
@@ -187,7 +187,7 @@ class AlatGymController extends Controller
      */
     public function edit(AlatGym $alatgym)
     {
-        return view('pages.admin.alatgym.edit', compact('alatgym'));
+        return view('pages.admin.alat-gym.edit', compact('alatgym'));
     }
 
     /**

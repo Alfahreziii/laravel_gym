@@ -41,7 +41,7 @@ class ProductController extends Controller
             $totalStok      = $products->sum('quantity');
             $title          = 'Laporan Data Produk';
 
-            $pdf = Pdf::loadView('pages.admin.products.pdf', compact(
+            $pdf = Pdf::loadView('pages.admin.kasir.products.pdf', compact(
                 'products',
                 'totalProduk',
                 'totalNilaiStok',
@@ -151,13 +151,13 @@ class ProductController extends Controller
     public function index()
     {
         $products = Product::with('kategori')->latest()->get();
-        return view('pages.admin.products.index', compact('products'));
+        return view('pages.admin.kasir.products.index', compact('products'));
     }
 
     public function create()
     {
         $categories = KategoriProduct::all();
-        return view('pages.admin.products.create', compact('categories'));
+        return view('pages.admin.kasir.products.create', compact('categories'));
     }
 
     public function store(Request $request)
@@ -219,7 +219,7 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         $categories = KategoriProduct::all();
-        return view('pages.admin.products.edit', compact('product', 'categories'));
+        return view('pages.admin.kasir.products.edit', compact('product', 'categories'));
     }
 
     public function update(Request $request, Product $product)
@@ -355,7 +355,7 @@ class ProductController extends Controller
     {
         $products = Product::findOrFail($product);
         $logs     = $products->quantityLogs()->latest()->get();
-        return view('pages.admin.products.logs', compact('products', 'logs'));
+        return view('pages.admin.kasir.products.logs', compact('products', 'logs'));
     }
 
     // =========================================================

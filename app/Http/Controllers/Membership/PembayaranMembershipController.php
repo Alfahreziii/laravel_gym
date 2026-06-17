@@ -20,7 +20,7 @@ class PembayaranMembershipController extends Controller
             ->latest()
             ->get();
 
-        return view('pages.admin.pembayaranmembership.index', compact('anggotaMemberships'));
+        return view('pages.admin.membership.pembayaran-membership.index', compact('anggotaMemberships'));
     }
 
     public function tambahPembayaran(Request $request, $id)
@@ -134,7 +134,7 @@ class PembayaranMembershipController extends Controller
             'totalDibayar' => $anggotaMembership->pembayaranMemberships->sum('jumlah_bayar'),
         ];
 
-        $pdf = Pdf::loadView('pages.admin.pembayaranmembership.nota-pdf', $data);
+        $pdf = Pdf::loadView('pages.admin.membership.pembayaran-membership.nota-pdf', $data);
         
         return $pdf->download('Nota-' . $anggotaMembership->kode_transaksi . '.pdf');
     }

@@ -15,7 +15,7 @@ class KategoriProductController extends Controller
     public function index()
     {
         $kategori_products = KategoriProduct::latest()->get();
-        return view('pages.admin.kategoriproduct.index', compact('kategori_products'));
+        return view('pages.admin.kasir.kategori-product.index', compact('kategori_products'));
     }
 
     /**

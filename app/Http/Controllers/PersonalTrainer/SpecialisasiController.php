@@ -16,7 +16,7 @@ class SpecialisasiController extends Controller
     public function index()
     {
         $specialisasis = Specialisasi::all();
-        return view('pages.admin.specialisasi.index', compact('specialisasis'));
+        return view('pages.admin.personal-trainer.specialisasi.index', compact('specialisasis'));
     }
 
     /**

@@ -50,7 +50,7 @@ class RiwayatGajiTrainerController extends Controller
                 ];
             });
 
-        return view('pages.trainer.riwayatgajitrainer.index', compact('gajiTrainers'));
+        return view('pages.trainer.riwayat-gaji-trainer.index', compact('gajiTrainers'));
     }
 
     /**
@@ -263,7 +263,7 @@ class RiwayatGajiTrainerController extends Controller
             $totalSesi = RiwayatGajiTrainer::byTrainer($trainerId)->sum('jumlah_sesi');
             $totalBonus = RiwayatGajiTrainer::byTrainer($trainerId)->sum('bonus');
 
-            return view('pages.trainer.riwayatgajitrainer.history', compact(
+            return view('pages.trainer.riwayat-gaji-trainer.history', compact(
                 'trainer',
                 'riwayatGaji',
                 'totalPembayaran',

@@ -60,7 +60,7 @@ class KehadiranTrainerController extends Controller
                 $title .= ' - ' . $filterInfo;
             }
 
-            $pdf = Pdf::loadView('pages.admin.kehadirantrainer.pdf', compact(
+            $pdf = Pdf::loadView('pages.admin.kehadiran.kehadiran-trainer.pdf', compact(
                 'kehadiranTrainers',
                 'totalKehadiran',
                 'totalIn',
@@ -189,7 +189,7 @@ class KehadiranTrainerController extends Controller
             ->latest()
             ->get();
 
-        return view('pages.admin.kehadirantrainer.index', compact('kehadirantrainers'));
+        return view('pages.admin.kehadiran.kehadiran-trainer.index', compact('kehadirantrainers'));
     }
 
     /**

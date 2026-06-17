@@ -110,7 +110,7 @@ class AnggotaMembershipController extends Controller
                 }
             }
 
-            $pdf = Pdf::loadView('pages.admin.anggotapaketmember.pdf', compact(
+            $pdf = Pdf::loadView('pages.admin.membership.anggota-paket-member.pdf', compact(
                 'anggotaMemberships',
                 'totalMembership',
                 'totalLunas',
@@ -306,14 +306,14 @@ class AnggotaMembershipController extends Controller
     public function index()
     {
         $anggotaMemberships = AnggotaMembership::with(['anggota', 'paketMembership'])->latest()->get();
-        return view('pages.admin.anggotapaketmember.index', compact('anggotaMemberships'));
+        return view('pages.admin.membership.anggota-paket-member.index', compact('anggotaMemberships'));
     }
 
     public function create()
     {
         $anggotas = Anggota::all();
         $pakets   = PaketMembership::all();
-        return view('pages.admin.anggotapaketmember.create', compact('anggotas', 'pakets'));
+        return view('pages.admin.membership.anggota-paket-member.create', compact('anggotas', 'pakets'));
     }
 
     public function store(Request $request)
@@ -387,7 +387,7 @@ class AnggotaMembershipController extends Controller
     public function show($id)
     {
         $anggotaMembership = AnggotaMembership::with('pembayaranMemberships.anggotaMembership')->findOrFail($id);
-        return view('pages.admin.anggotapaketmember.show', compact('anggotaMembership'));
+        return view('pages.admin.membership.anggota-paket-member.show', compact('anggotaMembership'));
     }
 
     public function edit($id)
@@ -395,7 +395,7 @@ class AnggotaMembershipController extends Controller
         $anggotaMembership = AnggotaMembership::with('pembayaranMemberships')->findOrFail($id);
         $anggotas          = Anggota::all();
         $pakets            = PaketMembership::all();
-        return view('pages.admin.anggotapaketmember.edit', compact('anggotaMembership', 'anggotas', 'pakets'));
+        return view('pages.admin.membership.anggota-paket-member.edit', compact('anggotaMembership', 'anggotas', 'pakets'));
     }
 
     public function update(Request $request, $id)

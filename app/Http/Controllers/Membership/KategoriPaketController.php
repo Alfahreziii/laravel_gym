@@ -15,7 +15,7 @@ class KategoriPaketController extends Controller
     public function index()
     {
         $kategori_paket_memberships = KategoriPaketMembership::all();
-        return view('pages.admin.kategoripaketmember.index', compact('kategori_paket_memberships'));
+        return view('pages.admin.membership.kategori-paket-member.index', compact('kategori_paket_memberships'));
     }
 
     /**

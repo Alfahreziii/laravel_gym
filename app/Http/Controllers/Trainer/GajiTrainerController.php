@@ -19,7 +19,7 @@ class GajiTrainerController extends Controller
         $gajiTrainers = SettingParameterGajiTrainer::with(['trainer.user', 'level'])
             ->get();
         
-        return view('pages.trainer.gajitrainer.index', compact('gajiTrainers'));
+        return view('pages.trainer.gaji-trainer.index', compact('gajiTrainers'));
     }
 
     /**
@@ -35,7 +35,7 @@ class GajiTrainerController extends Controller
         
         $levels = LevelTrainer::all();
         
-        return view('pages.trainer.gajitrainer.create', compact('trainers', 'levels'));
+        return view('pages.trainer.gaji-trainer.create', compact('trainers', 'levels'));
     }
 
     /**
@@ -87,7 +87,7 @@ class GajiTrainerController extends Controller
         
         $levels = LevelTrainer::all();
         
-        return view('pages.trainer.gajitrainer.edit', compact('gajiTrainer', 'levels'));
+        return view('pages.trainer.gaji-trainer.edit', compact('gajiTrainer', 'levels'));
     }
 
     /**

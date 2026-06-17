@@ -47,7 +47,7 @@ class PlaylistMemberTrainerController extends Controller
                 ->first();
 
             if (!$activeMember) {
-                return view('pages.trainer.monitoring', [
+                return view('pages.trainer.playlist-member-trainer.monitoring', [
                     'trainer' => $trainer,
                     'activeMember' => null,
                     'playlists' => [],
@@ -66,7 +66,7 @@ class PlaylistMemberTrainerController extends Controller
                 ->get()
                 ->keyBy('latihan');
 
-            return view('pages.trainer.monitoring', compact('trainer', 'activeMember', 'playlists', 'savedPlaylists', 'sesiKe'));
+            return view('pages.trainer.playlist-member-trainer.monitoring', compact('trainer', 'activeMember', 'playlists', 'savedPlaylists', 'sesiKe'));
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', 'Error: ' . $e->getMessage());
@@ -251,7 +251,7 @@ class PlaylistMemberTrainerController extends Controller
 
             $history = $history->sortKeys();
 
-            return view('pages.trainer.playlistmembertrainer.index', compact('trainer', 'memberTrainer', 'history', 'durasiPerSesi', 'tanggalPerSesi'));
+            return view('pages.trainer.playlist-member-trainer.index', compact('trainer', 'memberTrainer', 'history', 'durasiPerSesi', 'tanggalPerSesi'));
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', 'Error: ' . $e->getMessage());
@@ -308,7 +308,7 @@ class PlaylistMemberTrainerController extends Controller
 
             $totalDurasi = array_sum(array_filter($durasiPerSesi));
 
-            $pdf = Pdf::loadView('pages.trainer.playlistmembertrainer.pdf', compact(
+            $pdf = Pdf::loadView('pages.trainer.playlist-member-trainer.pdf', compact(
                 'trainer',
                 'memberTrainer',
                 'history',

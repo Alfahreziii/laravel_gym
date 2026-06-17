@@ -49,7 +49,7 @@ class AnggotaController extends Controller
 
             $anggotas = $query->orderBy('users.name', 'asc')->get();
 
-            $pdf = Pdf::loadView('pages.admin.anggota.pdf', compact(
+            $pdf = Pdf::loadView('pages.admin.membership.anggota.pdf', compact(
                 'anggotas',
                 'totalAnggota',
                 'totalAktif',
@@ -152,7 +152,7 @@ class AnggotaController extends Controller
 
     public function index()
     {
-        return view('pages.admin.anggota.index');
+        return view('pages.admin.membership.anggota.index');
     }
 
     public function datatable(Request $request)
@@ -206,7 +206,7 @@ class AnggotaController extends Controller
 
     public function create()
     {
-        return view('pages.admin.anggota.create');
+        return view('pages.admin.membership.anggota.create');
     }
 
     public function store(Request $request)
@@ -304,7 +304,7 @@ class AnggotaController extends Controller
     public function edit(Anggota $anggota)
     {
         $anggota->load('user');
-        return view('pages.admin.anggota.edit', compact('anggota'));
+        return view('pages.admin.membership.anggota.edit', compact('anggota'));
     }
 
     public function update(Request $request, Anggota $anggota)

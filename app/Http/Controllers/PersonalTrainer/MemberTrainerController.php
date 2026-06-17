@@ -113,7 +113,7 @@ class MemberTrainerController extends Controller
                 }
             }
 
-            $pdf = Pdf::loadView('pages.admin.membertrainer.pdf', compact(
+            $pdf = Pdf::loadView('pages.admin.personal-trainer.member-trainer.pdf', compact(
                 'memberTrainers',
                 'totalMemberTrainer',
                 'totalLunas',
@@ -305,7 +305,7 @@ class MemberTrainerController extends Controller
     {
         $memberTrainers = MemberTrainer::with(['anggota', 'paketPersonalTrainer', 'trainer', 'pembayaranMemberTrainers'])
             ->latest()->get();
-        return view('pages.admin.membertrainer.index', compact('memberTrainers'));
+        return view('pages.admin.personal-trainer.member-trainer.index', compact('memberTrainers'));
     }
 
     public function create()
@@ -313,7 +313,7 @@ class MemberTrainerController extends Controller
         $anggotas = Anggota::all();
         $trainers = Trainer::all();
         $pakets = PaketPersonalTrainer::all();
-        return view('pages.admin.membertrainer.create', compact('anggotas', 'pakets', 'trainers'));
+        return view('pages.admin.personal-trainer.member-trainer.create', compact('anggotas', 'pakets', 'trainers'));
     }
 
     public function store(Request $request)
@@ -393,7 +393,7 @@ class MemberTrainerController extends Controller
     public function show($id)
     {
         $memberTrainer = MemberTrainer::with(['pembayaranMemberTrainers', 'sesiLogs'])->findOrFail($id);
-        return view('pages.admin.membertrainer.show', compact('memberTrainer'));
+        return view('pages.admin.personal-trainer.member-trainer.show', compact('memberTrainer'));
     }
 
     public function edit($id)
@@ -403,7 +403,7 @@ class MemberTrainerController extends Controller
         $pakets = PaketPersonalTrainer::all();
         $trainers = Trainer::all();
 
-        return view('pages.admin.membertrainer.edit', compact('memberTrainer', 'anggotas', 'pakets', 'trainers'));
+        return view('pages.admin.personal-trainer.member-trainer.edit', compact('memberTrainer', 'anggotas', 'pakets', 'trainers'));
     }
 
     public function update(Request $request, $id)

@@ -49,7 +49,7 @@ class TrainerController extends Controller
 
             $trainers = $query->orderBy('users.name', 'asc')->get();
 
-            $pdf = Pdf::loadView('pages.trainer.pdf', compact(
+            $pdf = Pdf::loadView('pages.trainer.data-trainer.pdf', compact(
                 'trainers',
                 'totalTrainer',
                 'totalAktif',
@@ -161,7 +161,7 @@ class TrainerController extends Controller
 
     public function index()
     {
-        return view('pages.trainer.index');
+        return view('pages.trainer.data-trainer.index');
     }
 
     public function datatable(Request $request)
@@ -219,7 +219,7 @@ class TrainerController extends Controller
     public function create()
     {
         $specialisasis = Specialisasi::all();
-        return view('pages.trainer.create', compact('specialisasis'));
+        return view('pages.trainer.data-trainer.create', compact('specialisasis'));
     }
 
     public function store(Request $request)
@@ -332,13 +332,13 @@ class TrainerController extends Controller
     {
         $specialisasis = Specialisasi::all();
         $trainer->load('user', 'schedules');
-        return view('pages.trainer.edit', compact('trainer', 'specialisasis'));
+        return view('pages.trainer.data-trainer.edit', compact('trainer', 'specialisasis'));
     }
 
     public function show(Trainer $trainer)
     {
         $trainer->load('specialisasi', 'schedules', 'user');
-        return view('pages.trainer.show', compact('trainer'));
+        return view('pages.trainer.data-trainer.show', compact('trainer'));
     }
 
     public function update(Request $request, Trainer $trainer)

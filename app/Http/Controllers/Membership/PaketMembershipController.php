@@ -17,7 +17,7 @@ class PaketMembershipController extends Controller
     {
         // ambil semua paket beserta kategori
         $paketMemberships = PaketMembership::with('kategori')->get();
-        return view('pages.admin.paketmembership.index', compact('paketMemberships'));
+        return view('pages.admin.membership.paket-membership.index', compact('paketMemberships'));
     }
 
     /**
@@ -26,7 +26,7 @@ class PaketMembershipController extends Controller
     public function create()
     {
         $kategoriPaket = KategoriPaketMembership::all();
-        return view('pages.admin.paketmembership.create', compact('kategoriPaket'));
+        return view('pages.admin.membership.paket-membership.create', compact('kategoriPaket'));
     }
 
     /**
@@ -61,7 +61,7 @@ class PaketMembershipController extends Controller
     public function edit(PaketMembership $paket_membership)
     {
         $kategori = KategoriPaketMembership::all();
-        return view('pages.admin.paketmembership.edit', compact('paket_membership', 'kategori'));
+        return view('pages.admin.membership.paket-membership.edit', compact('paket_membership', 'kategori'));
     }
 
     /**

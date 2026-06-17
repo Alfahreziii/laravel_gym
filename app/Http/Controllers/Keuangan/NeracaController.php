@@ -65,7 +65,7 @@ class NeracaController extends Controller
         // Rumus neraca: ASET = KEW + MOD − BEB
         $total_kewajiban_modal = $total_kewajiban + $total_modal - $total_beban;
 
-        return view('pages.admin.neraca.index', compact(
+        return view('pages.admin.keuangan.neraca.index', compact(
             'kategori',
             'total_aset',
             'total_kewajiban',

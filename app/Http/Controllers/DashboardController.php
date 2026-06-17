@@ -182,7 +182,7 @@ class DashboardController extends Controller
             }
         }
 
-        return view('pages.dashboard.index', compact(
+        return view('pages.admin.dashboard.index', compact(
             'totalRevenue',
             'totalProductRevenue',
             'totalRevenueAllYears',

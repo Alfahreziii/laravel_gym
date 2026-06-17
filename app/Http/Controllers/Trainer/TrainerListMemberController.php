@@ -75,7 +75,7 @@ class TrainerListMemberController extends Controller
             ];
         })->values();
 
-        return view('pages.trainer.trainerlistmember.index', compact('trainer', 'groupedMembers'));
+        return view('pages.trainer.trainer-list-member.index', compact('trainer', 'groupedMembers'));
     }
 
     public function memberDetail($idAnggota)
@@ -120,7 +120,7 @@ class TrainerListMemberController extends Controller
         $isCheckedIn   = $isCheckedInToday && strtolower(trim($isCheckedInToday->status)) === 'in';
         $activeSession = $activePackages->firstWhere('is_session_active', true);
 
-        return view('pages.trainer.trainerlistmember.member-detail', compact(
+        return view('pages.trainer.trainer-list-member.member-detail', compact(
             'trainer',
             'member',
             'memberTrainers',
