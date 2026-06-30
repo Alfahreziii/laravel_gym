@@ -1,5 +1,5 @@
-<div class="navbar-header border-b border-neutral-200">
-    <div class="flex items-center justify-between">
+<div class="navbar-header">
+    <div class="flex items-center justify-between w-full">
         <div class="col-auto">
             <div class="flex flex-wrap items-center gap-[16px]">
                 <button type="button" class="sidebar-toggle">

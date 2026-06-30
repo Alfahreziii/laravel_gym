@@ -1,6 +1,12 @@
 /* === navbar css start === */
 .navbar-header {
-  @apply h-[4.5rem] bg-white sticky top-0 py-4 px-6 z-20 dark:bg-dark-2 border-0;
+  @apply h-16 bg-[#FAFAF9] sticky top-0 py-0 px-6 z-20 dark:bg-dark-2;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #E2E0DB;
+}
+.dark .navbar-header {
+  border-bottom-color: #332D26;
 }
 
 .sidebar-toggle,
@@ -41,11 +47,12 @@
 }
 
 .navbar-search input {
-  @apply w-[24.25rem] h-[2.5rem] bg-neutral-50 border border-neutral-300 rounded-lg py-[0.3125rem] ps-[2.625rem] pe-[1.25rem] text-neutral-900 dark:bg-neutral-800 dark:border-neutral-600 dark:text-white;
+  @apply w-[24.25rem] h-[2.5rem] bg-neutral-50 border border-neutral-300 rounded-[10px] py-[0.3125rem] ps-[2.625rem] pe-[1.25rem] text-neutral-900 dark:bg-neutral-800 dark:border-neutral-600 dark:text-white transition-colors;
 }
 
 .navbar-search input:focus {
-  @apply border-primary-600;
+  @apply border-primary-500 outline-none;
+  box-shadow: 0 0 0 3px rgba(251, 120, 67, 0.2);
 }
 
 .navbar-search .icon {
