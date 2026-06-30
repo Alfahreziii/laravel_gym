@@ -24,7 +24,10 @@
         />
 
         {{-- Gender split card --}}
-        <div class="rounded-2xl p-5 border
+        <div x-data
+             x-on:mouseenter="$el.style.boxShadow='0 8px 32px rgba(139,92,246,0.20), 0 2px 8px rgba(139,92,246,0.10)'; $el.style.transform='translateY(-2px)'"
+             x-on:mouseleave="$el.style.boxShadow='0 4px 24px rgba(139,92,246,0.10), 0 1px 3px rgba(139,92,246,0.05)'; $el.style.transform=''"
+             class="rounded-2xl p-5 border transition-all duration-200
                     bg-gradient-to-br from-cyan-50 via-violet-50/60 to-pink-50/80
                     border-violet-200/40
                     dark:from-cyan-950/25 dark:via-violet-950/20 dark:to-pink-950/20
