@@ -9,7 +9,12 @@
 @section('content')
 
     {{-- ===== KPI Row ===== --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-3 gap-6">
+    @php
+        $maleRatio   = $totalMember > 0 ? round(($memberLakiLaki  / $totalMember) * 100, 1) : 50;
+        $femaleRatio = $totalMember > 0 ? round(($memberPerempuan  / $totalMember) * 100, 1) : 50;
+    @endphp
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
         <x-stat-card
             color="blue"
@@ -18,21 +23,71 @@
             value="{{ number_format($totalMember, 0, ',', '.') }}"
         />
 
-        <x-stat-card
-            color="cyan"
-            label="Male Members"
-            icon="fa-solid:male"
-            value="{{ number_format($memberLakiLaki, 0, ',', '.') }}"
-            sub="{{ $totalMember > 0 ? round(($memberLakiLaki / $totalMember) * 100, 1) : 0 }}% dari total member"
-        />
+        {{-- Gender split card --}}
+        <div class="rounded-2xl p-5 border
+                    bg-gradient-to-br from-cyan-50 via-violet-50/60 to-pink-50/80
+                    border-violet-200/40
+                    dark:from-cyan-950/25 dark:via-violet-950/20 dark:to-pink-950/20
+                    dark:border-violet-800/30"
+             style="box-shadow: 0 4px 24px rgba(139,92,246,0.10), 0 1px 3px rgba(139,92,246,0.05)">
 
-        <x-stat-card
-            color="pink"
-            label="Female Members"
-            icon="fa-solid:female"
-            value="{{ number_format($memberPerempuan, 0, ',', '.') }}"
-            sub="{{ $totalMember > 0 ? round(($memberPerempuan / $totalMember) * 100, 1) : 0 }}% dari total member"
-        />
+            <p class="text-xs font-semibold uppercase tracking-wider mb-3
+                      text-violet-500 dark:text-violet-400">Member by Gender</p>
+
+            <div class="flex gap-3 items-start">
+
+                {{-- Male --}}
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-1.5 mb-2">
+                        <div class="w-7 h-7 rounded-lg flex items-center justify-center
+                                    bg-gradient-to-br from-cyan-500 to-blue-500 flex-shrink-0">
+                            <iconify-icon icon="fa-solid:male" class="text-sm text-white"></iconify-icon>
+                        </div>
+                        <span class="text-xs font-semibold text-cyan-600 dark:text-cyan-400">Male</span>
+                    </div>
+                    <p class="font-display text-2xl font-bold tabular-nums leading-none
+                              text-cyan-900 dark:text-white">
+                        {{ number_format($memberLakiLaki, 0, ',', '.') }}
+                    </p>
+                    <p class="text-xs mt-1 text-cyan-500 dark:text-cyan-500">{{ $maleRatio }}%</p>
+                </div>
+
+                {{-- Divider --}}
+                <div class="w-px self-stretch bg-violet-200/60 dark:bg-violet-800/40 mx-1"></div>
+
+                {{-- Female --}}
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-1.5 mb-2">
+                        <div class="w-7 h-7 rounded-lg flex items-center justify-center
+                                    bg-gradient-to-br from-pink-500 to-purple-500 flex-shrink-0">
+                            <iconify-icon icon="fa-solid:female" class="text-sm text-white"></iconify-icon>
+                        </div>
+                        <span class="text-xs font-semibold text-pink-600 dark:text-pink-400">Female</span>
+                    </div>
+                    <p class="font-display text-2xl font-bold tabular-nums leading-none
+                              text-pink-900 dark:text-white">
+                        {{ number_format($memberPerempuan, 0, ',', '.') }}
+                    </p>
+                    <p class="text-xs mt-1 text-pink-500 dark:text-pink-500">{{ $femaleRatio }}%</p>
+                </div>
+
+            </div>
+
+            {{-- Split ratio bar --}}
+            <div class="mt-4 h-1.5 rounded-full overflow-hidden bg-violet-100/80 dark:bg-violet-950/30">
+                <div class="h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-400"
+                     style="width: {{ $maleRatio }}%"></div>
+            </div>
+            <div class="flex justify-between mt-1.5">
+                <span class="text-[10px] font-semibold text-cyan-500 dark:text-cyan-600">
+                    M {{ $maleRatio }}%
+                </span>
+                <span class="text-[10px] font-semibold text-pink-500 dark:text-pink-600">
+                    F {{ $femaleRatio }}%
+                </span>
+            </div>
+
+        </div>
 
         <x-stat-card
             color="teal"
