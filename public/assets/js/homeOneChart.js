@@ -101,7 +101,7 @@ document.addEventListener("DOMContentLoaded", function () {
     dataLabels: { enabled: false },
     stroke: {
       curve: 'smooth',
-      colors: ['#487FFF'],
+      colors: ['#F2622E'],
       width: 3
     },
     markers: {
@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", function () {
     },
     grid: {
       row: { colors: ['transparent', 'transparent'], opacity: 0.5 },
-      borderColor: '#D1D5DB',
+      borderColor: '#E2E0DB',
       strokeDashArray: 3,
     },
     yaxis: {
@@ -130,9 +130,9 @@ document.addEventListener("DOMContentLoaded", function () {
         formatter: function(value) {
           return formatRupiah(value);
         },
-        style: { 
+        style: {
           fontSize: "13px",
-          colors: ['#64748b']
+          colors: ['#9C978E']
         },
         offsetX: 0,
       }
@@ -140,18 +140,18 @@ document.addEventListener("DOMContentLoaded", function () {
     xaxis: {
       categories: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
       tooltip: { enabled: false },
-      labels: { 
-        style: { 
+      labels: {
+        style: {
           fontSize: "14px",
-          colors: ['#64748b']
-        } 
+          colors: ['#9C978E']
+        }
       },
       axisBorder: { show: false },
       crosshairs: {
         show: true,
         width: 30,
         stroke: { width: 0 },
-        fill: { type: 'solid', color: '#487FFF40' }
+        fill: { type: 'solid', color: '#F2622E30' }
       }
     }
   };
@@ -423,7 +423,7 @@ document.addEventListener("DOMContentLoaded", function () {
     dataLabels: { enabled: false },
     stroke: {
       curve: 'smooth',
-      colors: ['#10B981'],
+      colors: ['#F2622E'],
       width: 3
     },
     markers: {
@@ -444,7 +444,7 @@ document.addEventListener("DOMContentLoaded", function () {
     },
     grid: {
       row: { colors: ['transparent', 'transparent'], opacity: 0.5 },
-      borderColor: '#D1D5GB',
+      borderColor: '#E2E0DB',
       strokeDashArray: 3,
     },
     yaxis: {
@@ -452,9 +452,9 @@ document.addEventListener("DOMContentLoaded", function () {
         formatter: function(value) {
           return formatRupiahProduct(value);
         },
-        style: { 
+        style: {
           fontSize: "13px",
-          colors: ['#64748b']
+          colors: ['#9C978E']
         },
         offsetX: 0,
       }
@@ -462,18 +462,18 @@ document.addEventListener("DOMContentLoaded", function () {
     xaxis: {
       categories: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
       tooltip: { enabled: false },
-      labels: { 
-        style: { 
+      labels: {
+        style: {
           fontSize: "14px",
-          colors: ['#64748b']
-        } 
+          colors: ['#9C978E']
+        }
       },
       axisBorder: { show: false },
       crosshairs: {
         show: true,
         width: 30,
         stroke: { width: 0 },
-        fill: { type: 'solid', color: '#10B98140' }
+        fill: { type: 'solid', color: '#F2622E30' }
       }
     }
   };
