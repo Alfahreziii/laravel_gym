@@ -99,9 +99,7 @@
                 </div>
             </x-slot:header>
 
-            <div class="overflow-x-auto">
-                <div id="chart" class="pt-4 w-full min-w-[800px]"></div>
-            </div>
+            <div id="chart" class="pt-4 w-full"></div>
         </x-card>
 
         {{-- Chart 2: Penjualan Produk --}}
@@ -153,9 +151,7 @@
                 </div>
             </x-slot:header>
 
-            <div class="overflow-x-auto">
-                <div id="chartProduct" class="pt-4 w-full min-w-[800px]"></div>
-            </div>
+            <div id="chartProduct" class="pt-4 w-full"></div>
         </x-card>
 
         {{-- Tabel Kehadiran --}}

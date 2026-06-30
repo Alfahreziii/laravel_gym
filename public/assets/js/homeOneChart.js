@@ -85,6 +85,7 @@ document.addEventListener("DOMContentLoaded", function () {
       data: window.dashboardData.membershipByYear[currentYear]?.monthly || []
     }],
     chart: {
+      width: '100%',
       height: 264,
       type: 'line',
       toolbar: { show: false },
@@ -407,6 +408,7 @@ document.addEventListener("DOMContentLoaded", function () {
       data: window.dashboardData.productByYear[currentYearProduct]?.monthly || []
     }],
     chart: {
+      width: '100%',
       height: 264,
       type: 'line',
       toolbar: { show: false },
