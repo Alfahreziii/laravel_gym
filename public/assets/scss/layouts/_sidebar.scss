@@ -147,7 +147,7 @@
 
 .sidebar-menu li.dropdown.open > a,
 .sidebar-menu li.dropdown.dropdown-open > a {
-  @apply bg-primary-100 text-primary-700 dark:bg-primary-600/15 dark:text-primary-400;
+  @apply bg-primary-50 text-primary-700 rounded-l-none dark:bg-primary-600/10 dark:text-primary-400;
   box-shadow: inset 3px 0 0 #F2622E;
 
   .menu-icon {
@@ -170,7 +170,7 @@
 }
 
 .sidebar-menu li > a.active-page {
-  @apply bg-primary-100 text-primary-700 dark:bg-primary-600/15 dark:text-primary-400;
+  @apply bg-primary-50 text-primary-700 rounded-l-none dark:bg-primary-600/10 dark:text-primary-400;
   box-shadow: inset 3px 0 0 #F2622E;
 
   .menu-icon {
@@ -183,7 +183,7 @@
 }
 
 .sidebar-menu li.active > a {
-  @apply bg-primary-100 text-primary-700 dark:bg-primary-600/15 dark:text-primary-400;
+  @apply bg-primary-50 text-primary-700 rounded-l-none dark:bg-primary-600/10 dark:text-primary-400;
   box-shadow: inset 3px 0 0 #F2622E;
 
   .menu-icon {
@@ -220,7 +220,7 @@
 }
 
 .sidebar-menu .sidebar-submenu li.active-page a {
-  @apply bg-primary-100 text-primary-700 dark:bg-primary-600/15 dark:text-primary-400;
+  @apply bg-primary-50 text-primary-700 rounded-l-none dark:bg-primary-600/10 dark:text-primary-400;
   box-shadow: inset 3px 0 0 #F2622E;
 }
 
