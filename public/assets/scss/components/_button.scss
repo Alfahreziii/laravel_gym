@@ -1,12 +1,17 @@
 /*============================================= Button Css Start =============================================*/
 .btn {
-    @apply rounded-lg py-3 px-6 inline-flex transition;
+    @apply rounded-[10px] py-2.5 px-4 inline-flex items-center gap-2 font-semibold transition-colors duration-150 focus:outline-none;
 }
 .btn-primary-600, .btn-primary {
-    @apply bg-primary-600 text-white hover:bg-primary-700;
+    @apply bg-primary-500 text-white hover:bg-primary-600 focus:ring-2 focus:ring-primary-400 focus:ring-offset-2;
 }
-
 .btn-outline-primary, .btn-outline-primary-600 {
-    @apply border border-primary-600 text-primary-600 hover:text-white hover:bg-primary-600;
+    @apply border border-primary-500 text-primary-600 hover:text-white hover:bg-primary-500 focus:ring-2 focus:ring-primary-400;
+}
+.btn-sm {
+    @apply py-1.5 px-3 text-sm;
+}
+.btn-lg {
+    @apply py-3 px-6 text-base;
 }
 /*============================================= Button Css End =============================================*/
