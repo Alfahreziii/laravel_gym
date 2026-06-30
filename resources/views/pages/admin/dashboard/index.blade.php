@@ -12,13 +12,14 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-3 gap-6">
 
         <x-stat-card
-            color="primary"
+            color="blue"
             label="Total Member"
             icon="gridicons:multiple-users"
             value="{{ number_format($totalMember, 0, ',', '.') }}"
         />
 
         <x-stat-card
+            color="cyan"
             label="Male Members"
             icon="fa-solid:male"
             value="{{ number_format($memberLakiLaki, 0, ',', '.') }}"
@@ -26,6 +27,7 @@
         />
 
         <x-stat-card
+            color="pink"
             label="Female Members"
             icon="fa-solid:female"
             value="{{ number_format($memberPerempuan, 0, ',', '.') }}"
@@ -33,12 +35,14 @@
         />
 
         <x-stat-card
+            color="teal"
             label="Member In GYM"
             icon="mdi:location-enter"
             value="{{ number_format($memberInGym, 0, ',', '.') }}"
         />
 
         <x-stat-card
+            color="orange"
             label="Member Aktif"
             icon="fluent:people-20-filled"
             value="{{ number_format($memberAktif, 0, ',', '.') }}"
