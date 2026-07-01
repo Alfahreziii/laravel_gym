@@ -43,44 +43,30 @@
                 </div>
             </div>
             <div class="card-body">
-                <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
-                    <span class="text-sm text-gray-500" id="infoAlatGym"></span>
-                    <input type="text" id="searchAlatGym" placeholder="Cari nama, barcode, kondisi..."
-                        class="form-control form-control-sm w-64">
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="ajax-table border border-neutral-200 dark:border-neutral-700 rounded-lg border-separate w-full">
-                        <thead>
-                            <tr>
-                                <th scope="col">S.L</th>
-                                @if(!$isLaporanMode)
-                                    @role('admin')
-                                    <th scope="col">Aksi</th>
-                                    @endrole
-                                @endif
-                                <th scope="col">Barcode</th>
-                                <th scope="col">Nama Alat Gym</th>
-                                <th scope="col">Jumlah</th>
-                                <th scope="col">Harga</th>
-                                <th scope="col">Tanggal Pembelian</th>
-                                <th scope="col">Lokasi Alat</th>
-                                <th scope="col">Kondisi Alat</th>
-                                <th scope="col">Vendor</th>
-                                <th scope="col">Kontak</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tbodyAlatGym">
-                            <tr>
-                                <td colspan="{{ $colCount }}" class="text-center py-8">Loading...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="flex justify-between items-center mt-4 flex-wrap gap-2">
-                    <div id="paginationAlatGym" class="flex gap-1 flex-wrap"></div>
-                </div>
+                <x-data-table
+                    tableId="alatGym"
+                    :colspan="$colCount"
+                    placeholder="Cari nama, barcode, kondisi...">
+                    <x-slot:header>
+                        <tr>
+                            <th scope="col">S.L</th>
+                            @if(!$isLaporanMode)
+                                @role('admin')
+                                <th scope="col">Aksi</th>
+                                @endrole
+                            @endif
+                            <th scope="col">Barcode</th>
+                            <th scope="col">Nama Alat Gym</th>
+                            <th scope="col">Jumlah</th>
+                            <th scope="col">Harga</th>
+                            <th scope="col">Tanggal Pembelian</th>
+                            <th scope="col">Lokasi Alat</th>
+                            <th scope="col">Kondisi Alat</th>
+                            <th scope="col">Vendor</th>
+                            <th scope="col">Kontak</th>
+                        </tr>
+                    </x-slot:header>
+                </x-data-table>
             </div>
         </div>
     </div>
@@ -140,16 +126,14 @@
 document.addEventListener("DOMContentLoaded", function () {
     const isAdmin       = {{ $isAdmin ? 'true' : 'false' }};
     const isLaporanMode = {{ $isLaporanMode ? 'true' : 'false' }};
-    const colSpan       = {{ $colCount }};
 
     function kondisiBadge(kondisi) {
-        if (kondisi === 'Baik') {
+        if (kondisi === 'Baik')
             return `<span class="bg-success-100 text-success-600 px-3 py-1 rounded-full font-medium text-xs">Baik</span>`;
-        } else if (kondisi === 'Rusak') {
+        if (kondisi === 'Rusak')
             return `<span class="bg-danger-100 text-danger-600 px-3 py-1 rounded-full font-medium text-xs">Rusak</span>`;
-        } else if (kondisi === 'Perlu Perbaikan') {
+        if (kondisi === 'Perlu Perbaikan')
             return `<span class="bg-warning-100 text-warning-600 px-3 py-1 rounded-full font-medium text-xs">Perlu Perbaikan</span>`;
-        }
         return `<span class="text-gray-500">${kondisi}</span>`;
     }
 
@@ -175,14 +159,9 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    AjaxTable.create({
+    AjaxTable.init('alatGym', {
         url: '{{ route('alat_gym.datatable') }}',
-        tbodyId: 'tbodyAlatGym',
-        paginationId: 'paginationAlatGym',
-        infoId: 'infoAlatGym',
-        searchId: 'searchAlatGym',
-        perPage: 10,
-        colSpan: colSpan,
+        colSpan: {{ $colCount }},
         renderRow: function (item) {
             const actionCol = isAdmin && !isLaporanMode
                 ? `<td class="whitespace-nowrap">

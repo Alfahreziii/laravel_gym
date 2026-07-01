@@ -190,6 +190,21 @@ window.AjaxTable = (function () {
         fetchData();
     }
 
-    return { create };
+    // Konvensi ID untuk x-data-table: tbody/pagination/info/search + ucfirst(tableId)
+    function init(tableId, options) {
+        const cap = tableId.charAt(0).toUpperCase() + tableId.slice(1);
+        return create({
+            url:          options.url,
+            tbodyId:      'tbody'      + cap,
+            paginationId: 'pagination' + cap,
+            infoId:       'info'       + cap,
+            searchId:     'search'     + cap,
+            perPage:      options.perPage  || 10,
+            colSpan:      options.colSpan  || 5,
+            renderRow:    options.renderRow || null,
+        });
+    }
+
+    return { create, init };
 
 })();
