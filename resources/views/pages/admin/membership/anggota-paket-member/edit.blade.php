@@ -155,8 +155,8 @@
     <!-- Modal Add Riwayat Pembayaran -->
     <div id="popup-modal" tabindex="-1"
         class="hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0">
-        <div class="rounded-2xl bg-white max-w-[800px] w-full h-modal overflow-y-auto overflow-x-hidden">
-            <div class="py-4 px-6 border-b border-neutral-200 flex items-center justify-between">
+        <div class="rounded-2xl bg-white dark:bg-dark-2 max-w-[800px] w-full h-modal overflow-y-auto overflow-x-hidden">
+            <div class="py-4 px-6 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between">
                 <h1 class="text-xl">Add New Pembayaran</h1>
                 <button data-modal-hide="popup-modal" type="button"
                     class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">

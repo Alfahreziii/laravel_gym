@@ -129,8 +129,8 @@
     <!-- Modal Export PDF -->
     <div id="export-pdf-modal" tabindex="-1"
         class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-        <div class="rounded-2xl bg-white max-w-[600px] w-full">
-            <div class="py-4 px-6 border-b border-neutral-200 flex items-center justify-between">
+        <div class="rounded-2xl bg-white dark:bg-dark-2 max-w-[600px] w-full">
+            <div class="py-4 px-6 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between">
                 <h1 class="text-xl font-semibold">Filter Export Laporan</h1>
                 <button data-modal-hide="export-pdf-modal" type="button"
                     class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
