@@ -1,35 +1,18 @@
 @extends('layout.layout')
 @php
-    $title = 'Member Trainer';
-    $subTitle = 'Member Trainer';
-    $script = '<script src="' . asset('assets/js/data-table.js') . '"></script>';
-    $isLaporanMode = request()->routeIs('laporan.membertrainer');
+    $title          = 'Member Trainer';
+    $subTitle       = 'Member Trainer';
+    $isLaporanMode  = request()->routeIs('laporan.membertrainer');
+    $isAdmin        = (bool) auth()->user()?->hasRole('admin');
+    $colCount       = ($isAdmin && !$isLaporanMode) ? 11 : 10;
 @endphp
 
 @section('content')
     @if (session('success'))
-        <div
-            class="alert alert-success bg-success-50 dark:bg-success-600/25 
-        text-success-600 dark:text-success-400 border-success-50 
-        px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                {{ session('success') }}
-            </div>
-            <button class="remove-button text-success-600 text-2xl">
-                <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
-            </button>
-        </div>
+        <x-alert type="success">{{ session('success') }}</x-alert>
     @endif
     @if (session('danger'))
-        <div
-            class="alert alert-danger bg-danger-100 dark:bg-danger-600/25 
-        text-danger-600 dark:text-danger-400 border-danger-100 
-        px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
-            {{ session('danger') }}
-            <button class="remove-button text-danger-600 text-2xl">
-                <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
-            </button>
-        </div>
+        <x-alert type="danger">{{ session('danger') }}</x-alert>
     @endif
 
     <div class="grid grid-cols-12">
@@ -59,8 +42,11 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <table id="selection-table" class="border border-neutral-200 rounded-lg border-separate w-full">
-                        <thead>
+                    <x-data-table
+                        tableId="memberTrainer"
+                        :colspan="$colCount"
+                        placeholder="Cari kode, anggota, trainer, paket...">
+                        <x-slot:header>
                             <tr>
                                 <th>S.L</th>
                                 @if (!$isLaporanMode)
@@ -78,73 +64,13 @@
                                 <th>Status Pembayaran</th>
                                 <th>Total Biaya</th>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($memberTrainers as $index => $item)
-                                <tr>
-                                    <td class="whitespace-nowrap">{{ $index + 1 }}</td>
-                                    @if (!$isLaporanMode)
-                                        @role('admin')
-                                            <td class="whitespace-nowrap flex gap-2">
-                                                <a href="{{ route('membertrainer.edit', $item->id) }}" title="Edit Item"
-                                                    class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
-                                                    <iconify-icon icon="lucide:edit"></iconify-icon>
-                                                </a>
-                                                <form action="{{ route('membertrainer.destroy', $item->id) }}" method="POST"
-                                                    class="inline-block delete-form">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="button" title="Hapus Item"
-                                                        class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center delete-btn">
-                                                        <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
-                                                    </button>
-                                                </form>
-                                            </td>
-                                        @endrole
-                                    @endif
-                                    <td class="whitespace-nowrap"><a class="text-primary-600"
-                                            href="{{ route('membertrainer.edit', $item->id) }}">{{ $item->kode_transaksi }}</a>
-                                    </td>
-                                    <td class="whitespace-nowrap">{{ $item->anggota->name ?? '-' }}</td>
-                                    <td class="whitespace-nowrap">{{ $item->trainer->name ?? '-' }}</td>
-                                    <td class="whitespace-nowrap">{{ $item->sesi }} /
-                                        {{ $item->paketPersonalTrainer->jumlah_sesi }}</td>
-                                    <td class="whitespace-nowrap">{{ $item->PaketPersonalTrainer->nama_paket ?? '-' }}</td>
-                                    <td class="whitespace-nowrap">
-                                        @php
-                                            $tanggalBayarAwal = $item->pembayaranMemberTrainers->min('tgl_bayar');
-                                        @endphp
-                                        {{ $tanggalBayarAwal ? \Carbon\Carbon::parse($tanggalBayarAwal)->format('d M Y') : '-' }}
-                                    </td>
-                                    <td class="whitespace-nowrap">
-                                        @php
-                                            $metodePembayaran =
-                                                $item->pembayaranMemberTrainers->first()->metode_pembayaran ?? '-';
-                                        @endphp
-                                        {{ $metodePembayaran ?? '-' }}
-                                    </td>
-                                    <td class="whitespace-nowrap">
-                                        @if ($item->status_pembayaran === 'Lunas')
-                                            <span
-                                                class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm">Lunas</span>
-                                        @else
-                                            <span
-                                                class="bg-warning-100 text-warning-600 px-4 py-1.5 rounded-full font-medium text-sm">Belum
-                                                Lunas</span>
-                                        @endif
-                                    </td>
-                                    <td class="whitespace-nowrap">Rp {{ number_format($item->total_biaya, 0, ',', '.') }}
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                        </x-slot:header>
+                    </x-data-table>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal Export PDF -->
     <!-- Modal Export PDF -->
     <div id="export-pdf-modal" tabindex="-1"
         class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
@@ -364,105 +290,131 @@
 @endsection
 
 @section('scripts')
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const deleteForms = document.querySelectorAll('.delete-form');
-            deleteForms.forEach(form => {
-                const btn = form.querySelector('.delete-btn');
-                btn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    Swal.fire({
-                        title: 'Apakah kamu yakin?',
-                        text: "Data member trainer yang dihapus tidak bisa dikembalikan!",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#e3342f',
-                        cancelButtonColor: '#6c757d',
-                        confirmButtonText: 'Ya, hapus!',
-                        cancelButtonText: 'Batal'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            form.submit();
-                        }
-                    });
-                });
-            });
+<script src="{{ asset('assets/js/ajax-table.js') }}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const isAdmin       = {{ $isAdmin ? 'true' : 'false' }};
+    const isLaporanMode = {{ $isLaporanMode ? 'true' : 'false' }};
 
-            // Toggle filter sections
-            const filterRadios = document.querySelectorAll('input[name="filter_type"]');
-            const singleFilter = document.getElementById('single-filter');
-            const rangeFilter = document.getElementById('range-filter');
-            const dailyFilter = document.getElementById('daily-filter');
+    function statusBadge(status) {
+        if (status === 'Lunas') {
+            return `<span class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm">Lunas</span>`;
+        }
+        return `<span class="bg-warning-100 text-warning-600 px-4 py-1.5 rounded-full font-medium text-sm">Belum Lunas</span>`;
+    }
 
-            filterRadios.forEach(radio => {
-                radio.addEventListener('change', function() {
-                    singleFilter.classList.add('hidden');
-                    rangeFilter.classList.add('hidden');
-                    dailyFilter.classList.add('hidden');
-
-                    if (this.value === 'single') {
-                        singleFilter.classList.remove('hidden');
-                    } else if (this.value === 'range') {
-                        rangeFilter.classList.remove('hidden');
-                    } else if (this.value === 'daily') {
-                        dailyFilter.classList.remove('hidden');
-                    }
-                });
-            });
-
-            // Form validation
-            document.getElementById('export-pdf-form').addEventListener('submit', function(e) {
-                const filterType = document.querySelector('input[name="filter_type"]:checked').value;
-
-                if (filterType === 'single') {
-                    const bulan = document.getElementById('bulan').value;
-                    const tahun = document.getElementById('tahun').value;
-                    if (!bulan || !tahun) {
-                        e.preventDefault();
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
-                            text: 'Mohon pilih bulan dan tahun terlebih dahulu!'
-                        });
-                        return false;
-                    }
-                } else if (filterType === 'range') {
-                    const bulanDari = document.getElementById('bulan_dari').value;
-                    const tahunDari = document.getElementById('tahun_dari').value;
-                    const bulanSampai = document.getElementById('bulan_sampai').value;
-                    const tahunSampai = document.getElementById('tahun_sampai').value;
-                    if (!bulanDari || !tahunDari || !bulanSampai || !tahunSampai) {
-                        e.preventDefault();
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
-                            text: 'Mohon lengkapi range bulan dan tahun!'
-                        });
-                        return false;
-                    }
-                } else if (filterType === 'daily') {
-                    const tglDari = document.getElementById('tgl_dari').value;
-                    const tglSampai = document.getElementById('tgl_sampai').value;
-                    if (!tglDari || !tglSampai) {
-                        e.preventDefault();
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
-                            text: 'Mohon lengkapi tanggal dari dan sampai!'
-                        });
-                        return false;
-                    }
-                    if (tglDari > tglSampai) {
-                        e.preventDefault();
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
-                            text: 'Tanggal "dari" tidak boleh lebih besar dari tanggal "sampai"!'
-                        });
-                        return false;
-                    }
-                }
-            });
+    function confirmDelete(url) {
+        Swal.fire({
+            title: 'Apakah kamu yakin?',
+            text: "Data member trainer yang dihapus tidak bisa dikembalikan!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e3342f',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = url;
+                form.innerHTML = `@csrf<input type="hidden" name="_method" value="DELETE">`;
+                document.body.appendChild(form);
+                form.submit();
+            }
         });
-    </script>
+    }
+
+    AjaxTable.init('memberTrainer', {
+        url: '{{ route('membertrainer.datatable') }}',
+        colSpan: {{ $colCount }},
+        renderRow: function (item) {
+            const actionCol = (isAdmin && !isLaporanMode)
+                ? `<td class="whitespace-nowrap">
+                       <div class="flex gap-2">
+                           <a href="${item.edit_url}" title="Edit Item"
+                              class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
+                               <iconify-icon icon="lucide:edit"></iconify-icon>
+                           </a>
+                           <button onclick="confirmDelete('${item.delete_url}')" title="Hapus Item" type="button"
+                               class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center">
+                               <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
+                           </button>
+                       </div>
+                   </td>`
+                : '';
+
+            return `<tr>
+                <td class="whitespace-nowrap">${item.no}</td>
+                ${actionCol}
+                <td class="whitespace-nowrap"><a class="text-primary-600" href="${item.edit_url}">${item.kode_transaksi}</a></td>
+                <td class="whitespace-nowrap">${item.nama_anggota}</td>
+                <td class="whitespace-nowrap">${item.nama_trainer}</td>
+                <td class="whitespace-nowrap">${item.sesi_text}</td>
+                <td class="whitespace-nowrap">${item.nama_paket}</td>
+                <td class="whitespace-nowrap">${item.tgl_bayar_awal}</td>
+                <td class="whitespace-nowrap">${item.metode_pembayaran}</td>
+                <td class="whitespace-nowrap">${statusBadge(item.status_pembayaran)}</td>
+                <td class="whitespace-nowrap">${item.total_biaya}</td>
+            </tr>`;
+        }
+    });
+
+    // Toggle filter sections
+    const filterRadios = document.querySelectorAll('input[name="filter_type"]');
+    const singleFilter = document.getElementById('single-filter');
+    const rangeFilter  = document.getElementById('range-filter');
+    const dailyFilter  = document.getElementById('daily-filter');
+
+    filterRadios.forEach(radio => {
+        radio.addEventListener('change', function () {
+            singleFilter.classList.add('hidden');
+            rangeFilter.classList.add('hidden');
+            dailyFilter.classList.add('hidden');
+
+            if (this.value === 'single') singleFilter.classList.remove('hidden');
+            else if (this.value === 'range') rangeFilter.classList.remove('hidden');
+            else if (this.value === 'daily') dailyFilter.classList.remove('hidden');
+        });
+    });
+
+    // Form validation
+    document.getElementById('export-pdf-form').addEventListener('submit', function (e) {
+        const filterType = document.querySelector('input[name="filter_type"]:checked').value;
+
+        if (filterType === 'single') {
+            const bulan = document.getElementById('bulan').value;
+            const tahun = document.getElementById('tahun').value;
+            if (!bulan || !tahun) {
+                e.preventDefault();
+                Swal.fire({ icon: 'error', title: 'Oops...', text: 'Mohon pilih bulan dan tahun terlebih dahulu!' });
+                return false;
+            }
+        } else if (filterType === 'range') {
+            const bulanDari   = document.getElementById('bulan_dari').value;
+            const tahunDari   = document.getElementById('tahun_dari').value;
+            const bulanSampai = document.getElementById('bulan_sampai').value;
+            const tahunSampai = document.getElementById('tahun_sampai').value;
+            if (!bulanDari || !tahunDari || !bulanSampai || !tahunSampai) {
+                e.preventDefault();
+                Swal.fire({ icon: 'error', title: 'Oops...', text: 'Mohon lengkapi range bulan dan tahun!' });
+                return false;
+            }
+        } else if (filterType === 'daily') {
+            const tglDari   = document.getElementById('tgl_dari').value;
+            const tglSampai = document.getElementById('tgl_sampai').value;
+            if (!tglDari || !tglSampai) {
+                e.preventDefault();
+                Swal.fire({ icon: 'error', title: 'Oops...', text: 'Mohon lengkapi tanggal dari dan sampai!' });
+                return false;
+            }
+            if (tglDari > tglSampai) {
+                e.preventDefault();
+                Swal.fire({ icon: 'error', title: 'Oops...', text: 'Tanggal "dari" tidak boleh lebih besar dari tanggal "sampai"!' });
+                return false;
+            }
+        }
+    });
+});
+</script>
 @endsection

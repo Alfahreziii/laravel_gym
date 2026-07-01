@@ -301,6 +301,58 @@ class MemberTrainerController extends Controller
         }
     }
 
+    public function datatable(Request $request)
+    {
+        $search  = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page    = (int) $request->get('page', 1);
+
+        $query = MemberTrainer::with([
+            'anggota', 'paketPersonalTrainer', 'trainer', 'pembayaranMemberTrainers',
+        ])->latest();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('kode_transaksi', 'like', "%{$search}%")
+                  ->orWhere('status_pembayaran', 'like', "%{$search}%")
+                  ->orWhereHas('anggota', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
+                  ->orWhereHas('trainer', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
+                  ->orWhereHas('paketPersonalTrainer', fn($q2) => $q2->where('nama_paket', 'like', "%{$search}%"));
+            });
+        }
+
+        $total = (clone $query)->count();
+        $data  = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        return response()->json([
+            'data' => $data->map(function ($item, $index) use ($page, $perPage) {
+                $tglBayarAwal     = $item->pembayaranMemberTrainers->min('tgl_bayar');
+                $metodePembayaran = $item->pembayaranMemberTrainers->first()?->metode_pembayaran ?? '-';
+                $jumlahSesi       = $item->paketPersonalTrainer?->jumlah_sesi ?? 0;
+
+                return [
+                    'no'                => (($page - 1) * $perPage) + $index + 1,
+                    'id'                => $item->id,
+                    'kode_transaksi'    => $item->kode_transaksi,
+                    'nama_anggota'      => $item->anggota?->name ?? '-',
+                    'nama_trainer'      => $item->trainer?->name ?? '-',
+                    'sesi_text'         => $item->sesi . ' / ' . $jumlahSesi,
+                    'nama_paket'        => $item->paketPersonalTrainer?->nama_paket ?? '-',
+                    'tgl_bayar_awal'    => $tglBayarAwal ? Carbon::parse($tglBayarAwal)->format('d M Y') : '-',
+                    'metode_pembayaran' => $metodePembayaran,
+                    'status_pembayaran' => $item->status_pembayaran,
+                    'total_biaya'       => 'Rp ' . number_format($item->total_biaya, 0, ',', '.'),
+                    'edit_url'          => route('membertrainer.edit', $item->id),
+                    'delete_url'        => route('membertrainer.destroy', $item->id),
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
+    }
+
     public function index()
     {
         $memberTrainers = MemberTrainer::with(['anggota', 'paketPersonalTrainer', 'trainer', 'pembayaranMemberTrainers'])
