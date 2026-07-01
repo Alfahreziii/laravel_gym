@@ -322,6 +322,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     Route::controller(AlatGymController::class)->group(function () {
         Route::get('/alat-gym', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('alat_gym.index');
         Route::get('/laporan/alat-gym', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('laporan.alat_gym');
+        Route::get('/alat-gym/datatable', 'datatable')->middleware(RoleMiddleware::class . ':admin|spv')->name('alat_gym.datatable');
         Route::post('/alat-gym/export-pdf', 'exportPdf')->middleware(RoleMiddleware::class . ':admin|spv')->name('alat_gym.export_pdf');
         Route::post('/alat-gym/export-excel', 'exportExcel')->middleware(RoleMiddleware::class . ':admin|spv')->name('alat_gym.export_excel');
         Route::middleware(RoleMiddleware::class . ':admin')->group(function () {

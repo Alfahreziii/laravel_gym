@@ -138,6 +138,54 @@ class AlatGymController extends Controller
         }
     }
 
+    public function datatable(Request $request)
+    {
+        $search  = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page    = (int) $request->get('page', 1);
+
+        $query = AlatGym::latest();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_alat_gym', 'like', "%{$search}%")
+                  ->orWhere('barcode', 'like', "%{$search}%")
+                  ->orWhere('kondisi_alat', 'like', "%{$search}%")
+                  ->orWhere('lokasi_alat', 'like', "%{$search}%")
+                  ->orWhere('vendor', 'like', "%{$search}%");
+            });
+        }
+
+        $total = (clone $query)->count();
+        $data  = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        return response()->json([
+            'data' => $data->map(function ($item, $index) use ($page, $perPage) {
+                return [
+                    'no'            => (($page - 1) * $perPage) + $index + 1,
+                    'id'            => $item->id,
+                    'barcode'       => $item->barcode ?? '-',
+                    'nama_alat_gym' => $item->nama_alat_gym ?? '-',
+                    'jumlah'        => $item->jumlah ?? '-',
+                    'harga'         => 'Rp ' . number_format($item->harga, 0, ',', '.'),
+                    'tgl_pembelian' => $item->tgl_pembelian
+                        ? Carbon::parse($item->tgl_pembelian)->format('d M Y')
+                        : '-',
+                    'lokasi_alat'   => $item->lokasi_alat ?? '-',
+                    'kondisi_alat'  => $item->kondisi_alat ?? '-',
+                    'vendor'        => $item->vendor ?? '-',
+                    'kontak'        => $item->kontak ?? '-',
+                    'edit_url'      => route('alat_gym.edit', $item->id),
+                    'delete_url'    => route('alat_gym.destroy', $item->id),
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
+    }
+
     /**
      * Tampilkan semua data alat gym
      */
