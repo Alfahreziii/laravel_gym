@@ -1,7 +1,7 @@
 @props([
     'label' => '',
     'value' => '',
-    'icon'  => 'mdi:chart-line',
+    'icon'  => 'member',
     'color' => 'orange',
     'sub'   => null,
     'trend' => null,   // e.g. '+4.8%' or '-2.1%' — only show if data available
@@ -77,16 +77,18 @@ $trendText       = $trend ? ltrim(trim($trend), '+-') : null;
     {{-- Top row: icon chip (left) + trend badge (right, conditional) --}}
     <div class="flex items-start justify-between mb-3">
         <div class="w-11 h-11 rounded-xl flex items-center justify-center bg-gradient-to-br {{ $v['chip'] }} shadow-sm">
-            <iconify-icon icon="{{ $icon }}" class="text-xl text-white"></iconify-icon>
+            <x-dynamic-component :component="'icon.' . $icon" class="text-xl text-white" />
         </div>
         @if($trend)
             <span class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-semibold
                 {{ $trendPositive
                     ? $v['badge']
                     : 'bg-danger-100 text-danger-700 dark:bg-danger-900/50 dark:text-danger-300' }}">
-                <iconify-icon
-                    icon="{{ $trendPositive ? 'ri:arrow-up-s-line' : 'ri:arrow-down-s-line' }}"
-                    class="text-sm -ml-0.5"></iconify-icon>
+                @if($trendPositive)
+                    <x-icon.arrow-up class="text-sm -ml-0.5" />
+                @else
+                    <x-icon.arrow-down class="text-sm -ml-0.5" />
+                @endif
                 {{ $trendText }}
             </span>
         @endif

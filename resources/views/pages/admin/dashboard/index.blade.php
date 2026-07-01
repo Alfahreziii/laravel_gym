@@ -27,14 +27,14 @@
         <x-stat-card
             color="blue"
             label="Total Member"
-            icon="gridicons:multiple-users"
+            icon="member"
             value="{{ number_format($totalMember, 0, ',', '.') }}"
         />
 
         <x-stat-card
             color="cyan"
             label="Male Members"
-            icon="fa-solid:male"
+            icon="male"
             value="{{ number_format($memberLakiLaki, 0, ',', '.') }}"
             sub="{{ $maleRatio }}% dari total"
         />
@@ -42,7 +42,7 @@
         <x-stat-card
             color="pink"
             label="Female Members"
-            icon="fa-solid:female"
+            icon="female"
             value="{{ number_format($memberPerempuan, 0, ',', '.') }}"
             sub="{{ $femaleRatio }}% dari total"
         />
@@ -50,7 +50,7 @@
         <x-stat-card
             color="teal"
             label="Member In GYM"
-            icon="mdi:location-enter"
+            icon="member-in-gym"
             value="{{ number_format($memberInGym, 0, ',', '.') }}"
         />
 
@@ -58,7 +58,7 @@
             color="orange"
             class="sm:col-span-2 xl:col-span-1"
             label="Member Aktif"
-            icon="fluent:people-20-filled"
+            icon="member"
             value="{{ number_format($memberAktif, 0, ',', '.') }}"
             sub="{{ $aktifRatio }}% dari total"
         />
