@@ -110,12 +110,9 @@
                                     </td>
                                     <td class="whitespace-nowrap">
                                         @if ($item->status_pembayaran === 'Lunas')
-                                            <span
-                                                class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm">Lunas</span>
+                                            <x-badge type="success" dot>Lunas</x-badge>
                                         @else
-                                            <span
-                                                class="bg-warning-100 text-warning-600 px-4 py-1.5 rounded-full font-medium text-sm">Belum
-                                                Lunas</span>
+                                            <x-badge type="warning" dot>Belum Lunas</x-badge>
                                         @endif
                                     </td>
                                     <td class="whitespace-nowrap">Rp {{ number_format($item->total_biaya, 0, ',', '.') }}
