@@ -82,11 +82,9 @@
 .sidebar-logo {
   @apply h-[72px] px-[16px] py-[14px] flex items-center justify-start;
   border-right: 1px solid #E2E0DB;
-  border-bottom: 1px solid #E2E0DB;
 }
 .dark .sidebar-logo {
   border-right-color: #332D26;
-  border-bottom-color: #332D26;
 }
 
 .sidebar-logo img {
