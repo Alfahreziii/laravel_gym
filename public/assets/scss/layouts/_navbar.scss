@@ -42,30 +42,73 @@
   @apply inline-block xl:hidden;
 }
 
-.navbar-search {
-  @apply relative hidden lg:inline-block;
+/* Navbar control buttons (notification, dark mode) */
+.navbar-ctrl-btn {
+  @apply w-[38px] h-[38px] flex items-center justify-center rounded-lg text-neutral-500 bg-[#FAFAF9] dark:bg-dark-2 dark:text-neutral-400 transition-colors duration-150;
+  border: 1px solid #E2E0DB;
+
+  &:hover {
+    @apply bg-neutral-100 dark:bg-neutral-700;
+  }
+}
+.dark .navbar-ctrl-btn {
+  border-color: #332D26;
 }
 
-.navbar-search input {
-  @apply w-[24.25rem] h-[2.5rem] bg-neutral-50 border border-neutral-300 rounded-[10px] py-[0.3125rem] ps-[2.625rem] pe-[1.25rem] text-neutral-900 dark:bg-neutral-800 dark:border-neutral-600 dark:text-white transition-colors;
+/* Notification dot indicator */
+.navbar-notif-dot {
+  position: absolute;
+  top: 8px;
+  right: 9px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #F2622E;
+  box-shadow: 0 0 0 2px #FAFAF9;
+}
+.dark .navbar-notif-dot {
+  box-shadow: 0 0 0 2px #273142;
 }
 
-.navbar-search input:focus {
-  @apply border-primary-500 outline-none;
-  box-shadow: 0 0 0 3px rgba(251, 120, 67, 0.2);
+/* Profile pill button */
+.navbar-profile-pill {
+  @apply flex items-center gap-[9px] rounded-full transition-colors duration-150;
+  padding: 4px 10px 4px 4px;
+  border: 1px solid #E2E0DB;
+  background: transparent;
+  cursor: pointer;
+
+  &:hover {
+    @apply bg-neutral-50 dark:bg-[#323D4E];
+  }
+}
+.dark .navbar-profile-pill {
+  border-color: #332D26;
 }
 
-.navbar-search .icon {
-  @apply absolute top-1/2 -translate-y-1/2 start-[0.9375rem] text-[1.125rem] text-dark-2 dark:text-neutral-200;
+.navbar-avatar {
+  @apply w-8 h-8 rounded-full flex items-center justify-center text-white flex-none;
+  background: #E04E1B;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
 }
 
-[data-theme-toggle] {
-  @apply text-[0px] relative after:absolute after:content-["\f1bf"] after:font-[remixicon] after:text-[1.25rem] after:text-neutral-900;
+.navbar-profile-info {
+  text-align: left;
 }
 
-[data-theme-toggle][aria-label=dark]::after {
-  content: "\ef6f";
-  @apply text-white;
+.navbar-profile-name {
+  @apply text-neutral-900 dark:text-neutral-100;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
 }
 
+.navbar-profile-role {
+  @apply text-neutral-500 dark:text-neutral-400;
+  font-size: 11px;
+  line-height: 1.3;
+  text-transform: capitalize;
+}
 /* === navbar css end === */
