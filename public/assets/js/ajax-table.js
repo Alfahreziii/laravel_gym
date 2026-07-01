@@ -21,6 +21,7 @@ window.AjaxTable = (function () {
         paginationId,
         infoId,
         searchId,
+        perPageId = null,
         perPage = 10,
         colSpan = 6,
         renderRow = null,
@@ -162,6 +163,17 @@ window.AjaxTable = (function () {
             });
         }
 
+        // Dropdown entries per page
+        const perPageEl = perPageId ? document.getElementById(perPageId) : null;
+        if (perPageEl) {
+            perPage = parseInt(perPageEl.value) || perPage;
+            perPageEl.addEventListener('change', function () {
+                perPage = parseInt(this.value) || 10;
+                currentPage = 1;
+                fetchData();
+            });
+        }
+
         // Expose instance ke global
         if (!window._ajaxTables) window._ajaxTables = {};
         window._ajaxTables[tbodyId] = {
@@ -199,6 +211,7 @@ window.AjaxTable = (function () {
             paginationId: 'pagination' + cap,
             infoId:       'info'       + cap,
             searchId:     'search'     + cap,
+            perPageId:    'perPage'    + cap,
             perPage:      options.perPage  || 10,
             colSpan:      options.colSpan  || 5,
             renderRow:    options.renderRow || null,
