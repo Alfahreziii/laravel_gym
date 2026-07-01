@@ -32,12 +32,11 @@
 
                         {{-- Dropdown Kategori --}}
                         <div class="col-span-12">
-                            <label for="id_kategori" class="block text-sm font-medium text-gray-700">Kategori</label>
-                            <select name="id_kategori" id="id_kategori"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50">
+                            <label class="form-label">Kategori Paket</label>
+                            <select name="id_kategori" id="id_kategori" class="form-control">
                                 <option value="">-- Pilih Kategori --</option>
                                 @foreach($kategori as $item)
-                                    <option value="{{ $item->id }}" 
+                                    <option value="{{ $item->id }}"
                                         {{ old('id_kategori', $paket_membership->id_kategori) == $item->id ? 'selected' : '' }}>
                                         {{ $item->nama_kategori }}
                                     </option>
