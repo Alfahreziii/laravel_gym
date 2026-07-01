@@ -68,11 +68,8 @@ $trendPositive   = $trend && str_starts_with(trim($trend), '+');
 $trendText       = $trend ? ltrim(trim($trend), '+-') : null;
 @endphp
 
-<div x-data
-     x-on:mouseenter="$el.style.boxShadow='{{ $glowHover }}'; $el.style.transform='translateY(-2px)'"
-     x-on:mouseleave="$el.style.boxShadow='{{ $glow }}'; $el.style.transform=''"
-     {{ $attributes->merge(['class' => 'rounded-2xl p-5 border transition-all duration-200 ' . $v['card']]) }}
-     style="box-shadow: {{ $glow }}">
+<div {{ $attributes->merge(['class' => 'stat-card rounded-2xl p-5 border transition-all duration-200 ' . $v['card']]) }}
+     style="box-shadow: var(--glow); --glow: {{ $glow }}; --glow-hover: {{ $glowHover }}">
 
     {{-- Top row: icon chip (left) + trend badge (right, conditional) --}}
     <div class="flex items-start justify-between mb-3">

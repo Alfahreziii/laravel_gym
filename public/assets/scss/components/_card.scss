@@ -1,4 +1,13 @@
 
+.stat-card {
+  cursor: default;
+
+  &:hover {
+    box-shadow: var(--glow-hover) !important;
+    transform: translateY(-2px);
+  }
+}
+
 .card-header {
   @apply border-b border-[#E2E0DB] dark:border-neutral-700 px-4 md:px-6 py-3;
 }
