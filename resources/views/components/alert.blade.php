@@ -10,14 +10,15 @@ $config = [
 $c = $config[$type] ?? $config['success'];
 @endphp
 
-<div x-data="{ show: true }" x-show="show" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-    {{ $attributes->merge(['class' => "flex items-center justify-between gap-4 rounded-xl px-5 py-3 mb-4 font-medium {$c['bg']} {$c['text']}"]) }}>
+<div {{ $attributes->merge(['class' => "alert-box flex items-center justify-between gap-4 rounded-xl px-5 py-3 mb-4 font-medium transition-opacity duration-150 {$c['bg']} {$c['text']}"]) }}>
     <div class="flex items-center gap-3">
         <iconify-icon icon="{{ $c['icon'] }}" class="text-xl flex-shrink-0"></iconify-icon>
         <span>{{ $slot }}</span>
     </div>
     @if($dismissible)
-        <button type="button" @click="show = false" class="text-xl flex-shrink-0 opacity-70 hover:opacity-100 transition-opacity">
+        <button type="button"
+            onclick="var el=this.closest('.alert-box');el.style.opacity='0';setTimeout(function(){el.remove()},150);"
+            class="text-xl flex-shrink-0 opacity-70 hover:opacity-100 transition-opacity">
             <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
         </button>
     @endif
