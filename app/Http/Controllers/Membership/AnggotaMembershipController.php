@@ -317,7 +317,7 @@ class AnggotaMembershipController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('kode_transaksi', 'like', "%{$search}%")
                   ->orWhere('status_pembayaran', 'like', "%{$search}%")
-                  ->orWhereHas('anggota', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
+                  ->orWhereHas('anggota.user', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
                   ->orWhereHas('paketMembership', fn($q2) => $q2->where('nama_paket', 'like', "%{$search}%"));
             });
         }
