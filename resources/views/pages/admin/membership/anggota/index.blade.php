@@ -7,28 +7,10 @@
 
 @section('content')
     @if (session('success'))
-        <div
-            class="alert alert-success bg-success-50 dark:bg-success-600/25 
-        text-success-600 dark:text-success-400 border-success-50 
-        px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                {{ session('success') }}
-            </div>
-            <button class="remove-button text-success-600 text-2xl">
-                <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
-            </button>
-        </div>
+        <x-alert type="success">{{ session('success') }}</x-alert>
     @endif
     @if (session('error'))
-        <div
-            class="alert alert-danger bg-danger-100 dark:bg-danger-600/25 
-        text-danger-600 dark:text-danger-400 border-danger-100 
-        px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
-            {{ session('error') }}
-            <button class="remove-button text-danger-600 text-2xl">
-                <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
-            </button>
-        </div>
+        <x-alert type="danger">{{ session('error') }}</x-alert>
     @endif
 
     <div class="grid grid-cols-12">
@@ -489,13 +471,6 @@
                 });
             };
 
-            // Alert remove button
-            document.querySelectorAll('.remove-button').forEach(button => {
-                button.addEventListener('click', function() {
-                    this.closest('.alert')?.remove();
-                });
-            });
-
-        });
+});
     </script>
 @endsection
