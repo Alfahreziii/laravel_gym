@@ -10,6 +10,47 @@ use Illuminate\Http\Request;
 
 class PaketMembershipController extends Controller
 {
+    public function datatable(Request $request)
+    {
+        $search  = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page    = (int) $request->get('page', 1);
+
+        $query = PaketMembership::with('kategori')->latest();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_paket', 'like', "%{$search}%")
+                  ->orWhere('periode', 'like', "%{$search}%")
+                  ->orWhereHas('kategori', fn($q2) => $q2->where('nama_kategori', 'like', "%{$search}%"));
+            });
+        }
+
+        $total = (clone $query)->count();
+        $data  = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        return response()->json([
+            'data' => $data->map(function ($item, $index) use ($page, $perPage) {
+                return [
+                    'no'            => (($page - 1) * $perPage) + $index + 1,
+                    'id'            => $item->id,
+                    'nama_kategori' => $item->kategori?->nama_kategori ?? '-',
+                    'nama_paket'    => $item->nama_paket,
+                    'durasi'        => $item->durasi,
+                    'periode'       => ucfirst($item->periode),
+                    'harga'         => 'Rp ' . number_format($item->harga, 0, ',', '.'),
+                    'keterangan'    => $item->keterangan ?? '-',
+                    'edit_url'      => route('paket_membership.edit', $item->id),
+                    'delete_url'    => route('paket_membership.destroy', $item->id),
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
+    }
+
     /**
      * Tampilkan semua paket membership
      */

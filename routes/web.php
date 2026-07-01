@@ -228,6 +228,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     // Route untuk Paket Membership
     Route::controller(PaketMembershipController::class)->group(function () {
         Route::get('/paket-membership', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('paket_membership.index');
+        Route::get('/paket-membership/datatable', 'datatable')->middleware(RoleMiddleware::class . ':admin|spv')->name('paket_membership.datatable');
 
         Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
             Route::get('/paket-membership/create', 'create')->name('paket_membership.create');
