@@ -242,6 +242,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     // Route untuk Anggota Membership
     Route::controller(AnggotaMembershipController::class)->group(function () {
         Route::get('/anggota-membership', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('anggota_membership.index');
+        Route::get('/anggota-membership/datatable', 'datatable')->middleware(RoleMiddleware::class . ':admin|spv')->name('anggota_membership.datatable');
         Route::get('/laporan/anggota-membership', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('laporan.membership');
         Route::post('/anggota-membership/export-pdf', 'exportPdf')->middleware(RoleMiddleware::class . ':admin|spv')->name('anggota_membership.export_pdf');
         Route::post('/anggota-membership/export-excel', 'exportExcel')->middleware(RoleMiddleware::class . ':admin|spv')->name('anggota_membership.export_excel');
@@ -272,6 +273,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     // Route untuk Paket Personal Trainer
     Route::controller(PaketPersonalTrainerController::class)->group(function () {
         Route::get('/paket-personal-trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('paket_personal_trainer.index');
+        Route::get('/paket-personal-trainer/datatable', 'datatable')->middleware(RoleMiddleware::class . ':admin|spv')->name('paket_personal_trainer.datatable');
 
         Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
             Route::get('/paket-personal-trainer/create', 'create')->name('paket_personal_trainer.create');
@@ -303,6 +305,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     // Route untuk Trainer Member
     Route::controller(MemberTrainerController::class)->group(function () {
         Route::get('/member-trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('membertrainer.index');
+        Route::get('/member-trainer/datatable', 'datatable')->middleware(RoleMiddleware::class . ':admin|spv')->name('membertrainer.datatable');
         Route::get('/laporan/member-trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('laporan.membertrainer');
         Route::post('/membertrainer/export-pdf', 'exportPdf')->middleware(RoleMiddleware::class . ':admin|spv')->name('membertrainer.export_pdf');
         Route::post('/membertrainer/export-excel', 'exportExcel')->middleware(RoleMiddleware::class . ':admin|spv')->name('membertrainer.export_excel');
