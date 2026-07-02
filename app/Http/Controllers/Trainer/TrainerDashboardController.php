@@ -56,6 +56,79 @@ class TrainerDashboardController extends Controller
         return view('pages.trainer.dashboard.index', compact('trainer', 'memberTrainers'));
     }
 
+    public function datatable(Request $request)
+    {
+        $user    = Auth::user();
+        $trainer = Trainer::where('id', $user->trainer_id ?? 0)->first();
+
+        if (!$trainer) {
+            return response()->json(['data' => [], 'total' => 0, 'perPage' => 10, 'page' => 1, 'lastPage' => 1]);
+        }
+
+        $search  = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page    = (int) $request->get('page', 1);
+        $today   = now()->toDateString();
+
+        $memberInGymToday = KehadiranMember::whereDate('created_at', $today)
+            ->latest()
+            ->get()
+            ->groupBy('rfid')
+            ->map(fn($items) => $items->first())
+            ->filter(fn($item) => strtolower($item->status) === 'in')
+            ->pluck('rfid')
+            ->toArray();
+
+        $trainerIsTraining = $trainer->isTraining();
+
+        $query = MemberTrainer::with(['anggota', 'paketPersonalTrainer'])
+            ->where('id_trainer', $trainer->id)
+            ->whereDate('tgl_mulai', '<=', $today)
+            ->whereDate('tgl_selesai', '>=', $today)
+            ->where('sesi', '>', 0);
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('anggota.user', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
+                  ->orWhereHas('paketPersonalTrainer', fn($q2) => $q2->where('nama_paket', 'like', "%{$search}%"));
+            });
+        }
+
+        $total = (clone $query)->count();
+        $data  = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        $monitoringUrl = route('trainer.monitoring');
+
+        return response()->json([
+            'data' => $data->map(function ($mt, $index) use ($page, $perPage, $memberInGymToday, $trainerIsTraining, $monitoringUrl) {
+                $isCheckedIn = in_array($mt->anggota->id_kartu ?? null, $memberInGymToday);
+                return [
+                    'no'                  => (($page - 1) * $perPage) + $index + 1,
+                    'anggota_name'        => $mt->anggota->name ?? '-',
+                    'anggota_no_telp'     => $mt->anggota->no_telp ?? '-',
+                    'detail_url'          => route('trainerlistmember.detail', $mt->id_anggota),
+                    'history_url'         => route('trainer.member.history', $mt->id),
+                    'paket_nama'          => $mt->paketPersonalTrainer->nama_paket ?? '-',
+                    'sesi'                => $mt->sesi,
+                    'jumlah_sesi'         => $mt->paketPersonalTrainer->jumlah_sesi ?? 0,
+                    'sisa_sesi'           => $mt->sesi,
+                    'is_checked_in'       => $isCheckedIn,
+                    'is_session_active'   => (bool) $mt->is_session_active,
+                    'session_started_at'  => $mt->is_session_active && $mt->session_started_at
+                        ? Carbon::parse($mt->session_started_at)->format('H:i')
+                        : null,
+                    'trainer_is_training' => $trainerIsTraining,
+                    'start_session_url'   => route('trainer.session.start', $mt->id),
+                    'monitoring_url'      => $monitoringUrl,
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
+    }
+
     public function waiting()
     {
         return view('pages.trainer.dashboard.waiting');

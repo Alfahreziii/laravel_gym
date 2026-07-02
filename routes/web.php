@@ -76,6 +76,9 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddle
     Route::get('/trainer/dashboard', [TrainerDashboardController::class, 'index'])
         ->name('trainer.dashboard');
 
+    Route::get('/trainer/dashboard/datatable', [TrainerDashboardController::class, 'datatable'])
+        ->name('trainer.dashboard.datatable');
+
     Route::post('/trainer/session/start/{memberTrainer}', [TrainerDashboardController::class, 'startSession'])
         ->name('trainer.session.start');
 
