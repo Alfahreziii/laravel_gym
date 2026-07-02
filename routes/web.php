@@ -92,6 +92,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddle
         ->name('trainer.session.logs.export_excel');
 
     Route::controller(TrainerListMemberController::class)->group(function () {
+        Route::get('/trainer/member/datatable', 'datatable')->name('trainerlistmember.datatable');
         Route::get('/trainer/member', 'index')->name('trainerlistmember.index');
         Route::get('/trainer/member/{idAnggota}', 'memberDetail')->name('trainerlistmember.detail');
     });
