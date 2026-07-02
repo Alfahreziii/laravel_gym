@@ -94,6 +94,8 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddle
     Route::controller(TrainerListMemberController::class)->group(function () {
         Route::get('/trainer/member/datatable', 'datatable')->name('trainerlistmember.datatable');
         Route::get('/trainer/member', 'index')->name('trainerlistmember.index');
+        Route::get('/trainer/member/{idAnggota}/active-packages/datatable', 'datatableActivePackages')->name('trainerlistmember.active_packages.datatable');
+        Route::get('/trainer/member/{idAnggota}/history/datatable', 'datatableHistory')->name('trainerlistmember.history.datatable');
         Route::get('/trainer/member/{idAnggota}', 'memberDetail')->name('trainerlistmember.detail');
     });
 

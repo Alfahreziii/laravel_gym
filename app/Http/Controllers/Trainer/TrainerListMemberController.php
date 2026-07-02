@@ -186,6 +186,133 @@ class TrainerListMemberController extends Controller
         ]);
     }
 
+    public function datatableActivePackages(Request $request, $idAnggota)
+    {
+        $user    = Auth::user();
+        $trainer = Trainer::where('id', $user->trainer_id ?? 0)->first();
+
+        if (!$trainer) {
+            return response()->json(['data' => [], 'total' => 0, 'perPage' => 10, 'page' => 1, 'lastPage' => 1]);
+        }
+
+        $member  = \App\Models\Anggota::findOrFail($idAnggota);
+        $search  = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page    = (int) $request->get('page', 1);
+        $today   = now()->toDateString();
+
+        $trainerIsTraining = $trainer->isTraining();
+
+        $lastKehadiran = KehadiranMember::where('rfid', $member->id_kartu)
+            ->whereDate('created_at', $today)
+            ->orderBy('created_at', 'desc')
+            ->first();
+        $isCheckedIn = $lastKehadiran && strtolower(trim($lastKehadiran->status)) === 'in';
+
+        $query = MemberTrainer::with(['paketPersonalTrainer'])
+            ->where('id_trainer', $trainer->id)
+            ->where('id_anggota', $idAnggota)
+            ->whereDate('tgl_mulai', '<=', $today)
+            ->whereDate('tgl_selesai', '>=', $today)
+            ->where('sesi', '>', 0);
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('kode_transaksi', 'like', "%{$search}%")
+                  ->orWhereHas('paketPersonalTrainer', fn($q2) => $q2->where('nama_paket', 'like', "%{$search}%"));
+            });
+        }
+
+        $total = (clone $query)->count();
+        $data  = (clone $query)->orderBy('tgl_mulai')->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        return response()->json([
+            'data' => $data->map(function ($mt, $index) use ($page, $perPage, $trainerIsTraining, $isCheckedIn, $member) {
+                return [
+                    'no'                  => (($page - 1) * $perPage) + $index + 1,
+                    'paket_nama'          => $mt->paketPersonalTrainer->nama_paket ?? '-',
+                    'kode_transaksi'      => $mt->kode_transaksi,
+                    'periode'             => \Carbon\Carbon::parse($mt->tgl_mulai)->format('d M Y') . ' - ' . \Carbon\Carbon::parse($mt->tgl_selesai)->format('d M Y'),
+                    'sesi'                => $mt->sesi,
+                    'jumlah_sesi'         => $mt->paketPersonalTrainer->jumlah_sesi ?? 0,
+                    'is_session_active'   => (bool) $mt->is_session_active,
+                    'session_started_at'  => $mt->is_session_active && $mt->session_started_at
+                        ? \Carbon\Carbon::parse($mt->session_started_at)->format('H:i')
+                        : null,
+                    'trainer_is_training' => $trainerIsTraining,
+                    'is_checked_in'       => $isCheckedIn,
+                    'member_name'         => $member->name ?? '-',
+                    'start_session_url'   => route('trainer.session.start', $mt->id),
+                    'monitoring_url'      => route('trainer.monitoring'),
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
+    }
+
+    public function datatableHistory(Request $request, $idAnggota)
+    {
+        $user    = Auth::user();
+        $trainer = Trainer::where('id', $user->trainer_id ?? 0)->first();
+
+        if (!$trainer) {
+            return response()->json(['data' => [], 'total' => 0, 'perPage' => 10, 'page' => 1, 'lastPage' => 1]);
+        }
+
+        $search  = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page    = (int) $request->get('page', 1);
+        $today   = now()->toDateString();
+
+        $query = MemberTrainer::with(['paketPersonalTrainer'])
+            ->where('id_trainer', $trainer->id)
+            ->where('id_anggota', $idAnggota)
+            ->orderBy('tgl_mulai', 'desc');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('kode_transaksi', 'like', "%{$search}%")
+                  ->orWhereHas('paketPersonalTrainer', fn($q2) => $q2->where('nama_paket', 'like', "%{$search}%"));
+            });
+        }
+
+        $total = (clone $query)->count();
+        $data  = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        return response()->json([
+            'data' => $data->map(function ($mt, $index) use ($page, $perPage, $today) {
+                $isActive  = $mt->tgl_mulai->format('Y-m-d') <= $today
+                          && $mt->tgl_selesai->format('Y-m-d') >= $today
+                          && $mt->sesi > 0;
+                $isExpired = $mt->tgl_selesai->format('Y-m-d') < $today || $mt->sesi <= 0;
+
+                if ($isActive)      { $statusType = 'success'; $statusLabel = 'Aktif'; }
+                elseif ($isExpired) { $statusType = 'warning'; $statusLabel = 'Kadaluarsa'; }
+                else                { $statusType = 'neutral'; $statusLabel = 'Belum Dimulai'; }
+
+                return [
+                    'no'             => (($page - 1) * $perPage) + $index + 1,
+                    'kode_transaksi' => $mt->kode_transaksi,
+                    'history_url'    => route('trainer.member.history', $mt->id),
+                    'paket_nama'     => $mt->paketPersonalTrainer->nama_paket ?? '-',
+                    'periode'        => \Carbon\Carbon::parse($mt->tgl_mulai)->format('d M Y') . ' - ' . \Carbon\Carbon::parse($mt->tgl_selesai)->format('d M Y'),
+                    'jumlah_sesi'    => $mt->paketPersonalTrainer->jumlah_sesi ?? 0,
+                    'sesi_selesai'   => $mt->sesi_sudah_dijalani,
+                    'sisa_sesi'      => $mt->sesi,
+                    'status_type'    => $statusType,
+                    'status_label'   => $statusLabel,
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
+    }
+
     public function memberDetail($idAnggota)
     {
         $user    = Auth::user();
