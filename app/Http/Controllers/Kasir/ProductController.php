@@ -358,6 +358,44 @@ class ProductController extends Controller
         return view('pages.admin.kasir.products.logs', compact('products', 'logs'));
     }
 
+    public function datatableLogs(Request $request, $product)
+    {
+        $productModel = Product::findOrFail($product);
+        $search  = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page    = (int) $request->get('page', 1);
+
+        $query = ProductQuantityLog::where('product_id', $productModel->id)->latest();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('type', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $total = (clone $query)->count();
+        $data  = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        return response()->json([
+            'data' => $data->map(function ($item, $index) use ($page, $perPage, $productModel) {
+                return [
+                    'no'               => (($page - 1) * $perPage) + $index + 1,
+                    'product_name'     => $productModel->name,
+                    'type'             => $item->type,
+                    'quantity'         => $item->quantity,
+                    'current_quantity' => $item->current_quantity,
+                    'description'      => $item->description ?? '-',
+                    'created_at'       => $item->created_at->format('d M Y, H:i'),
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
+    }
+
     // =========================================================
     // JURNAL HELPERS
     // =========================================================

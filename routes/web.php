@@ -184,6 +184,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
             Route::post('/products/{product}/adjust', 'adjustQuantity')->name('products.adjust');
         });
         Route::get('/products/{product}/logs', 'logs')->middleware(RoleMiddleware::class . ':admin|spv')->name('products.logs');
+        Route::get('/products/{product}/logs/datatable', 'datatableLogs')->middleware(RoleMiddleware::class . ':admin|spv')->name('products.logs.datatable');
     });
 
     // Route untuk Kategori Produk
