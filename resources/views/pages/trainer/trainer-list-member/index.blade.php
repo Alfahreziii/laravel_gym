@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const endName   = document.getElementById('endSessionMemberName');
 
     // Event delegation — menangani tombol di baris ajax yang di-render dinamis.
-    // HexaModal.show/hide didefinisikan oleh komponen x-modal di atas (via @once).
+    // HexaModal.show/hide didefinisikan oleh komponen x-modal di atas.
     document.addEventListener('click', function (e) {
         const startBtn = e.target.closest('.open-start-session-modal');
         if (startBtn) {
