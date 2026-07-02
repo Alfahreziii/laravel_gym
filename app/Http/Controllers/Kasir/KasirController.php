@@ -438,6 +438,61 @@ class KasirController extends Controller
         return view('pages.kasir.riwayat', compact('transactions'));
     }
 
+    public function datatableRiwayat(Request $request)
+    {
+        $search  = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page    = (int) $request->get('page', 1);
+
+        $productHppMap = Product::pluck('hpp', 'id')->map(fn($v) => (float) ($v ?? 0));
+
+        $query = Transaction::with('items')->where('status', 'completed')->latest();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('transaction_code', 'like', "%{$search}%")
+                  ->orWhere('customer_name', 'like', "%{$search}%")
+                  ->orWhere('metode_pembayaran', 'like', "%{$search}%");
+            });
+        }
+
+        $total = (clone $query)->count();
+        $data  = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        return response()->json([
+            'data' => $data->map(function ($item, $index) use ($page, $perPage, $productHppMap) {
+                $totalHPP = $item->items->sum(fn($t) => ($productHppMap[$t->product_id] ?? 0) * $t->qty);
+                return [
+                    'no'                   => (($page - 1) * $perPage) + $index + 1,
+                    'id'                   => $item->id,
+                    'kode_transaksi'       => $item->transaction_code,
+                    'customer_name'        => $item->customer_name ?? '-',
+                    'tanggal'              => Carbon::parse($item->created_at)->format('d M Y'),
+                    'total_amount'         => 'Rp ' . number_format($item->total_amount, 0, ',', '.'),
+                    'dibayarkan'           => 'Rp ' . number_format($item->dibayarkan, 0, ',', '.'),
+                    'kembalian'            => 'Rp ' . number_format($item->kembalian, 0, ',', '.'),
+                    'metode_pembayaran'    => $item->metode_pembayaran ?? '-',
+                    'harga_sebelum_diskon' => 'Rp ' . number_format($item->harga_sebelum_diskon, 0, ',', '.'),
+                    'diskon_barang'        => 'Rp ' . number_format($item->diskon_barang, 0, ',', '.'),
+                    'diskon'               => 'Rp ' . number_format($item->diskon, 0, ',', '.'),
+                    'total_hpp'            => 'Rp ' . number_format($totalHPP, 0, ',', '.'),
+                    'items_json'           => $item->items->map(fn($t) => [
+                        'product_name' => $t->product_name,
+                        'keterangan'   => $t->keterangan,
+                        'qty'          => $t->qty,
+                        'price'        => (float) $t->price,
+                        'hpp'          => $productHppMap[$t->product_id] ?? 0,
+                        'diskon'       => (float) ($t->diskon ?? 0),
+                    ])->values()->toArray(),
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
+    }
+
     public function index()
     {
         $products = Product::with('kategori')->get();

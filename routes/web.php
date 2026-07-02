@@ -420,6 +420,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddle
         Route::get('/kasir', 'index')->name('kasir.index');
         Route::get('/laporan/penjualan', 'riwayat')->middleware(RoleMiddleware::class . ':admin|spv')->name('laporan.penjualan');
         Route::get('/riwayat-transaksi-kasir', 'riwayat')->name('kasir.riwayat');
+        Route::get('/riwayat-transaksi-kasir/datatable', 'datatableRiwayat')->name('kasir.riwayat.datatable');
         Route::post('/kasir/bayar', 'bayar')->name('kasirbayar');
         Route::post('/kasir/hold', 'hold')->name('kasir.hold');
         Route::delete('/kasir/hold/{id}', 'deleteHold')->name('kasir.hold.delete');
