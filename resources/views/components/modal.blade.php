@@ -1,78 +1,123 @@
+{{--
+    Komponen modal reusable untuk HexaGym app.
+    Props  : id (required), title (required), maxWidth (default 'max-w-2xl')
+    Slots  : $body (required), $footer (optional)
+    Kontrol: HexaModal.show(id) / HexaModal.hide(id) dari JS eksternal
+             Tombol tutup pakai [data-close-modal="id"], backdrop klik, atau Escape.
+--}}
 @props([
-    'name',
-    'show' => false,
-    'maxWidth' => '2xl'
+    'id',
+    'title',
+    'maxWidth' => 'max-w-2xl',
 ])
 
-@php
-$maxWidth = [
-    'sm' => 'sm:max-w-sm',
-    'md' => 'sm:max-w-md',
-    'lg' => 'sm:max-w-lg',
-    'xl' => 'sm:max-w-xl',
-    '2xl' => 'sm:max-w-2xl',
-][$maxWidth];
-@endphp
-
 <div
-    x-data="{
-        show: @js($show),
-        focusables() {
-            // All focusable element types...
-            let selector = 'a, button, input:not([type=\'hidden\']), textarea, select, details, [tabindex]:not([tabindex=\'-1\'])'
-            return [...$el.querySelectorAll(selector)]
-                // All non-disabled elements...
-                .filter(el => ! el.hasAttribute('disabled'))
-        },
-        firstFocusable() { return this.focusables()[0] },
-        lastFocusable() { return this.focusables().slice(-1)[0] },
-        nextFocusable() { return this.focusables()[this.nextFocusableIndex()] || this.firstFocusable() },
-        prevFocusable() { return this.focusables()[this.prevFocusableIndex()] || this.lastFocusable() },
-        nextFocusableIndex() { return (this.focusables().indexOf(document.activeElement) + 1) % (this.focusables().length + 1) },
-        prevFocusableIndex() { return Math.max(0, this.focusables().indexOf(document.activeElement)) -1 },
-    }"
-    x-init="$watch('show', value => {
-        if (value) {
-            document.body.classList.add('overflow-y-hidden');
-            {{ $attributes->has('focusable') ? 'setTimeout(() => firstFocusable().focus(), 100)' : '' }}
-        } else {
-            document.body.classList.remove('overflow-y-hidden');
-        }
-    })"
-    x-on:open-modal.window="$event.detail == '{{ $name }}' ? show = true : null"
-    x-on:close-modal.window="$event.detail == '{{ $name }}' ? show = false : null"
-    x-on:close.stop="show = false"
-    x-on:keydown.escape.window="show = false"
-    x-on:keydown.tab.prevent="$event.shiftKey || nextFocusable().focus()"
-    x-on:keydown.shift.tab.prevent="prevFocusable().focus()"
-    x-show="show"
-    class="fixed inset-0 overflow-y-auto px-4 py-6 sm:px-0 z-50"
-    style="display: {{ $show ? 'block' : 'none' }};"
->
-    <div
-        x-show="show"
-        class="fixed inset-0 transform transition-all"
-        x-on:click="show = false"
-        x-transition:enter="ease-out duration-300"
-        x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100"
-        x-transition:leave="ease-in duration-200"
-        x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0"
-    >
-        <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
-    </div>
+    id="{{ $id }}"
+    tabindex="-1"
+    aria-hidden="true"
+    class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="{{ $maxWidth }} w-full mx-4">
+        <div class="rounded-2xl bg-white dark:bg-neutral-800 shadow-xl">
 
-    <div
-        x-show="show"
-        class="mb-6 bg-white dark:bg-neutral-800 rounded-2xl overflow-hidden shadow-xl transform transition-all sm:w-full {{ $maxWidth }} sm:mx-auto"
-        x-transition:enter="ease-out duration-300"
-        x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-        x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-        x-transition:leave="ease-in duration-200"
-        x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-        x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-    >
-        {{ $slot }}
+            {{-- Header --}}
+            <div class="py-4 px-6 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between">
+                <h2 id="{{ $id }}-title" class="text-xl font-semibold text-neutral-800 dark:text-neutral-100">
+                    {{ $title }}
+                </h2>
+                <button type="button" data-close-modal="{{ $id }}"
+                    class="text-neutral-400 bg-transparent hover:bg-neutral-100 dark:hover:bg-neutral-700
+                           hover:text-neutral-900 dark:hover:text-white rounded-lg text-sm w-8 h-8
+                           inline-flex justify-center items-center transition-colors">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Tutup</span>
+                </button>
+            </div>
+
+            {{-- Body --}}
+            <div class="p-6">
+                {{ $body }}
+            </div>
+
+            {{-- Footer (opsional) --}}
+            @if($footer->isNotEmpty())
+            <div class="flex justify-end gap-3 px-6 pb-6">
+                {{ $footer }}
+            </div>
+            @endif
+
+        </div>
     </div>
 </div>
+
+@once
+<script>
+/**
+ * HexaModal — pure-JS show/hide tanpa Flowbite.
+ * Diinisialisasi satu kali oleh @once pada x-modal pertama di halaman.
+ *
+ * API:
+ *   HexaModal.show('modal-id')  — tampilkan modal + backdrop
+ *   HexaModal.hide('modal-id')  — sembunyikan modal + backdrop
+ *
+ * Tombol tutup: pakai atribut [data-close-modal="modal-id"].
+ * Backdrop klik dan Escape key juga menutup modal.
+ */
+window.HexaModal = (function () {
+    var BD_ID = '__hexa-modal-bd__';
+    var _currentId = null;
+
+    function show(id) {
+        // Tutup backdrop lama jika ada (ganti modal)
+        _removeBackdrop();
+
+        var el = document.getElementById(id);
+        if (!el) return;
+
+        _currentId = id;
+        el.classList.remove('hidden');
+        el.classList.add('flex');
+        el.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('overflow-hidden');
+
+        var bd = document.createElement('div');
+        bd.id = BD_ID;
+        bd.className = 'bg-gray-900/50 dark:bg-gray-900/80 fixed inset-0 z-40';
+        bd.addEventListener('click', function () { hide(id); });
+        document.body.appendChild(bd);
+    }
+
+    function hide(id) {
+        var el = document.getElementById(id);
+        if (el) {
+            el.classList.add('hidden');
+            el.classList.remove('flex');
+            el.setAttribute('aria-hidden', 'true');
+        }
+        _currentId = null;
+        document.body.classList.remove('overflow-hidden');
+        _removeBackdrop();
+    }
+
+    function _removeBackdrop() {
+        var bd = document.getElementById(BD_ID);
+        if (bd) bd.remove();
+    }
+
+    // Delegation untuk [data-close-modal] — menutup modal dari tombol X, Batal, dll.
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-close-modal]');
+        if (btn) hide(btn.getAttribute('data-close-modal'));
+    });
+
+    // Tutup modal dengan Escape
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && _currentId) hide(_currentId);
+    });
+
+    return { show: show, hide: hide };
+}());
+</script>
+@endonce

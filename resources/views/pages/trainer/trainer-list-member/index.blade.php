@@ -48,77 +48,49 @@
     </div>
 </div>
 
-<!-- Modal Mulai Sesi -->
-<div id="start-session-modal" tabindex="-1"
-    class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-    <div class="rounded-2xl bg-white dark:bg-neutral-800 max-w-[800px] w-full">
-        <div class="py-4 px-6 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between">
-            <h1 class="text-xl font-semibold">Mulai Sesi Training</h1>
-            <button data-modal-hide="start-session-modal" type="button"
-                class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
-                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                </svg>
-                <span class="sr-only">Close modal</span>
-            </button>
-        </div>
-        <div class="p-6">
-            <form id="startSessionForm" method="POST">
-                @csrf
-                <p class="text-neutral-700 dark:text-neutral-300 text-base mb-4">
-                    Apakah Anda yakin ingin memulai sesi training untuk <strong id="sessionMemberName"></strong>?
-                </p>
-                <div class="flex justify-end gap-3 mt-6">
-                    <button type="button" data-modal-hide="start-session-modal"
-                        class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-6 py-2 rounded-lg">
-                        Batal
-                    </button>
-                    <button type="submit"
-                        class="bg-primary-600 hover:bg-primary-700 text-white text-base px-6 py-2 rounded-lg">
-                        Mulai
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+{{-- Modal Mulai Sesi --}}
+<x-modal id="start-session-modal" title="Mulai Sesi Training">
+    <x-slot:body>
+        <form id="startSessionForm" method="POST">
+            @csrf
+            <p class="text-neutral-700 dark:text-neutral-300 text-base">
+                Apakah Anda yakin ingin memulai sesi training untuk <strong id="sessionMemberName"></strong>?
+            </p>
+        </form>
+    </x-slot:body>
+    <x-slot:footer>
+        <button type="button" data-close-modal="start-session-modal"
+            class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-6 py-2 rounded-lg transition-colors">
+            Batal
+        </button>
+        <button type="submit" form="startSessionForm"
+            class="bg-primary-600 hover:bg-primary-700 text-white text-base px-6 py-2 rounded-lg transition-colors">
+            Mulai
+        </button>
+    </x-slot:footer>
+</x-modal>
 
-<!-- Modal Selesai Sesi -->
-<div id="end-session-modal" tabindex="-1"
-    class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-    <div class="rounded-2xl bg-white dark:bg-neutral-800 max-w-[800px] w-full">
-        <div class="py-4 px-6 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between">
-            <h1 class="text-xl font-semibold">Selesai Sesi Training</h1>
-            <button data-modal-hide="end-session-modal" type="button"
-                class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
-                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                </svg>
-                <span class="sr-only">Close modal</span>
-            </button>
-        </div>
-        <div class="p-6">
-            <form id="endSessionForm" method="POST">
-                @csrf
-                <p class="text-neutral-700 dark:text-neutral-300 text-base mb-4">
-                    Apakah Anda yakin ingin menyelesaikan sesi training untuk <strong id="endSessionMemberName"></strong>?
-                </p>
-                <div class="flex justify-end gap-3 mt-6">
-                    <button type="button" data-modal-hide="end-session-modal"
-                        class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-6 py-2 rounded-lg">
-                        Batal
-                    </button>
-                    <button type="submit"
-                        class="bg-primary-600 hover:bg-primary-700 text-white text-base px-6 py-2 rounded-lg">
-                        Selesai
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+{{-- Modal Selesai Sesi --}}
+<x-modal id="end-session-modal" title="Selesai Sesi Training">
+    <x-slot:body>
+        <form id="endSessionForm" method="POST">
+            @csrf
+            <p class="text-neutral-700 dark:text-neutral-300 text-base">
+                Apakah Anda yakin ingin menyelesaikan sesi training untuk <strong id="endSessionMemberName"></strong>?
+            </p>
+        </form>
+    </x-slot:body>
+    <x-slot:footer>
+        <button type="button" data-close-modal="end-session-modal"
+            class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-6 py-2 rounded-lg transition-colors">
+            Batal
+        </button>
+        <button type="submit" form="endSessionForm"
+            class="bg-primary-600 hover:bg-primary-700 text-white text-base px-6 py-2 rounded-lg transition-colors">
+            Selesai
+        </button>
+    </x-slot:footer>
+</x-modal>
 
 @endsection
 
@@ -131,36 +103,21 @@ document.addEventListener('DOMContentLoaded', function () {
     const endForm   = document.getElementById('endSessionForm');
     const endName   = document.getElementById('endSessionMemberName');
 
-    // Show modal manually — compatible with Flowbite's hide/backdrop cleanup.
-    // Flowbite removes [modal-backdrop] elements when data-modal-hide is clicked,
-    // so we create the backdrop with that attribute so it gets cleaned up properly.
-    function showModal(id) {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.classList.remove('hidden');
-        el.classList.add('flex');
-        if (!document.querySelector('[modal-backdrop]')) {
-            const bd = document.createElement('div');
-            bd.setAttribute('modal-backdrop', '');
-            bd.className = 'bg-gray-900/50 dark:bg-gray-900/80 fixed inset-0 z-40';
-            document.body.appendChild(bd);
-        }
-    }
-
-    // Event delegation — works for dynamically-rendered rows, unlike querySelectorAll.
+    // Event delegation — menangani tombol di baris ajax yang di-render dinamis.
+    // HexaModal.show/hide didefinisikan oleh komponen x-modal di atas (via @once).
     document.addEventListener('click', function (e) {
         const startBtn = e.target.closest('.open-start-session-modal');
         if (startBtn) {
             startName.textContent = startBtn.dataset.member;
             startForm.setAttribute('action', startBtn.dataset.action);
-            showModal('start-session-modal');
+            HexaModal.show('start-session-modal');
             return;
         }
         const endBtn = e.target.closest('.open-end-session-modal');
         if (endBtn) {
             endName.textContent = endBtn.dataset.member;
             endForm.setAttribute('action', endBtn.dataset.action);
-            showModal('end-session-modal');
+            HexaModal.show('end-session-modal');
         }
     });
 
@@ -188,7 +145,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (!item.trainer_is_training) {
                         if (item.is_checked_in) {
                             actionHtml = `<button type="button"
-                                class="open-start-session-modal text-xs font-medium px-3 py-1.5 rounded-lg bg-success-600 text-white hover:bg-success-700"
+                                class="open-start-session-modal text-xs font-medium px-3 py-1.5 rounded-lg bg-success-600 text-white hover:bg-success-700 transition-colors"
                                 data-member="${item.anggota_name}"
                                 data-action="${item.start_session_url}">
                                 ▶️ Mulai Sesi
@@ -207,7 +164,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 } else {
                     actionHtml = `<a href="${item.monitoring_url}"
-                        class="text-xs font-medium px-3 py-1.5 rounded-lg bg-warning-100 text-warning-700 hover:bg-warning-200">
+                        class="text-xs font-medium px-3 py-1.5 rounded-lg bg-warning-100 text-warning-700 hover:bg-warning-200 transition-colors">
                         📊 Ke Monitoring
                     </a>`;
                 }
