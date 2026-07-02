@@ -56,7 +56,7 @@
 <script>
 /**
  * HexaModal — pure-JS show/hide tanpa Flowbite.
- * Diinisialisasi satu kali oleh @once pada x-modal pertama di halaman.
+ * Diinisialisasi satu kali (directive once) pada x-modal pertama di halaman.
  *
  * API:
  *   HexaModal.show('modal-id')  — tampilkan modal + backdrop
