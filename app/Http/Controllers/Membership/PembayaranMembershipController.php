@@ -23,6 +23,56 @@ class PembayaranMembershipController extends Controller
         return view('pages.admin.membership.pembayaran-membership.index', compact('anggotaMemberships'));
     }
 
+    public function datatable(Request $request)
+    {
+        $search  = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page    = (int) $request->get('page', 1);
+
+        $query = AnggotaMembership::with(['anggota', 'paketMembership', 'pembayaranMemberships'])->latest();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('kode_transaksi', 'like', "%{$search}%")
+                  ->orWhereHas('anggota', fn ($q2) => $q2->where('name', 'like', "%{$search}%"));
+            });
+        }
+
+        $total   = (clone $query)->count();
+        $data    = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
+        $isAdmin = (bool) auth()->user()?->hasRole('admin');
+
+        return response()->json([
+            'data' => $data->map(function ($item, $index) use ($page, $perPage, $isAdmin) {
+                $totalDibayarkan = $item->pembayaranMemberships->sum('jumlah_bayar');
+                $sisaTagihan     = $item->total_biaya - $totalDibayarkan;
+                $isLunas         = $item->status_pembayaran === 'Lunas';
+                return [
+                    'no'                => (($page - 1) * $perPage) + $index + 1,
+                    'id'                => $item->id,
+                    'kode_transaksi'    => $item->kode_transaksi,
+                    'edit_url'          => route('anggota_membership.edit', $item->id),
+                    'anggota_name'      => $item->anggota->name ?? '-',
+                    'paket_nama'        => $item->paketMembership->nama_paket ?? '-',
+                    'harga'             => $item->paketMembership->harga ?? 0,
+                    'diskon'            => $item->diskon,
+                    'total_biaya'       => $item->total_biaya,
+                    'total_dibayarkan'  => $totalDibayarkan,
+                    'sisa_tagihan'      => $sisaTagihan,
+                    'status_pembayaran' => $item->status_pembayaran,
+                    'is_lunas'          => $isLunas,
+                    'nota_url'          => $isLunas ? route('pembayaran_membership.notaPDF', $item->id) : null,
+                    'bayar_url'         => $isAdmin ? route('pembayaran_membership.tambahPembayaran', $item->id) : null,
+                    'is_admin'          => $isAdmin,
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
+    }
+
     public function tambahPembayaran(Request $request, $id)
     {
         $request->validate([

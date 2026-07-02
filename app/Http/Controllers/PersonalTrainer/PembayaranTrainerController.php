@@ -18,6 +18,56 @@ class PembayaranTrainerController extends Controller
         return view('pages.admin.personal-trainer.pembayaran-trainer.index', compact('memberTrainers'));
     }
 
+    public function datatable(Request $request)
+    {
+        $search  = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page    = (int) $request->get('page', 1);
+
+        $query = MemberTrainer::with(['anggota', 'paketPersonalTrainer', 'pembayaranMemberTrainers'])->latest();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('kode_transaksi', 'like', "%{$search}%")
+                  ->orWhereHas('anggota', fn ($q2) => $q2->where('name', 'like', "%{$search}%"));
+            });
+        }
+
+        $total   = (clone $query)->count();
+        $data    = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
+        $isAdmin = (bool) auth()->user()?->hasRole('admin');
+
+        return response()->json([
+            'data' => $data->map(function ($item, $index) use ($page, $perPage, $isAdmin) {
+                $totalDibayarkan = $item->pembayaranMemberTrainers->sum('jumlah_bayar');
+                $sisaTagihan     = $item->total_biaya - $totalDibayarkan;
+                $isLunas         = $item->status_pembayaran === 'Lunas';
+                return [
+                    'no'                => (($page - 1) * $perPage) + $index + 1,
+                    'id'                => $item->id,
+                    'kode_transaksi'    => $item->kode_transaksi,
+                    'edit_url'          => route('membertrainer.edit', $item->id),
+                    'anggota_name'      => $item->anggota->name ?? '-',
+                    'paket_nama'        => $item->paketPersonalTrainer->nama_paket ?? '-',
+                    'harga'             => $item->paketPersonalTrainer->biaya ?? 0,
+                    'diskon'            => $item->diskon,
+                    'total_biaya'       => $item->total_biaya,
+                    'total_dibayarkan'  => $totalDibayarkan,
+                    'sisa_tagihan'      => $sisaTagihan,
+                    'status_pembayaran' => $item->status_pembayaran,
+                    'is_lunas'          => $isLunas,
+                    'nota_url'          => $isLunas ? route('pembayaran_trainer.notaPDF', $item->id) : null,
+                    'bayar_url'         => $isAdmin ? route('pembayaran_trainer.tambahPembayaran', $item->id) : null,
+                    'is_admin'          => $isAdmin,
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
+    }
+
     public function detail_pembayaran(Request $request, $id)
     {
         $memberTrainers = MemberTrainer::with(['anggota', 'paketPersonalTrainer', 'trainer', 'pembayaranMemberTrainers'])

@@ -179,6 +179,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
         // Route index bisa diakses oleh admin & spv
         Route::get('/products', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('products.index');
         Route::get('/laporan/products', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('laporan.products');
+        Route::get('/products/datatable', 'datatable')->middleware(RoleMiddleware::class . ':admin|spv')->name('products.datatable');
         Route::post('/products/export-pdf', 'exportPdf')->middleware(RoleMiddleware::class . ':admin|spv')->name('products.export_pdf');
         Route::post('/products/export-excel', 'exportExcel')->middleware(RoleMiddleware::class . ':admin|spv')->name('products.export_excel');
         // Route CRUD hanya untuk admin
@@ -352,11 +353,13 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     // Route untuk Pembayaran Membership
     Route::controller(PembayaranMembershipController::class)->group(function () {
         Route::get('/pembayaran-membership', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('pembayaran_membership.index');
+        Route::get('/pembayaran-membership/datatable', 'datatable')->middleware(RoleMiddleware::class . ':admin|spv')->name('pembayaran_membership.datatable');
         Route::get('/pembayaran-membership/nota-pdf/{id}', 'exportNotaPDF')->middleware(RoleMiddleware::class . ':admin|spv')->name('pembayaran_membership.notaPDF');
     });
 
     Route::controller(PembayaranTrainerController::class)->group(function () {
         Route::get('/pembayaran-trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('pembayaran_trainer.index');
+        Route::get('/pembayaran-trainer/datatable', 'datatable')->middleware(RoleMiddleware::class . ':admin|spv')->name('pembayaran_trainer.datatable');
         Route::get('/pembayaran-trainer/nota-pdf/{id}', 'exportNotaPDF')->middleware(RoleMiddleware::class . ':admin|spv')->name('pembayaran_trainer.notaPDF');
     });
 
@@ -415,6 +418,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     Route::controller(RiwayatGajiTrainerController::class)->group(function () {
         Route::get('/riwayat-gaji-trainer', 'index')->middleware(RoleMiddleware::class . ':admin')->name('riwayat_gaji_trainer.index');
         Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
+            Route::get('/riwayat-gaji-trainer/datatable', 'datatable')->name('riwayat_gaji_trainer.datatable');
             Route::get('/riwayat-gaji-trainer/create', 'create')->name('riwayat_gaji_trainer.create');
             Route::post('/riwayat-gaji-trainer', 'store')->name('riwayat_gaji_trainer.store');
             Route::get('/riwayat-gaji-trainer/payment-data/{trainerId}', 'getPaymentData')->name('riwayat_gaji_trainer.payment-data');
