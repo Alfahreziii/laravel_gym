@@ -224,6 +224,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     // Route untuk Kategori Paket Membership
     Route::controller(KategoriPaketController::class)->group(function () {
         Route::get('/kategori-paket', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('kategori_paket_membership.index');
+        Route::get('/kategori-paket/datatable', 'datatable')->middleware(RoleMiddleware::class . ':admin|spv')->name('kategori_paket_membership.datatable');
 
         Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
             Route::post('/kategori-paket', 'store')->name('kategori_paket_membership.store');

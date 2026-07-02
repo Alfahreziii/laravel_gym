@@ -18,6 +18,38 @@ class KategoriPaketController extends Controller
         return view('pages.admin.membership.kategori-paket-member.index', compact('kategori_paket_memberships'));
     }
 
+    public function datatable(Request $request)
+    {
+        $search  = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page    = (int) $request->get('page', 1);
+
+        $query = KategoriPaketMembership::query();
+
+        if ($search) {
+            $query->where('nama_kategori', 'like', "%{$search}%");
+        }
+
+        $total = (clone $query)->count();
+        $data  = (clone $query)->orderBy('nama_kategori')->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        return response()->json([
+            'data' => $data->map(function ($item, $index) use ($page, $perPage) {
+                return [
+                    'no'             => (($page - 1) * $perPage) + $index + 1,
+                    'id'             => $item->id,
+                    'nama_kategori'  => $item->nama_kategori,
+                    'update_url'     => route('kategori_paket_membership.update', $item->id),
+                    'delete_url'     => route('kategori_paket_membership.destroy', $item->id),
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
+    }
+
     /**
      * Simpan kategori baru ke database
      */
