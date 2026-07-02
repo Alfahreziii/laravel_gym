@@ -40,6 +40,43 @@ class TrainerPlaylistController extends Controller
         }
     }
 
+    public function datatable(Request $request)
+    {
+        try {
+            $trainerId = $this->getTrainerId();
+        } catch (\Exception $e) {
+            return response()->json(['data' => [], 'total' => 0, 'perPage' => 10, 'page' => 1, 'lastPage' => 1]);
+        }
+
+        $search  = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page    = (int) $request->get('page', 1);
+
+        $query = PlaylistTrainer::where('id_trainer', $trainerId);
+        if ($search) {
+            $query->where('latihan', 'like', "%{$search}%");
+        }
+
+        $total = (clone $query)->count();
+        $data  = (clone $query)->orderBy('latihan')->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        return response()->json([
+            'data' => $data->map(function ($item, $index) use ($page, $perPage) {
+                return [
+                    'no'         => (($page - 1) * $perPage) + $index + 1,
+                    'id'         => $item->id,
+                    'latihan'    => $item->latihan,
+                    'update_url' => route('trainerplaylist.update', $item->id),
+                    'delete_url' => route('trainerplaylist.destroy', $item->id),
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
+    }
+
     /**
      * Store a newly created resource in storage.
      */

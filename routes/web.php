@@ -104,6 +104,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddle
 
     Route::controller(TrainerPlaylistController::class)->group(function () {
         Route::get('/trainer/playlist', 'index')->name('trainerplaylist.index');
+        Route::get('/trainer/playlist/datatable', 'datatable')->name('trainerplaylist.datatable');
         Route::post('/trainer/playlist', 'store')->name('trainerplaylist.store');
         Route::put('/trainer/playlist/{id}', 'update')->name('trainerplaylist.update');
         Route::delete('/trainer/playlist/{id}', 'destroy')->name('trainerplaylist.destroy');
@@ -196,6 +197,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     // Route untuk Kategori Produk
     Route::controller(KategoriProductController::class)->group(function () {
         Route::get('/kategori-products', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('kategori_products.index');
+        Route::get('/kategori-products/datatable', 'datatable')->middleware(RoleMiddleware::class . ':admin|spv')->name('kategori_products.datatable');
 
         Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
             Route::post('/kategori-products', 'store')->name('kategori_products.store');
@@ -270,6 +272,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     // Route untuk Spesialisasi Trainer
     Route::controller(SpecialisasiController::class)->group(function () {
         Route::get('/specialisasi', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('specialisasi.index');
+        Route::get('/specialisasi/datatable', 'datatable')->middleware(RoleMiddleware::class . ':admin|spv')->name('specialisasi.datatable');
 
         Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
             Route::post('/specialisasi', 'store')->name('specialisasi.store');
@@ -387,6 +390,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     // Route untuk Level Trainer
     Route::controller(LevelTrainerController::class)->group(function () {
         Route::get('/level-trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('level_trainer.index');
+        Route::get('/level-trainer/datatable', 'datatable')->middleware(RoleMiddleware::class . ':admin|spv')->name('level_trainer.datatable');
 
         Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
             Route::post('/level-trainer', 'store')->name('level_trainer.store');
