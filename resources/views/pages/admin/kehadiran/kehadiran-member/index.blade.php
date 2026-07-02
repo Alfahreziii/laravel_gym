@@ -209,9 +209,7 @@
                         loading="lazy">` :
                         `<span class="text-gray-400 italic text-xs">No photo</span>`;
 
-                    const statusBadge = item.status === 'in' ?
-                        `<span class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm">CHECK IN</span>` :
-                        `<span class="bg-warning-100 text-warning-600 px-4 py-1.5 rounded-full font-medium text-sm">CHECK OUT</span>`;
+                    const statusBadge = AjaxTable.badge(item.status === 'in' ? 'success' : 'warning', item.status === 'in' ? 'CHECK IN' : 'CHECK OUT');
 
                     const aksiCol = (isAdmin && !isLaporan) ? `
                         <td class="whitespace-nowrap">

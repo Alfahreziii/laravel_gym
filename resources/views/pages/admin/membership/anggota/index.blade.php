@@ -314,9 +314,7 @@
                     ${fingerBadgeInner}
                 </button>`;
 
-                    const statusBadge = item.status ?
-                        `<span class="bg-success-100 text-success-600 px-6 py-1.5 rounded-full font-medium text-sm">Aktif</span>` :
-                        `<span class="bg-warning-100 text-warning-600 px-6 py-1.5 rounded-full font-medium text-sm">Tidak Aktif</span>`;
+                    const statusBadge = AjaxTable.badge(item.status ? 'success' : 'warning', item.status ? 'Aktif' : 'Tidak Aktif');
 
                     const aksiCol = (isAdmin && !isLaporan) ? `
                 <td class="whitespace-nowrap">

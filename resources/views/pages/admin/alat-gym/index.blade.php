@@ -127,15 +127,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const isAdmin       = {{ $isAdmin ? 'true' : 'false' }};
     const isLaporanMode = {{ $isLaporanMode ? 'true' : 'false' }};
 
-    function kondisiBadge(kondisi) {
-        if (kondisi === 'Baik')
-            return `<span class="bg-success-100 text-success-600 px-3 py-1 rounded-full font-medium text-xs">Baik</span>`;
-        if (kondisi === 'Rusak')
-            return `<span class="bg-danger-100 text-danger-600 px-3 py-1 rounded-full font-medium text-xs">Rusak</span>`;
-        if (kondisi === 'Perlu Perbaikan')
-            return `<span class="bg-warning-100 text-warning-600 px-3 py-1 rounded-full font-medium text-xs">Perlu Perbaikan</span>`;
-        return `<span class="text-gray-500">${kondisi}</span>`;
-    }
+    const kondisiType = { 'Baik': 'success', 'Rusak': 'danger', 'Perlu Perbaikan': 'warning' };
 
     function confirmDelete(url) {
         Swal.fire({
@@ -191,7 +183,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 <td class="whitespace-nowrap">${item.harga}</td>
                 <td class="whitespace-nowrap">${item.tgl_pembelian}</td>
                 <td class="whitespace-nowrap">${item.lokasi_alat}</td>
-                <td class="whitespace-nowrap">${kondisiBadge(item.kondisi_alat)}</td>
+                <td class="whitespace-nowrap">${AjaxTable.badge(kondisiType[item.kondisi_alat] || 'neutral', item.kondisi_alat)}</td>
                 <td class="whitespace-nowrap">${item.vendor}</td>
                 <td class="whitespace-nowrap">${item.kontak}</td>
             </tr>`;

@@ -296,13 +296,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const isAdmin       = {{ $isAdmin ? 'true' : 'false' }};
     const isLaporanMode = {{ $isLaporanMode ? 'true' : 'false' }};
 
-    function statusBadge(status) {
-        if (status === 'Lunas') {
-            return `<span class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm">Lunas</span>`;
-        }
-        return `<span class="bg-warning-100 text-warning-600 px-4 py-1.5 rounded-full font-medium text-sm">Belum Lunas</span>`;
-    }
-
     function confirmDelete(url) {
         Swal.fire({
             title: 'Apakah kamu yakin?',
@@ -354,7 +347,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 <td class="whitespace-nowrap">${item.metode_pembayaran}</td>
                 <td class="whitespace-nowrap">${item.tgl_mulai}</td>
                 <td class="whitespace-nowrap">${item.tgl_selesai}</td>
-                <td class="whitespace-nowrap">${statusBadge(item.status_pembayaran)}</td>
+                <td class="whitespace-nowrap">${AjaxTable.badge(item.status_pembayaran === 'Lunas' ? 'success' : 'warning', item.status_pembayaran)}</td>
                 <td class="whitespace-nowrap">${item.total_biaya}</td>
             </tr>`;
         }
