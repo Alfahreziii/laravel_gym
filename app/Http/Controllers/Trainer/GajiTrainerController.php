@@ -18,8 +18,46 @@ class GajiTrainerController extends Controller
     {
         $gajiTrainers = SettingParameterGajiTrainer::with(['trainer.user', 'level'])
             ->get();
-        
+
         return view('pages.trainer.gaji-trainer.index', compact('gajiTrainers'));
+    }
+
+    public function datatable(Request $request)
+    {
+        $search  = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page    = (int) $request->get('page', 1);
+
+        $query = SettingParameterGajiTrainer::with(['trainer.user', 'level'])->latest();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('trainer.user', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
+                  ->orWhereHas('level', fn($q2) => $q2->where('name', 'like', "%{$search}%"));
+            });
+        }
+
+        $total = (clone $query)->count();
+        $data  = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        return response()->json([
+            'data' => $data->map(function ($item, $index) use ($page, $perPage) {
+                return [
+                    'no'           => (($page - 1) * $perPage) + $index + 1,
+                    'id'           => $item->id,
+                    'trainer_name' => $item->trainer->name ?? '-',
+                    'level_name'   => $item->level->name ?? '-',
+                    'base_rate'    => $item->formatted_base_rate,
+                    'tgl_gajian'   => $item->tgl_gajian->format('d') . ' setiap bulan',
+                    'edit_url'     => route('gaji_trainer.edit', $item->id),
+                    'delete_url'   => route('gaji_trainer.destroy', $item->id),
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
     }
 
     /**

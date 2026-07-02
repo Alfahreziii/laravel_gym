@@ -391,6 +391,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     // Route untuk Gaji Trainer
     Route::controller(GajiTrainerController::class)->group(function () {
         Route::get('/gaji-trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('gaji_trainer.index');
+        Route::get('/gaji-trainer/datatable', 'datatable')->middleware(RoleMiddleware::class . ':admin|spv')->name('gaji_trainer.datatable');
         Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
             Route::get('/gaji-trainer/create', 'create')->name('gaji_trainer.create');
             Route::post('/gaji-trainer', 'store')->name('gaji_trainer.store');
