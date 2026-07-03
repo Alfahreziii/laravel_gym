@@ -40,56 +40,26 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    {{-- Search & per page --}}
-                    <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
-                        <input type="text" id="searchAnggota" placeholder="Search..."
-                            class="form-control form-control-sm w-64">
-                        <div class="flex items-center gap-2">
-                            <select id="perPageAnggota" class="form-select form-select-sm w-auto">
-                                <option value="10" selected>10</option>
-                                <option value="25">25</option>
-                                <option value="50">50</option>
-                                <option value="100">100</option>
-                            </select>
-                            <span class="text-sm text-gray-500">entries per page</span>
-                        </div>
-                    </div>
-
-                    {{-- Table --}}
-                    <div class="overflow-x-auto">
-                        <table class="ajax-table border border-neutral-200 rounded-lg border-separate">
-                            <thead>
-                                <tr>
-                                    <th scope="col">S.L</th>
-                                    @if (!$isLaporanMode)
-                                        @role('admin')
-                                            <th scope="col">Aksi</th>
-                                        @endrole
-                                    @endif
-                                    <th scope="col">Fingerprint</th>
-                                    <th scope="col">Fingerprint</th>
-                                    <th scope="col">Photo</th>
-                                    <th scope="col">Nama</th>
-                                    <th scope="col">Email</th>
-                                    <th scope="col">Tanggal Lahir</th>
-                                    <th scope="col">No. Telp</th>
-                                    <th scope="col">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tbodyAnggota">
-                                <tr>
-                                    <td colspan="{{ !$isLaporanMode && auth()->user()->hasRole('admin') ? 9 : 8 }}"
-                                        class="text-center py-8">Loading...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {{-- Pagination & info --}}
-                    <div class="flex justify-between items-center mt-4 flex-wrap gap-2">
-                        <span class="text-sm text-gray-500" id="infoAnggota"></span>
-                        <div id="paginationAnggota" class="flex gap-1 flex-wrap"></div>
-                    </div>
+                    <x-data-table tableId="anggota" :colspan="(!$isLaporanMode && auth()->user()->hasRole('admin')) ? 9 : 8" placeholder="Search...">
+                        <x-slot:header>
+                            <tr>
+                                <th scope="col">S.L</th>
+                                @if (!$isLaporanMode)
+                                    @role('admin')
+                                        <th scope="col">Aksi</th>
+                                    @endrole
+                                @endif
+                                <th scope="col">Fingerprint</th>
+                                <th scope="col">Fingerprint</th>
+                                <th scope="col">Photo</th>
+                                <th scope="col">Nama</th>
+                                <th scope="col">Email</th>
+                                <th scope="col">Tanggal Lahir</th>
+                                <th scope="col">No. Telp</th>
+                                <th scope="col">Status</th>
+                            </tr>
+                        </x-slot:header>
+                    </x-data-table>
                 </div>
             </div>
         </div>
@@ -196,27 +166,8 @@
             const isLaporan = {{ $isLaporanMode ? 'true' : 'false' }};
             const colSpan = (isAdmin && !isLaporan) ? 9 : 8;
 
-            // Inisialisasi perPage dari select
-            let perPage = 10;
-            const perPageSelect = document.getElementById('perPageAnggota');
-            if (perPageSelect) {
-                perPageSelect.addEventListener('change', function() {
-                    perPage = parseInt(this.value);
-                    // Refresh table dengan perPage baru
-                    if (window._ajaxTables['tbodyAnggota']) {
-                        window._ajaxTables['tbodyAnggota'].setPerPage(perPage);
-                    }
-                });
-            }
-
-
-            AjaxTable.create({
+            AjaxTable.init('anggota', {
                 url: '{{ route('anggota.datatable') }}',
-                tbodyId: 'tbodyAnggota',
-                paginationId: 'paginationAnggota',
-                infoId: 'infoAnggota',
-                searchId: 'searchAnggota',
-                perPage: 10,
                 colSpan: colSpan,
                 renderRow: function(item) {
                     const fingerBadgeInner = item.status_finger == 0 ?

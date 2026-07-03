@@ -221,48 +221,19 @@
                         </h6>
                     </div>
                     <div class="card-body p-6">
-                        {{-- Search & per page --}}
-                        <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
-                            <input type="text" id="searchAbsenTrainer" placeholder="Search nama, RFID, status..."
-                                class="form-control form-control-sm w-64">
-                            <div class="flex items-center gap-2">
-                                <select id="perPageAbsenTrainer" class="form-select form-select-sm w-auto">
-                                    <option value="10" selected>10</option>
-                                    <option value="25">25</option>
-                                    <option value="50">50</option>
-                                    <option value="100">100</option>
-                                </select>
-                                <span class="text-sm text-gray-500">entries per page</span>
-                            </div>
-                        </div>
-
-                        {{-- Table --}}
-                        <div class="overflow-x-auto">
-                            <table class="ajax-table border border-neutral-200 rounded-lg border-separate">
-                                <thead>
-                                    <tr>
-                                        <th class="text-left">No</th>
-                                        <th class="text-left">ID Kartu</th>
-                                        <th class="text-left">Foto</th>
-                                        <th class="text-left">Nama Trainer</th>
-                                        <th class="text-center">Status</th>
-                                        <th class="text-left">Waktu</th>
-                                        <th class="text-center">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tbodyAbsenTrainer">
-                                    <tr>
-                                        <td colspan="7" class="text-center py-8">Loading...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {{-- Pagination & info --}}
-                        <div class="flex justify-between items-center mt-4 flex-wrap gap-2">
-                            <span class="text-sm text-gray-500" id="infoAbsenTrainer"></span>
-                            <div id="paginationAbsenTrainer" class="flex gap-1 flex-wrap"></div>
-                        </div>
+                        <x-data-table tableId="absenTrainer" :colspan="7" placeholder="Search nama, RFID, status...">
+                            <x-slot:header>
+                                <tr>
+                                    <th class="text-left">No</th>
+                                    <th class="text-left">ID Kartu</th>
+                                    <th class="text-left">Foto</th>
+                                    <th class="text-left">Nama Trainer</th>
+                                    <th class="text-center">Status</th>
+                                    <th class="text-left">Waktu</th>
+                                    <th class="text-center">Aksi</th>
+                                </tr>
+                            </x-slot:header>
+                        </x-data-table>
                     </div>
                 </div>
             </div>
@@ -462,22 +433,8 @@
             });
 
             // ==================== AJAX TABLE ====================
-            const perPageSelect = document.getElementById('perPageAbsenTrainer');
-            if (perPageSelect) {
-                perPageSelect.addEventListener('change', function() {
-                    if (window._ajaxTables['tbodyAbsenTrainer']) {
-                        window._ajaxTables['tbodyAbsenTrainer'].setPerPage(parseInt(this.value));
-                    }
-                });
-            }
-
-            AjaxTable.create({
+            AjaxTable.init('absenTrainer', {
                 url: '{{ route('absentrainer.datatable') }}',
-                tbodyId: 'tbodyAbsenTrainer',
-                paginationId: 'paginationAbsenTrainer',
-                infoId: 'infoAbsenTrainer',
-                searchId: 'searchAbsenTrainer',
-                perPage: 10,
                 colSpan: 7,
                 renderRow: function(item) {
                     const foto = item.foto ?

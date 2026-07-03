@@ -46,50 +46,23 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
-                        <input type="text" id="searchKehadiran" placeholder="Search..."
-                            class="form-control form-control-sm w-64">
-                        <div class="flex items-center gap-2">
-                            <select id="perPageKehadiran" class="form-select form-select-sm w-auto">
-                                <option value="10" selected>10</option>
-                                <option value="25">25</option>
-                                <option value="50">50</option>
-                                <option value="100">100</option>
-                            </select>
-                            <span class="text-sm text-gray-500">entries per page</span>
-                        </div>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="ajax-table border border-neutral-200 rounded-lg border-separate">
-                            <thead>
-                                <tr>
-                                    <th>S.L</th>
-                                    <th>ID Kartu</th>
-                                    <th>Foto</th>
-                                    <th>Nama Trainer</th>
-                                    <th>Status</th>
-                                    <th>Waktu</th>
-                                    @if (!$isLaporanMode)
-                                        @role('admin')
-                                            <th>Aksi</th>
-                                        @endrole
-                                    @endif
-                                </tr>
-                            </thead>
-                            <tbody id="tbodyKehadiranTrainer">
-                                <tr>
-                                    <td colspan="{{ !$isLaporanMode && auth()->user()->hasRole('admin') ? 7 : 6 }}"
-                                        class="text-center py-8">Loading...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="flex justify-between items-center mt-4 flex-wrap gap-2">
-                        <span class="text-sm text-gray-500" id="infoKehadiranTrainer"></span>
-                        <div id="paginationKehadiranTrainer" class="flex gap-1 flex-wrap"></div>
-                    </div>
+                    <x-data-table tableId="kehadiranTrainer" :colspan="(!$isLaporanMode && auth()->user()->hasRole('admin')) ? 7 : 6" placeholder="Search...">
+                        <x-slot:header>
+                            <tr>
+                                <th>S.L</th>
+                                <th>ID Kartu</th>
+                                <th>Foto</th>
+                                <th>Nama Trainer</th>
+                                <th>Status</th>
+                                <th>Waktu</th>
+                                @if (!$isLaporanMode)
+                                    @role('admin')
+                                        <th>Aksi</th>
+                                    @endrole
+                                @endif
+                            </tr>
+                        </x-slot:header>
+                    </x-data-table>
                 </div>
             </div>
         </div>
@@ -162,22 +135,8 @@
             const isLaporan = {{ $isLaporanMode ? 'true' : 'false' }};
             const colSpan = (isAdmin && !isLaporan) ? 7 : 6;
 
-            const perPageSelect = document.getElementById('perPageKehadiran');
-            if (perPageSelect) {
-                perPageSelect.addEventListener('change', function() {
-                    if (window._ajaxTables['tbodyKehadiranTrainer']) {
-                        window._ajaxTables['tbodyKehadiranTrainer'].setPerPage(parseInt(this.value));
-                    }
-                });
-            }
-
-            AjaxTable.create({
+            AjaxTable.init('kehadiranTrainer', {
                 url: '{{ route('kehadirantrainer.datatable') }}',
-                tbodyId: 'tbodyKehadiranTrainer',
-                paginationId: 'paginationKehadiranTrainer',
-                infoId: 'infoKehadiranTrainer',
-                searchId: 'searchKehadiran',
-                perPage: 10,
                 colSpan: colSpan,
                 renderRow: function(item) {
                     const foto = item.foto ?

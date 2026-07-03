@@ -58,59 +58,30 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    {{-- Search & per page --}}
-                    <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
-                        <input type="text" id="searchTrainer" placeholder="Search..."
-                            class="form-control form-control-sm w-64">
-                        <div class="flex items-center gap-2">
-                            <select id="perPageTrainer" class="form-select form-select-sm w-auto">
-                                <option value="10" selected>10</option>
-                                <option value="25">25</option>
-                                <option value="50">50</option>
-                                <option value="100">100</option>
-                            </select>
-                            <span class="text-sm text-gray-500">entries per page</span>
-                        </div>
-                    </div>
-
-                    {{-- Table --}}
-                    <div class="overflow-x-auto">
-                        <table class="ajax-table border border-neutral-200 rounded-lg border-separate">
-                            <thead>
-                                <tr>
-                                    <th>S.L</th>
-                                    @if (!$isLaporanMode)
-                                        <th>Aksi</th>
-                                    @endif
-                                    <th>Fingerprint</th>
-                                    <th>Foto</th>
-                                    <th>Nama</th>
-                                    <th>No Telp</th>
-                                    <th>Spesialisasi</th>
-                                    <th>Sesi Belum Dijalani</th>
-                                    <th>Sesi Sudah Dijalani</th>
-                                    <th>Experience</th>
-                                    <th>Tanggal Gabung</th>
-                                    <th>Status</th>
-                                    <th>Fingerprint</th>
-                                    @if (!$isLaporanMode)
-                                        <th></th>
-                                    @endif
-                                </tr>
-                            </thead>
-                            <tbody id="tbodyTrainer">
-                                <tr>
-                                    <td colspan="{{ !$isLaporanMode ? 13 : 11 }}" class="text-center py-8">Loading...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {{-- Pagination & info --}}
-                    <div class="flex justify-between items-center mt-4 flex-wrap gap-2">
-                        <span class="text-sm text-gray-500" id="infoTrainer"></span>
-                        <div id="paginationTrainer" class="flex gap-1 flex-wrap"></div>
-                    </div>
+                    <x-data-table tableId="trainer" :colspan="$isLaporanMode ? 11 : 13" placeholder="Search...">
+                        <x-slot:header>
+                            <tr>
+                                <th>S.L</th>
+                                @if (!$isLaporanMode)
+                                    <th>Aksi</th>
+                                @endif
+                                <th>Fingerprint</th>
+                                <th>Foto</th>
+                                <th>Nama</th>
+                                <th>No Telp</th>
+                                <th>Spesialisasi</th>
+                                <th>Sesi Belum Dijalani</th>
+                                <th>Sesi Sudah Dijalani</th>
+                                <th>Experience</th>
+                                <th>Tanggal Gabung</th>
+                                <th>Status</th>
+                                <th>Fingerprint</th>
+                                @if (!$isLaporanMode)
+                                    <th></th>
+                                @endif
+                            </tr>
+                        </x-slot:header>
+                    </x-data-table>
                 </div>
             </div>
         </div>
@@ -183,23 +154,8 @@
             const isLaporan = {{ $isLaporanMode ? 'true' : 'false' }};
             const colSpan = isLaporan ? 11 : 13;
 
-            // Per page change
-            const perPageSelect = document.getElementById('perPageTrainer');
-            if (perPageSelect) {
-                perPageSelect.addEventListener('change', function() {
-                    if (window._ajaxTables['tbodyTrainer']) {
-                        window._ajaxTables['tbodyTrainer'].setPerPage(parseInt(this.value));
-                    }
-                });
-            }
-
-            AjaxTable.create({
+            AjaxTable.init('trainer', {
                 url: '{{ route('trainer.datatable') }}',
-                tbodyId: 'tbodyTrainer',
-                paginationId: 'paginationTrainer',
-                infoId: 'infoTrainer',
-                searchId: 'searchTrainer',
-                perPage: 10,
                 colSpan: colSpan,
                 renderRow: function(item) {
 

@@ -203,62 +203,34 @@
 
                 {{-- Tab Kehadiran Member --}}
                 <div class="block" id="registered" role="tabpanel" aria-labelledby="registered-tab">
-                    <div class="flex justify-between items-center mb-3 gap-2 flex-wrap">
-                        <input type="text" id="searchKehadiran" placeholder="Search..."
-                            class="form-control form-control-sm w-64">
-                        <span class="text-sm text-neutral-500" id="infoKehadiran"></span>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="ajax-table border border-neutral-200 rounded-lg border-separate">
-                            <thead>
-                                <tr>
-                                    <th scope="col">S.L</th>
-                                    <th scope="col">RFID</th>
-                                    <th scope="col">Foto</th>
-                                    <th scope="col">Name</th>
-                                    <th scope="col">Status</th>
-                                    <th scope="col">Time</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tbodyKehadiran">
-                                <tr><td colspan="6" class="text-center py-8 text-neutral-400">Loading...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="flex justify-between items-center mt-3 flex-wrap gap-2">
-                        <span class="text-sm text-neutral-500" id="infoKehadiranBottom"></span>
-                        <div id="paginationKehadiran" class="flex gap-1 flex-wrap"></div>
-                    </div>
+                    <x-data-table tableId="kehadiran" :colspan="6">
+                        <x-slot:header>
+                            <tr>
+                                <th scope="col">S.L</th>
+                                <th scope="col">RFID</th>
+                                <th scope="col">Foto</th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Time</th>
+                            </tr>
+                        </x-slot:header>
+                    </x-data-table>
                 </div>
 
                 {{-- Tab Member In Room --}}
                 <div class="hidden" id="subscribe" role="tabpanel" aria-labelledby="subscribe-tab">
-                    <div class="flex justify-between items-center mb-3 gap-2 flex-wrap">
-                        <input type="text" id="searchMemberInRoom" placeholder="Search..."
-                            class="form-control form-control-sm w-64">
-                        <span class="text-sm text-neutral-500" id="infoMemberInRoom"></span>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="ajax-table border border-neutral-200 rounded-lg border-separate">
-                            <thead>
-                                <tr>
-                                    <th scope="col">S.L</th>
-                                    <th scope="col">RFID</th>
-                                    <th scope="col">Foto</th>
-                                    <th scope="col">Name</th>
-                                    <th scope="col">Status</th>
-                                    <th scope="col">Time</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tbodyMemberInRoom">
-                                <tr><td colspan="6" class="text-center py-8 text-neutral-400">Loading...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="flex justify-between items-center mt-3 flex-wrap gap-2">
-                        <span class="text-sm text-neutral-500" id="infoMemberInRoomBottom"></span>
-                        <div id="paginationMemberInRoom" class="flex gap-1 flex-wrap"></div>
-                    </div>
+                    <x-data-table tableId="memberInRoom" :colspan="6">
+                        <x-slot:header>
+                            <tr>
+                                <th scope="col">S.L</th>
+                                <th scope="col">RFID</th>
+                                <th scope="col">Foto</th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Time</th>
+                            </tr>
+                        </x-slot:header>
+                    </x-data-table>
                 </div>
 
             </div>
@@ -290,22 +262,14 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
 
-            AjaxTable.create({
+            AjaxTable.init('kehadiran', {
                 url: '{{ route('dashboard.kehadiran') }}',
-                tbodyId: 'tbodyKehadiran',
-                paginationId: 'paginationKehadiran',
-                infoId: 'infoKehadiranBottom',
-                searchId: 'searchKehadiran',
                 perPage: 5,
                 colSpan: 6,
             });
 
-            AjaxTable.create({
+            AjaxTable.init('memberInRoom', {
                 url: '{{ route('dashboard.memberInRoom') }}',
-                tbodyId: 'tbodyMemberInRoom',
-                paginationId: 'paginationMemberInRoom',
-                infoId: 'infoMemberInRoomBottom',
-                searchId: 'searchMemberInRoom',
                 perPage: 5,
                 colSpan: 6,
             });

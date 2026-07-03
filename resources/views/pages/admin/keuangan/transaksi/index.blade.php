@@ -59,9 +59,6 @@
             <div class="card border-0 overflow-hidden">
                 <div class="card-header flex flex-wrap items-center justify-between gap-3">
                     <h6 class="text-lg font-semibold mb-0">Detail Transaksi Keuangan</h6>
-                    <button id="btnExportPdf" class="btn btn-danger-600 flex items-center gap-2 text-sm px-4 py-2">
-                        <iconify-icon icon="mingcute:pdf-line"></iconify-icon> Export PDF
-                    </button>
                     <button id="btnExportExcel" class="btn bg-success-600 hover:bg-success-700 text-white flex items-center gap-2 text-sm px-4 py-2">
                         <iconify-icon icon="carbon:document-export"></iconify-icon> Export Excel
                     </button>
@@ -201,19 +198,15 @@
             }
 
             // ── AjaxTable ─────────────────────────────────────────────
-            var table = AjaxTable.create({
+            AjaxTable.init('transaksi', {
                 url: '{{ route('keuangan.transaksi.datatable') }}',
-                tbodyId: 'tbodyTransaksi',
-                paginationId: 'paginationTransaksi',
-                infoId: 'infoTransaksi',
-                searchId: 'searchTransaksi',
                 perPage: 15,
                 colSpan: 9,
                 extraParams: function() {
                     return {
-                        akun_id: document.getElementById('filterAkun').value,
-                        referensi: document.getElementById('filterReferensi').value,
-                        tgl_mulai: document.getElementById('filterTglMulai').value,
+                        akun_id:     document.getElementById('filterAkun').value,
+                        referensi:   document.getElementById('filterReferensi').value,
+                        tgl_mulai:   document.getElementById('filterTglMulai').value,
                         tgl_selesai: document.getElementById('filterTglSelesai').value,
                     };
                 },
@@ -302,15 +295,9 @@
                 document.getElementById(id).addEventListener('change', function() {
                     fetchSummary();
                     if (window._ajaxTables && window._ajaxTables['tbodyTransaksi']) {
-                        window._ajaxTables['tbodyTransaksi'].reload();
+                        window._ajaxTables['tbodyTransaksi'].refresh();
                     }
                 });
-            });
-
-            document.getElementById('perPageTransaksi').addEventListener('change', function() {
-                if (window._ajaxTables && window._ajaxTables['tbodyTransaksi']) {
-                    window._ajaxTables['tbodyTransaksi'].setPerPage(parseInt(this.value));
-                }
             });
 
             // ── Reset filter ──────────────────────────────────────────
@@ -322,19 +309,8 @@
                 document.getElementById('searchTransaksi').value = '';
                 fetchSummary();
                 if (window._ajaxTables && window._ajaxTables['tbodyTransaksi']) {
-                    window._ajaxTables['tbodyTransaksi'].reload();
+                    window._ajaxTables['tbodyTransaksi'].refresh();
                 }
-            });
-
-            // ── Export PDF ────────────────────────────────────────────
-            document.getElementById('btnExportPdf').addEventListener('click', function() {
-                var params = new URLSearchParams({
-                    akun_id: document.getElementById('filterAkun').value,
-                    referensi: document.getElementById('filterReferensi').value,
-                    tgl_mulai: document.getElementById('filterTglMulai').value,
-                    tgl_selesai: document.getElementById('filterTglSelesai').value,
-                });
-                window.open('{{ route('keuangan.transaksi.exportPdf') }}?' + params.toString(), '_blank');
             });
 
             // ── Export Excel ──────────────────────────────────────────

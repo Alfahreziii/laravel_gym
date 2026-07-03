@@ -25,6 +25,7 @@ window.AjaxTable = (function () {
         perPage = 10,
         colSpan = 6,
         renderRow = null,
+        extraParams = null,
     }) {
         let currentPage = 1;
         let currentSearch = '';
@@ -42,7 +43,23 @@ window.AjaxTable = (function () {
                 Loading...
             </td></tr>`;
 
-            fetch(`${url}?page=${currentPage}&search=${encodeURIComponent(currentSearch)}&perPage=${perPage}`, {
+            const _params = new URLSearchParams({
+                page: currentPage,
+                search: currentSearch,
+                perPage: perPage,
+            });
+            if (extraParams && typeof extraParams === 'function') {
+                const _extra = extraParams();
+                if (_extra && typeof _extra === 'object') {
+                    Object.keys(_extra).forEach(k => {
+                        if (_extra[k] !== undefined && _extra[k] !== null) {
+                            _params.set(k, _extra[k]);
+                        }
+                    });
+                }
+            }
+
+            fetch(`${url}?${_params.toString()}`, {
                 headers: {
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
@@ -212,9 +229,10 @@ window.AjaxTable = (function () {
             infoId:       'info'       + cap,
             searchId:     'search'     + cap,
             perPageId:    'perPage'    + cap,
-            perPage:      options.perPage  || 10,
-            colSpan:      options.colSpan  || 5,
-            renderRow:    options.renderRow || null,
+            perPage:      options.perPage      || 10,
+            colSpan:      options.colSpan      || 5,
+            renderRow:    options.renderRow    || null,
+            extraParams:  options.extraParams  || null,
         });
     }
 
