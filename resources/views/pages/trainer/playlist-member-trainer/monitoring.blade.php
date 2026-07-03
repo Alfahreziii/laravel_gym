@@ -206,8 +206,7 @@
 
                                         <button type="button" id="endSessionBtn"
                                             class="bg-danger-600 hover:bg-danger-700 text-white text-base px-6 py-3 rounded-lg {{ !$allSaved ? 'opacity-50 cursor-not-allowed' : '' }}"
-                                            {{ !$allSaved ? 'disabled' : '' }} data-modal-target="end-session-modal"
-                                            data-modal-toggle="{{ $allSaved ? 'end-session-modal' : '' }}">
+                                            {{ !$allSaved ? 'disabled' : '' }}>
                                             <iconify-icon icon="mdi:stop-circle" class="text-xl mr-2"></iconify-icon>
                                             Selesai Sesi
                                         </button>
@@ -221,47 +220,30 @@
         </div>
     </div>
 
-    <!-- Modal Selesai Sesi -->
-    <div id="end-session-modal" tabindex="-1"
-        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-        <div class="rounded-2xl bg-white max-w-[800px] w-full">
-            <div class="py-4 px-6 border-b border-neutral-200 flex items-center justify-between">
-                <h1 class="text-xl font-semibold">Selesai Sesi Training</h1>
-                <button data-modal-hide="end-session-modal" type="button"
-                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
-                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                        viewBox="0 0 14 14">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                    </svg>
-                    <span class="sr-only">Close modal</span>
-                </button>
-            </div>
+    <x-modal id="end-session-modal" title="Selesai Sesi Training" maxWidth="max-w-[800px]">
+        <x-slot:body>
+            @if ($activeMember)
+                <form action="{{ route('trainer.session.end', $activeMember->id) }}" method="POST">
+                    @csrf
+                    <p class="text-neutral-700 text-base mb-4">
+                        Apakah Anda yakin ingin menyelesaikan sesi training untuk
+                        <strong>{{ $activeMember->anggota->name }}</strong>?
+                    </p>
 
-            <div class="p-6">
-                @if ($activeMember)
-                    <form action="{{ route('trainer.session.end', $activeMember->id) }}" method="POST">
-                        @csrf
-                        <p class="text-neutral-700 text-base mb-4">
-                            Apakah Anda yakin ingin menyelesaikan sesi training untuk
-                            <strong>{{ $activeMember->anggota->name }}</strong>?
-                        </p>
-
-                        <div class="flex justify-end gap-3 mt-6">
-                            <button type="button" data-modal-hide="end-session-modal"
-                                class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-6 py-2 rounded-lg">
-                                Batal
-                            </button>
-                            <button type="submit"
-                                class="bg-primary-600 hover:bg-primary-700 text-white text-base px-6 py-2 rounded-lg">
-                                Selesai
-                            </button>
-                        </div>
-                    </form>
-                @endif
-            </div>
-        </div>
-    </div>
+                    <div class="flex justify-end gap-3 mt-6">
+                        <button type="button" data-close-modal="end-session-modal"
+                            class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-6 py-2 rounded-lg">
+                            Batal
+                        </button>
+                        <button type="submit"
+                            class="bg-primary-600 hover:bg-primary-700 text-white text-base px-6 py-2 rounded-lg">
+                            Selesai
+                        </button>
+                    </div>
+                </form>
+            @endif
+        </x-slot:body>
+    </x-modal>
 
 @endsection
 
@@ -292,7 +274,7 @@
                 }
             });
 
-            // Handle tombol Selesai Sesi jika masih disabled
+            // Handle tombol Selesai Sesi
             const endSessionBtn = document.getElementById('endSessionBtn');
             if (endSessionBtn && endSessionBtn.disabled) {
                 endSessionBtn.addEventListener('click', function() {
@@ -303,6 +285,10 @@
                         confirmButtonColor: '#3085d6',
                         confirmButtonText: 'Mengerti'
                     });
+                });
+            } else if (endSessionBtn) {
+                endSessionBtn.addEventListener('click', function() {
+                    HexaModal.show('end-session-modal');
                 });
             }
 

@@ -51,8 +51,7 @@
                             <td class="py-2 flex items-center gap-2">
                                 {{ $akun->nama }}
                                 @if ($akun->kode === 'AST001')
-                                    <button type="button" data-modal-target="modal-tambah-kas"
-                                        data-modal-toggle="modal-tambah-kas"
+                                    <button type="button" onclick="HexaModal.show('modal-tambah-kas')"
                                         class="text-green-600 hover:text-green-700 focus:outline-none" title="Tambah Kas">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
                                             fill="currentColor">
@@ -196,61 +195,44 @@
         </div>
     </div>
 
-    {{-- Modal Tambah Kas --}}
-    <div id="modal-tambah-kas" tabindex="-1"
-        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-        <div class="rounded-2xl bg-white max-w-[600px] w-full">
-            <div class="py-4 px-6 border-b border-neutral-200 flex items-center justify-between">
-                <h1 class="text-xl font-semibold">Tambah Kas Manual</h1>
-                <button data-modal-hide="modal-tambah-kas" type="button"
-                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
-                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                        viewBox="0 0 14 14">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                    </svg>
-                    <span class="sr-only">Close modal</span>
-                </button>
-            </div>
+    <x-modal id="modal-tambah-kas" title="Tambah Kas Manual" maxWidth="max-w-[600px]">
+        <x-slot:body>
+            <form id="formTambahKas" action="{{ route('neraca.tambah-kas') }}" method="POST">
+                @csrf
 
-            <div class="p-6">
-                <form id="formTambahKas" action="{{ route('neraca.tambah-kas') }}" method="POST">
-                    @csrf
+                <div class="grid grid-cols-1 gap-6">
+                    <div class="col-span-12">
+                        <label for="jumlahKas" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
+                            Jumlah Kas (Rp)
+                        </label>
+                        <input type="number" name="jumlah" id="jumlahKas" step="0.01" min="0" required
+                            class="form-control rounded-lg" placeholder="Masukkan jumlah kas">
+                    </div>
 
-                    <div class="grid grid-cols-1 gap-6">
-                        <div class="col-span-12">
-                            <label for="jumlahKas" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
-                                Jumlah Kas (Rp)
-                            </label>
-                            <input type="number" name="jumlah" id="jumlahKas" step="0.01" min="0" required
-                                class="form-control rounded-lg" placeholder="Masukkan jumlah kas">
-                        </div>
+                    <div class="col-span-12">
+                        <label for="deskripsiKas" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
+                            Deskripsi
+                        </label>
+                        <textarea name="deskripsi" id="deskripsiKas" rows="3" required class="form-control rounded-lg"
+                            placeholder="Contoh: Setoran modal awal pemilik"></textarea>
+                    </div>
 
-                        <div class="col-span-12">
-                            <label for="deskripsiKas" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
-                                Deskripsi
-                            </label>
-                            <textarea name="deskripsi" id="deskripsiKas" rows="3" required class="form-control rounded-lg"
-                                placeholder="Contoh: Setoran modal awal pemilik"></textarea>
-                        </div>
-
-                        <div class="col-span-12">
-                            <div class="flex items-center justify-start gap-3 mt-6">
-                                <button type="reset" data-modal-hide="modal-tambah-kas"
-                                    class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
-                                    Cancel
-                                </button>
-                                <button type="submit"
-                                    class="btn btn-primary border border-primary-600 text-base px-6 py-3 rounded-lg">
-                                    Save
-                                </button>
-                            </div>
+                    <div class="col-span-12">
+                        <div class="flex items-center justify-start gap-3 mt-6">
+                            <button type="reset" data-close-modal="modal-tambah-kas"
+                                class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
+                                Cancel
+                            </button>
+                            <button type="submit"
+                                class="btn btn-primary border border-primary-600 text-base px-6 py-3 rounded-lg">
+                                Save
+                            </button>
                         </div>
                     </div>
-                </form>
-            </div>
-        </div>
-    </div>
+                </div>
+            </form>
+        </x-slot:body>
+    </x-modal>
 @endsection
 
 @section('scripts')

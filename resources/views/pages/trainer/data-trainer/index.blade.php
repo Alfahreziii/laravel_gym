@@ -40,7 +40,7 @@
                     </h6>
                     <div class="flex gap-2">
                         <!-- Tombol Export PDF -->
-                        <button type="button" data-modal-target="export-pdf-modal" data-modal-toggle="export-pdf-modal"
+                        <button type="button" onclick="HexaModal.show('export-pdf-modal')"
                             class="text-white bg-danger-600 hover:bg-danger-700 focus:ring-4 focus:outline-none focus:ring-danger-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center">
                             <iconify-icon icon="carbon:export" class="mr-2 text-lg"></iconify-icon>
                             Export Laporan
@@ -116,82 +116,61 @@
         </div>
     </div>
 
-    <!-- Modal Export PDF -->
-    <div id="export-pdf-modal" tabindex="-1"
-        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-        <div class="rounded-2xl bg-white max-w-[600px] w-full">
-            <div class="py-4 px-6 border-b border-neutral-200 flex items-center justify-between">
-                <h1 class="text-xl font-semibold">Filter Export Laporan</h1>
-                <button data-modal-hide="export-pdf-modal" type="button"
-                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
-                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                        viewBox="0 0 14 14">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                    </svg>
-                    <span class="sr-only">Close modal</span>
-                </button>
-            </div>
-            <div class="p-6">
-                <form action="{{ route('trainer.export_pdf') }}" method="POST" id="export-pdf-form">
-                    @csrf
-                    <div class="grid grid-cols-1 gap-6">
-                        <!-- Pilih Status Filter -->
-                        <div class="col-span-12">
-                            <label class="inline-block font-semibold text-neutral-600 text-sm mb-2">Pilih Status
-                                Trainer:</label>
-                            <div class="space-y-2">
-                                <div class="flex items-center mb-2">
-                                    <input type="radio" id="status_all" name="status_filter" value="all"
-                                        class="w-4 h-4 text-primary-600" checked>
-                                    <label for="status_all" class="ml-2 text-sm font-medium text-gray-900">Semua
-                                        Data</label>
-                                </div>
-                                <div class="flex items-center mb-2">
-                                    <input type="radio" id="status_aktif" name="status_filter" value="aktif"
-                                        class="w-4 h-4 text-primary-600">
-                                    <label for="status_aktif" class="ml-2 text-sm font-medium text-gray-900">Trainer
-                                        Aktif</label>
-                                </div>
-                                <div class="flex items-center mb-2">
-                                    <input type="radio" id="status_nonaktif" name="status_filter" value="nonaktif"
-                                        class="w-4 h-4 text-primary-600">
-                                    <label for="status_nonaktif" class="ml-2 text-sm font-medium text-gray-900">Trainer
-                                        Non-Aktif</label>
-                                </div>
-                                <div class="flex items-center mb-2">
-                                    <input type="radio" id="status_pending" name="status_filter" value="pending"
-                                        class="w-4 h-4 text-primary-600">
-                                    <label for="status_pending" class="ml-2 text-sm font-medium text-gray-900">Trainer
-                                        Pending</label>
-                                </div>
+    <x-modal id="export-pdf-modal" title="Filter Export Laporan">
+        <x-slot:body>
+            <form action="{{ route('trainer.export_pdf') }}" method="POST" id="export-pdf-form">
+                @csrf
+                <div class="grid grid-cols-1 gap-6">
+                    <!-- Pilih Status Filter -->
+                    <div class="col-span-12">
+                        <label class="inline-block font-semibold text-neutral-600 text-sm mb-2">Pilih Status Trainer:</label>
+                        <div class="space-y-2">
+                            <div class="flex items-center mb-2">
+                                <input type="radio" id="status_all" name="status_filter" value="all"
+                                    class="w-4 h-4 text-primary-600" checked>
+                                <label for="status_all" class="ml-2 text-sm font-medium text-gray-900">Semua Data</label>
                             </div>
-                        </div>
-
-                        <!-- Tombol Aksi -->
-                        <div class="col-span-12">
-                            <div class="flex items-center justify-start gap-3 mt-6">
-                                <button type="button" data-modal-hide="export-pdf-modal"
-                                    class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
-                                    Cancel
-                                </button>
-                                <button type="submit"
-                                    class="btn btn-primary border border-primary-600 text-base px-6 py-3 rounded-lg">
-                                    <iconify-icon icon="carbon:document-pdf" class="mr-2"></iconify-icon>
-                                    Export PDF
-                                </button>
-                                <button type="submit" formaction="{{ route('trainer.export_excel') }}"
-                                    class="bg-success-600 hover:bg-success-700 text-white text-base px-6 py-3 rounded-lg inline-flex items-center">
-                                    <iconify-icon icon="carbon:document-export" class="mr-2"></iconify-icon>
-                                    Export Excel
-                                </button>
+                            <div class="flex items-center mb-2">
+                                <input type="radio" id="status_aktif" name="status_filter" value="aktif"
+                                    class="w-4 h-4 text-primary-600">
+                                <label for="status_aktif" class="ml-2 text-sm font-medium text-gray-900">Trainer Aktif</label>
+                            </div>
+                            <div class="flex items-center mb-2">
+                                <input type="radio" id="status_nonaktif" name="status_filter" value="nonaktif"
+                                    class="w-4 h-4 text-primary-600">
+                                <label for="status_nonaktif" class="ml-2 text-sm font-medium text-gray-900">Trainer Non-Aktif</label>
+                            </div>
+                            <div class="flex items-center mb-2">
+                                <input type="radio" id="status_pending" name="status_filter" value="pending"
+                                    class="w-4 h-4 text-primary-600">
+                                <label for="status_pending" class="ml-2 text-sm font-medium text-gray-900">Trainer Pending</label>
                             </div>
                         </div>
                     </div>
-                </form>
-            </div>
-        </div>
-    </div>
+
+                    <!-- Tombol Aksi -->
+                    <div class="col-span-12">
+                        <div class="flex items-center justify-start gap-3 mt-6">
+                            <button type="button" data-close-modal="export-pdf-modal"
+                                class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
+                                Cancel
+                            </button>
+                            <button type="submit"
+                                class="btn btn-primary border border-primary-600 text-base px-6 py-3 rounded-lg">
+                                <iconify-icon icon="carbon:document-pdf" class="mr-2"></iconify-icon>
+                                Export PDF
+                            </button>
+                            <button type="submit" formaction="{{ route('trainer.export_excel') }}"
+                                class="bg-success-600 hover:bg-success-700 text-white text-base px-6 py-3 rounded-lg inline-flex items-center">
+                                <iconify-icon icon="carbon:document-export" class="mr-2"></iconify-icon>
+                                Export Excel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </x-slot:body>
+    </x-modal>
 @endsection
 
 @section('scripts')

@@ -88,7 +88,7 @@
 
                     <!-- Action Buttons -->
                     <div class="flex flex-col gap-2">
-                        <button type="button" data-modal-target="barcode-modal" data-modal-toggle="barcode-modal"
+                        <button type="button" onclick="HexaModal.show('barcode-modal')"
                             class="btn bg-primary-600 text-white hover:bg-primary-700 w-full">
                             <iconify-icon icon="mdi:barcode-scan" class="text-xl"></iconify-icon>
                             <span class="ml-2">Lihat Barcode Saya</span>
@@ -245,21 +245,9 @@
         </div>
     </div>
 
-    <!-- Modal Barcode -->
-    <div id="barcode-modal" tabindex="-1"
-        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-        <div class="rounded-2xl bg-white max-w-[600px] w-full">
-            <div class="py-4 px-6 border-b border-neutral-200 flex items-center justify-between">
-                <h1 class="text-xl font-semibold">Barcode Kartu Member Saya</h1>
-                <button data-modal-hide="barcode-modal" type="button"
-                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
-                    <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                    </svg>
-                </button>
-            </div>
-            <div class="p-6 text-center">
+    <x-modal id="barcode-modal" title="Barcode Kartu Member Saya" maxWidth="max-w-[600px]">
+        <x-slot:body>
+            <div class="text-center">
                 <!-- Info Member -->
                 <div class="mb-6">
                     <h3 class="text-2xl font-bold text-neutral-800 mb-2">{{ $anggota->name }}</h3>
@@ -284,22 +272,9 @@
                         <li>Atau download kartu member untuk dicetak</li>
                     </ol>
                 </div>
-
-                <!-- Tombol Print -->
-                {{-- <div class="mt-6 flex gap-3 justify-center">
-                    <button onclick="window.print()" class="btn bg-primary-600 text-white hover:bg-primary-700">
-                        <iconify-icon icon="mdi:printer" class="mr-2"></iconify-icon>
-                        Print Barcode
-                    </button>
-                    <a href="{{ route('member.download-card') }}"
-                        class="btn bg-success-600 text-white hover:bg-success-700">
-                        <iconify-icon icon="mdi:download" class="mr-2"></iconify-icon>
-                        Download Kartu
-                    </a>
-                </div> --}}
             </div>
-        </div>
-    </div>
+        </x-slot:body>
+    </x-modal>
 
 @endsection
 

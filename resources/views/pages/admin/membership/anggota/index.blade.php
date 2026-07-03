@@ -22,7 +22,7 @@
                     </h6>
                     <div class="flex gap-2">
                         <!-- Tombol Export PDF -->
-                        <button type="button" data-modal-target="export-pdf-modal" data-modal-toggle="export-pdf-modal"
+                        <button type="button" onclick="HexaModal.show('export-pdf-modal')"
                             class="text-white bg-danger-600 hover:bg-danger-700 focus:ring-4 focus:outline-none focus:ring-danger-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center">
                             <iconify-icon icon="carbon:export" class="mr-2 text-lg"></iconify-icon>
                             Export Laporan
@@ -95,135 +95,95 @@
         </div>
     </div>
 
-    <!-- Modal Export PDF -->
-    <div id="export-pdf-modal" tabindex="-1"
-        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-        <div class="rounded-2xl bg-white dark:bg-dark-2 max-w-[600px] w-full">
-            <div class="py-4 px-6 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between">
-                <h1 class="text-xl font-semibold">Filter Export Laporan</h1>
-                <button data-modal-hide="export-pdf-modal" type="button"
-                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
-                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                        viewBox="0 0 14 14">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                    </svg>
-                    <span class="sr-only">Close modal</span>
-                </button>
-            </div>
-            <div class="p-6">
-                <form action="{{ route('anggota.export_pdf') }}" method="POST" id="export-pdf-form">
-                    @csrf
-                    <div class="grid grid-cols-1 gap-6">
-                        <!-- Pilih Status Filter -->
-                        <div class="col-span-12">
-                            <label class="inline-block font-semibold text-neutral-600 text-sm mb-2">Pilih Status
-                                Keanggotaan:</label>
-                            <div class="space-y-2">
-                                <div class="flex items-center mb-2">
-                                    <input type="radio" id="status_all" name="status_filter" value="all"
-                                        class="w-4 h-4 text-primary-600" checked>
-                                    <label for="status_all" class="ml-2 text-sm font-medium text-gray-900">Semua
-                                        Data</label>
-                                </div>
-                                <div class="flex items-center mb-2">
-                                    <input type="radio" id="status_aktif" name="status_filter" value="aktif"
-                                        class="w-4 h-4 text-primary-600">
-                                    <label for="status_aktif" class="ml-2 text-sm font-medium text-gray-900">Anggota
-                                        Aktif</label>
-                                </div>
-                                <div class="flex items-center mb-2">
-                                    <input type="radio" id="status_tidak_aktif" name="status_filter"
-                                        value="tidak_aktif" class="w-4 h-4 text-primary-600">
-                                    <label for="status_tidak_aktif" class="ml-2 text-sm font-medium text-gray-900">Anggota
-                                        Tidak Aktif</label>
-                                </div>
+    <x-modal id="export-pdf-modal" title="Filter Export Laporan">
+        <x-slot:body>
+            <form action="{{ route('anggota.export_pdf') }}" method="POST" id="export-pdf-form">
+                @csrf
+                <div class="grid grid-cols-1 gap-6">
+                    <!-- Pilih Status Filter -->
+                    <div class="col-span-12">
+                        <label class="inline-block font-semibold text-neutral-600 text-sm mb-2">Pilih Status Keanggotaan:</label>
+                        <div class="space-y-2">
+                            <div class="flex items-center mb-2">
+                                <input type="radio" id="status_all" name="status_filter" value="all"
+                                    class="w-4 h-4 text-primary-600" checked>
+                                <label for="status_all" class="ml-2 text-sm font-medium text-gray-900">Semua Data</label>
                             </div>
-                        </div>
-
-                        <!-- Tombol Aksi -->
-                        <div class="col-span-12">
-                            <div class="flex items-center justify-start gap-3 mt-6">
-                                <button type="button" data-modal-hide="export-pdf-modal"
-                                    class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
-                                    Cancel
-                                </button>
-                                <button type="submit"
-                                    class="btn btn-primary border border-primary-600 text-base px-6 py-3 rounded-lg">
-                                    <iconify-icon icon="carbon:document-pdf" class="mr-2"></iconify-icon>
-                                    Export PDF
-                                </button>
-                                <button type="submit" formaction="{{ route('anggota.export_excel') }}"
-                                    class="bg-success-600 hover:bg-success-700 text-white text-base px-6 py-3 rounded-lg inline-flex items-center">
-                                    <iconify-icon icon="carbon:document-export" class="mr-2"></iconify-icon>
-                                    Export Excel
-                                </button>
+                            <div class="flex items-center mb-2">
+                                <input type="radio" id="status_aktif" name="status_filter" value="aktif"
+                                    class="w-4 h-4 text-primary-600">
+                                <label for="status_aktif" class="ml-2 text-sm font-medium text-gray-900">Anggota Aktif</label>
+                            </div>
+                            <div class="flex items-center mb-2">
+                                <input type="radio" id="status_tidak_aktif" name="status_filter" value="tidak_aktif"
+                                    class="w-4 h-4 text-primary-600">
+                                <label for="status_tidak_aktif" class="ml-2 text-sm font-medium text-gray-900">Anggota Tidak Aktif</label>
                             </div>
                         </div>
                     </div>
-                </form>
-            </div>
-        </div>
-    </div>
 
-    <!-- Backdrop manual untuk status-finger-modal (modal ini dibuka via JS custom, bukan
-         Flowbite data-modal-toggle, jadi backdrop bawaan Flowbite tidak ikut muncul) -->
-    <div id="status-finger-backdrop" class="hidden fixed inset-0 z-40 bg-gray-900/50 dark:bg-gray-900/80"></div>
-
-    <!-- Modal Ubah Status Fingerprint -->
-    <div id="status-finger-modal" tabindex="-1"
-        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-        <div class="rounded-2xl bg-white dark:bg-dark-2 max-w-[600px] w-full">
-            <div class="py-4 px-6 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between">
-                <h1 class="text-xl font-semibold">Ubah Status Fingerprint</h1>
-                <button data-modal-hide="status-finger-modal" type="button"
-                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
-                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                        viewBox="0 0 14 14">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                    </svg>
-                    <span class="sr-only">Close modal</span>
-                </button>
-            </div>
-            <div class="p-6">
-                <form id="status-finger-form">
-                    <div class="grid grid-cols-1 gap-6">
-                        <div class="col-span-12">
-                            <label class="inline-block font-semibold text-neutral-600 text-sm mb-2">Anggota:</label>
-                            <p id="statusFingerAnggotaInfo" class="text-neutral-800 font-medium"></p>
-                        </div>
-
-                        <div class="col-span-12">
-                            <label class="inline-block font-semibold text-neutral-600 text-sm mb-2">Status
-                                Fingerprint:</label>
-                            <select id="statusFingerSelect" class="form-control" required>
-                                <option value="2">— Default (Tidak Ada Aksi) —</option>
-                                <option value="0">🟢 Enroll Fingerprint</option>
-                                <option value="1">🔴 Delete Fingerprint</option>
-                            </select>
-                            <small class="text-muted">Enroll = daftarkan sidik jari, Delete = hapus sidik jari,
-                                Default = tidak ada aksi</small>
-                        </div>
-
-                        <div class="col-span-12">
-                            <div class="flex items-center justify-start gap-3 mt-6">
-                                <button type="button" data-modal-hide="status-finger-modal"
-                                    class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
-                                    Cancel
-                                </button>
-                                <button type="submit" id="statusFingerSubmitBtn"
-                                    class="btn btn-primary border border-primary-600 text-base px-6 py-3 rounded-lg">
-                                    <iconify-icon icon="lucide:save" class="mr-2"></iconify-icon>
-                                    Simpan
-                                </button>
-                            </div>
+                    <!-- Tombol Aksi -->
+                    <div class="col-span-12">
+                        <div class="flex items-center justify-start gap-3 mt-6">
+                            <button type="button" data-close-modal="export-pdf-modal"
+                                class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
+                                Cancel
+                            </button>
+                            <button type="submit"
+                                class="btn btn-primary border border-primary-600 text-base px-6 py-3 rounded-lg">
+                                <iconify-icon icon="carbon:document-pdf" class="mr-2"></iconify-icon>
+                                Export PDF
+                            </button>
+                            <button type="submit" formaction="{{ route('anggota.export_excel') }}"
+                                class="bg-success-600 hover:bg-success-700 text-white text-base px-6 py-3 rounded-lg inline-flex items-center">
+                                <iconify-icon icon="carbon:document-export" class="mr-2"></iconify-icon>
+                                Export Excel
+                            </button>
                         </div>
                     </div>
-                </form>
-            </div>
-        </div>
-    </div>
+                </div>
+            </form>
+        </x-slot:body>
+    </x-modal>
+
+    <x-modal id="status-finger-modal" title="Ubah Status Fingerprint" maxWidth="max-w-[600px]">
+        <x-slot:body>
+            <form id="status-finger-form">
+                <div class="grid grid-cols-1 gap-6">
+                    <div class="col-span-12">
+                        <label class="inline-block font-semibold text-neutral-600 text-sm mb-2">Anggota:</label>
+                        <p id="statusFingerAnggotaInfo" class="text-neutral-800 font-medium"></p>
+                    </div>
+
+                    <div class="col-span-12">
+                        <label class="inline-block font-semibold text-neutral-600 text-sm mb-2">Status
+                            Fingerprint:</label>
+                        <select id="statusFingerSelect" class="form-control" required>
+                            <option value="2">— Default (Tidak Ada Aksi) —</option>
+                            <option value="0">🟢 Enroll Fingerprint</option>
+                            <option value="1">🔴 Delete Fingerprint</option>
+                        </select>
+                        <small class="text-muted">Enroll = daftarkan sidik jari, Delete = hapus sidik jari,
+                            Default = tidak ada aksi</small>
+                    </div>
+
+                    <div class="col-span-12">
+                        <div class="flex items-center justify-start gap-3 mt-6">
+                            <button type="button" data-close-modal="status-finger-modal"
+                                class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
+                                Cancel
+                            </button>
+                            <button type="submit" id="statusFingerSubmitBtn"
+                                class="btn btn-primary border border-primary-600 text-base px-6 py-3 rounded-lg">
+                                <iconify-icon icon="lucide:save" class="mr-2"></iconify-icon>
+                                Simpan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </x-slot:body>
+    </x-modal>
 @endsection
 
 @section('scripts')
@@ -249,36 +209,6 @@
                 });
             }
 
-            // Modal dibuka/ditutup manual via classList (Flowbite kehilangan state internalnya
-            // begitu modal dibuka dari JS dinamis seperti di tabel ini, jadi data-modal-hide
-            // jadi tidak berfungsi). Pola sama seperti fix di users/usersList.blade.php.
-            document.addEventListener('click', function(e) {
-                const openBtn = e.target.closest('[data-modal-toggle]');
-                if (openBtn) {
-                    const modal = document.getElementById(openBtn.getAttribute('data-modal-toggle'));
-                    if (modal) {
-                        modal.classList.remove('hidden');
-                        modal.classList.add('flex');
-                    }
-                }
-
-                const closeBtn = e.target.closest('[data-modal-hide]');
-                if (closeBtn) {
-                    const modal = document.getElementById(closeBtn.getAttribute('data-modal-hide'));
-                    if (modal) {
-                        modal.classList.add('hidden');
-                        modal.classList.remove('flex');
-                    }
-                    document.getElementById('status-finger-backdrop')?.classList.add('hidden');
-                }
-
-                // Klik backdrop (area luar modal) untuk tutup
-                if (e.target.classList.contains('fixed') && e.target.classList.contains('z-50')) {
-                    e.target.classList.add('hidden');
-                    e.target.classList.remove('flex');
-                    document.getElementById('status-finger-backdrop')?.classList.add('hidden');
-                }
-            });
 
             AjaxTable.create({
                 url: '{{ route('anggota.datatable') }}',
@@ -387,11 +317,7 @@
                 document.getElementById('statusFingerSelect').value = btn.dataset.status;
                 document.getElementById('statusFingerAnggotaInfo').textContent =
                     `${btn.dataset.name} (ID Kartu: ${btn.dataset.kartu})`;
-
-                const modal = document.getElementById('status-finger-modal');
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-                document.getElementById('status-finger-backdrop')?.classList.remove('hidden');
+                HexaModal.show('status-finger-modal');
             };
 
             const statusFingerForm = document.getElementById('status-finger-form');
@@ -432,10 +358,7 @@
                                 return;
                             }
 
-                            const modal = document.getElementById('status-finger-modal');
-                            modal.classList.add('hidden');
-                            modal.classList.remove('flex');
-                            document.getElementById('status-finger-backdrop')?.classList.add('hidden');
+                            HexaModal.hide('status-finger-modal');
 
                             Swal.fire({
                                 icon: 'success',

@@ -38,7 +38,7 @@
                         {{ $isLaporanMode ? 'Laporan Data Kehadiran Trainer' : 'Riwayat Kehadiran Trainer' }}
                     </h6>
                     <div class="flex gap-2">
-                        <button type="button" data-modal-target="export-pdf-modal" data-modal-toggle="export-pdf-modal"
+                        <button type="button" onclick="HexaModal.show('export-pdf-modal')"
                             class="text-white bg-danger-600 hover:bg-danger-700 focus:ring-4 focus:outline-none focus:ring-danger-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center">
                             <iconify-icon icon="carbon:export" class="mr-2"></iconify-icon>
                             Export Laporan
@@ -95,84 +95,62 @@
         </div>
     </div>
 
-    <!-- Modal Export PDF -->
-    <div id="export-pdf-modal" tabindex="-1"
-        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-        <div class="rounded-2xl bg-white max-w-[600px] w-full">
-            <div class="py-4 px-6 border-b border-neutral-200 flex items-center justify-between">
-                <h1 class="text-xl font-semibold">Filter Export Laporan</h1>
-                <button data-modal-hide="export-pdf-modal" type="button"
-                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
-                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                        viewBox="0 0 14 14">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                    </svg>
-                    <span class="sr-only">Close modal</span>
-                </button>
-            </div>
-            <div class="p-6">
-                <form action="{{ route('kehadirantrainer.export_pdf') }}" method="POST" id="export-pdf-form">
-                    @csrf
-                    <div class="grid grid-cols-1 gap-6">
-                        <div class="col-span-12">
-                            <label class="inline-block font-semibold text-neutral-600 text-sm mb-2">Pilih Periode:</label>
-                            <div class="space-y-2">
-                                <div class="flex items-center mb-2">
-                                    <input type="radio" id="filter_all" name="filter_type" value="all"
-                                        class="w-4 h-4 text-primary-600" checked>
-                                    <label for="filter_all" class="ml-2 text-sm font-medium text-gray-900">Semua
-                                        Data</label>
-                                </div>
-                                <div class="flex items-center mb-2">
-                                    <input type="radio" id="filter_range" name="filter_type" value="range"
-                                        class="w-4 h-4 text-primary-600">
-                                    <label for="filter_range" class="ml-2 text-sm font-medium text-gray-900">Range
-                                        Tanggal</label>
-                                </div>
+    <x-modal id="export-pdf-modal" title="Filter Export Laporan">
+        <x-slot:body>
+            <form action="{{ route('kehadirantrainer.export_pdf') }}" method="POST" id="export-pdf-form">
+                @csrf
+                <div class="grid grid-cols-1 gap-6">
+                    <div class="col-span-12">
+                        <label class="inline-block font-semibold text-neutral-600 text-sm mb-2">Pilih Periode:</label>
+                        <div class="space-y-2">
+                            <div class="flex items-center mb-2">
+                                <input type="radio" id="filter_all" name="filter_type" value="all"
+                                    class="w-4 h-4 text-primary-600" checked>
+                                <label for="filter_all" class="ml-2 text-sm font-medium text-gray-900">Semua Data</label>
                             </div>
-                        </div>
-                        <div id="range-filter" class="hidden">
-                            <div class="space-y-4">
-                                <div>
-                                    <label for="tanggal_dari"
-                                        class="inline-block font-semibold text-neutral-600 text-sm mb-2">Dari
-                                        Tanggal:</label>
-                                    <input type="date" id="tanggal_dari" name="tanggal_dari"
-                                        class="form-control rounded-lg">
-                                </div>
-                                <div>
-                                    <label for="tanggal_sampai"
-                                        class="inline-block font-semibold text-neutral-600 text-sm mb-2">Sampai
-                                        Tanggal:</label>
-                                    <input type="date" id="tanggal_sampai" name="tanggal_sampai"
-                                        class="form-control rounded-lg">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-span-12">
-                            <div class="flex items-center justify-start gap-3 mt-6">
-                                <button type="button" data-modal-hide="export-pdf-modal"
-                                    class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
-                                    Cancel
-                                </button>
-                                <button type="submit"
-                                    class="btn btn-primary border border-primary-600 text-base px-6 py-3 rounded-lg">
-                                    <iconify-icon icon="carbon:document-pdf" class="mr-2"></iconify-icon>
-                                    Export PDF
-                                </button>
-                                <button type="submit" formaction="{{ route('kehadirantrainer.export_excel') }}"
-                                    class="bg-success-600 hover:bg-success-700 text-white text-base px-6 py-3 rounded-lg inline-flex items-center">
-                                    <iconify-icon icon="carbon:document-export" class="mr-2"></iconify-icon>
-                                    Export Excel
-                                </button>
+                            <div class="flex items-center mb-2">
+                                <input type="radio" id="filter_range" name="filter_type" value="range"
+                                    class="w-4 h-4 text-primary-600">
+                                <label for="filter_range" class="ml-2 text-sm font-medium text-gray-900">Range Tanggal</label>
                             </div>
                         </div>
                     </div>
-                </form>
-            </div>
-        </div>
-    </div>
+                    <div id="range-filter" class="hidden">
+                        <div class="space-y-4">
+                            <div>
+                                <label for="tanggal_dari"
+                                    class="inline-block font-semibold text-neutral-600 text-sm mb-2">Dari Tanggal:</label>
+                                <input type="date" id="tanggal_dari" name="tanggal_dari" class="form-control rounded-lg">
+                            </div>
+                            <div>
+                                <label for="tanggal_sampai"
+                                    class="inline-block font-semibold text-neutral-600 text-sm mb-2">Sampai Tanggal:</label>
+                                <input type="date" id="tanggal_sampai" name="tanggal_sampai" class="form-control rounded-lg">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-span-12">
+                        <div class="flex items-center justify-start gap-3 mt-6">
+                            <button type="button" data-close-modal="export-pdf-modal"
+                                class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
+                                Cancel
+                            </button>
+                            <button type="submit"
+                                class="btn btn-primary border border-primary-600 text-base px-6 py-3 rounded-lg">
+                                <iconify-icon icon="carbon:document-pdf" class="mr-2"></iconify-icon>
+                                Export PDF
+                            </button>
+                            <button type="submit" formaction="{{ route('kehadirantrainer.export_excel') }}"
+                                class="bg-success-600 hover:bg-success-700 text-white text-base px-6 py-3 rounded-lg inline-flex items-center">
+                                <iconify-icon icon="carbon:document-export" class="mr-2"></iconify-icon>
+                                Export Excel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </x-slot:body>
+    </x-modal>
 @endsection
 
 @section('scripts')

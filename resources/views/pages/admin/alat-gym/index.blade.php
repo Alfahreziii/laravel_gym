@@ -27,7 +27,7 @@
                     {{ $isLaporanMode ? 'Laporan Data Alat Gym' : 'Data Alat Gym' }}
                 </h6>
                 <div class="flex gap-2">
-                    <button type="button" data-modal-target="export-pdf-modal" data-modal-toggle="export-pdf-modal"
+                    <button type="button" onclick="HexaModal.show('export-pdf-modal')"
                             class="text-white bg-danger-600 hover:bg-danger-700 focus:ring-4 focus:outline-none focus:ring-danger-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center">
                         <iconify-icon icon="carbon:export" class="mr-2 text-lg"></iconify-icon>
                         Export Laporan
@@ -72,51 +72,36 @@
     </div>
 </div>
 
-<!-- Modal Export PDF -->
-<div id="export-pdf-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-    <div class="rounded-2xl bg-white dark:bg-dark-2 max-w-[600px] w-full">
-        <div class="py-4 px-6 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between">
-            <h1 class="text-xl font-semibold">Export Laporan Alat Gym</h1>
-            <button data-modal-hide="export-pdf-modal" type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
-                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
-                </svg>
-                <span class="sr-only">Close modal</span>
-            </button>
-        </div>
-        <div class="p-6">
-            <div class="text-center mb-6">
-                <div class="mx-auto w-16 h-16 bg-danger-100 rounded-full flex items-center justify-center mb-4">
-                    <iconify-icon icon="carbon:document-pdf" class="text-danger-600 text-3xl"></iconify-icon>
-                </div>
-                <h3 class="text-lg font-semibold text-gray-900 mb-2">Export Data Alat Gym ke PDF?</h3>
-                <p class="text-sm text-gray-500">
-                    Laporan akan mencakup semua data alat gym yang terdaftar dalam sistem
-                </p>
+<x-modal id="export-pdf-modal" title="Export Laporan Alat Gym">
+    <x-slot:body>
+        <div class="text-center mb-6">
+            <div class="mx-auto w-16 h-16 bg-danger-100 rounded-full flex items-center justify-center mb-4">
+                <iconify-icon icon="carbon:document-pdf" class="text-danger-600 text-3xl"></iconify-icon>
             </div>
-
-            <form action="{{ route('alat_gym.export_pdf') }}" method="POST">
-                @csrf
-                <div class="flex items-center justify-center gap-3">
-                    <button type="button" data-modal-hide="export-pdf-modal"
-                            class="border border-neutral-300 hover:bg-neutral-100 text-neutral-700 text-base px-10 py-2.5 rounded-lg font-medium">
-                        Batal
-                    </button>
-                    <button type="submit"
-                            class="bg-danger-600 hover:bg-danger-700 text-white text-base px-8 py-2.5 rounded-lg font-medium inline-flex items-center gap-2">
-                        <iconify-icon icon="carbon:document-pdf"></iconify-icon>
-                        Export PDF
-                    </button>
-                    <button type="submit" formaction="{{ route('alat_gym.export_excel') }}"
-                            class="bg-success-600 hover:bg-success-700 text-white text-base px-8 py-2.5 rounded-lg font-medium inline-flex items-center gap-2">
-                        <iconify-icon icon="carbon:document-export"></iconify-icon>
-                        Export Excel
-                    </button>
-                </div>
-            </form>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Export Data Alat Gym ke PDF?</h3>
+            <p class="text-sm text-gray-500">Laporan akan mencakup semua data alat gym yang terdaftar dalam sistem</p>
         </div>
-    </div>
-</div>
+        <form action="{{ route('alat_gym.export_pdf') }}" method="POST">
+            @csrf
+            <div class="flex items-center justify-center gap-3">
+                <button type="button" data-close-modal="export-pdf-modal"
+                        class="border border-neutral-300 hover:bg-neutral-100 text-neutral-700 text-base px-10 py-2.5 rounded-lg font-medium">
+                    Batal
+                </button>
+                <button type="submit"
+                        class="bg-danger-600 hover:bg-danger-700 text-white text-base px-8 py-2.5 rounded-lg font-medium inline-flex items-center gap-2">
+                    <iconify-icon icon="carbon:document-pdf"></iconify-icon>
+                    Export PDF
+                </button>
+                <button type="submit" formaction="{{ route('alat_gym.export_excel') }}"
+                        class="bg-success-600 hover:bg-success-700 text-white text-base px-8 py-2.5 rounded-lg font-medium inline-flex items-center gap-2">
+                    <iconify-icon icon="carbon:document-export"></iconify-icon>
+                    Export Excel
+                </button>
+            </div>
+        </form>
+    </x-slot:body>
+</x-modal>
 
 @endsection
 

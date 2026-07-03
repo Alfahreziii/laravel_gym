@@ -24,7 +24,7 @@
                     </h6>
                     <div class="flex gap-2">
                         <!-- Tombol Export PDF -->
-                        <button type="button" data-modal-target="export-pdf-modal" data-modal-toggle="export-pdf-modal"
+                        <button type="button" onclick="HexaModal.show('export-pdf-modal')"
                             class="text-white bg-danger-600 hover:bg-danger-700 focus:ring-4 focus:outline-none focus:ring-danger-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center">
                             <iconify-icon icon="carbon:export" class="mr-2 text-lg"></iconify-icon>
                             Export Laporan
@@ -71,24 +71,9 @@
         </div>
     </div>
 
-    <!-- Modal Export PDF -->
-    <div id="export-pdf-modal" tabindex="-1"
-        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-        <div class="rounded-2xl bg-white max-w-[600px] w-full">
-            <div class="py-4 px-6 border-b border-neutral-200 flex items-center justify-between">
-                <h1 class="text-xl font-semibold">Filter Export Laporan</h1>
-                <button data-modal-hide="export-pdf-modal" type="button"
-                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
-                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                        viewBox="0 0 14 14">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                    </svg>
-                    <span class="sr-only">Close modal</span>
-                </button>
-            </div>
-            <div class="p-6">
-                <form action="{{ route('membertrainer.export_pdf') }}" method="POST" id="export-pdf-form">
+    <x-modal id="export-pdf-modal" title="Filter Export Laporan">
+        <x-slot:body>
+            <form action="{{ route('membertrainer.export_pdf') }}" method="POST" id="export-pdf-form">
                     @csrf
                     <div class="grid grid-cols-1 gap-6">
                         <!-- Filter Status Pembayaran -->
@@ -266,7 +251,7 @@
                         <!-- Tombol Aksi -->
                         <div class="col-span-12">
                             <div class="flex items-center justify-start gap-3 mt-6">
-                                <button type="button" data-modal-hide="export-pdf-modal"
+                                <button type="button" data-close-modal="export-pdf-modal"
                                     class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
                                     Cancel
                                 </button>
@@ -284,9 +269,8 @@
                         </div>
                     </div>
                 </form>
-            </div>
-        </div>
-    </div>
+        </x-slot:body>
+    </x-modal>
 @endsection
 
 @section('scripts')
