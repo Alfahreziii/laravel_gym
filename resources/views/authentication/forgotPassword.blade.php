@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<x-head />  
+<x-head />
 
 <body class="dark:bg-neutral-800 bg-neutral-100">
 
@@ -45,48 +45,25 @@
 
     <x-script/>
 
-    <div id="popup-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-        <div class="relative p-10 w-full max-w-[496px] max-h-full rounded-2xl bg-white">
-            <button type="button" class="absolute top-4 end-4 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="popup-modal">
-                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                </svg>
-                <span class="sr-only">Close modal</span>
-            </button>
-            <div class="p-2.5 text-center">
-                <h6 class="mb-3">Verify your Email</h6>
+    {{-- Modal konfirmasi email terkirim --}}
+    <x-modal id="popup-modal" title="Verify your Email">
+        <x-slot:body>
+            <div class="text-center py-2">
                 <p class="text-secondary-light text-sm mb-0">Thank you, check your email for instructions to reset your password</p>
-                <button type="button" data-modal-hide="popup-modal" class="btn btn-primary justify-center text-sm btn-sm px-3 py-4 w-full rounded-xl mt-8">Skip</button>
+                <button type="button" data-close-modal="popup-modal" class="btn btn-primary justify-center text-sm btn-sm px-3 py-4 w-full rounded-xl mt-8">
+                    Skip
+                </button>
             </div>
-        </div>
-    </div>
-@if (session('status'))
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const modal = document.getElementById('popup-modal');
+        </x-slot:body>
+    </x-modal>
 
-        // Jika kamu pakai Flowbite
-        if (window.Flowbite && typeof Flowbite.Modal === 'function') {
-            const modalInstance = new Flowbite.Modal(modal);
-            modalInstance.show();
-        } else {
-            // Kalau gak pakai Flowbite, tampilkan manual
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        // ✅ Tambahkan event listener agar bisa ditutup manual
-        const closeButtons = modal.querySelectorAll('[data-modal-hide="popup-modal"]');
-        closeButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            });
+    @if (session('status'))
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            HexaModal.show('popup-modal');
         });
-    });
-</script>
-@endif
-
+    </script>
+    @endif
 
 </body>
 </html>
