@@ -16,6 +16,56 @@
         </button>
     </x-slot:actions>
 
+    {{-- Summary Cards --}}
+    <div class="grid grid-cols-12 gap-4 p-4 border-b border-neutral-200">
+
+        {{-- Card Total Debit --}}
+        <div class="col-span-12 md:col-span-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-success-100 flex items-center justify-center flex-shrink-0">
+                        <iconify-icon icon="mingcute:arrow-up-fill" class="text-success-600 text-2xl"></iconify-icon>
+                    </div>
+                    <div>
+                        <p class="text-sm text-neutral-500 mb-1">Total Debit</p>
+                        <h6 class="text-lg font-bold text-success-600" id="summaryDebit">Rp 0</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Card Total Kredit --}}
+        <div class="col-span-12 md:col-span-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-danger-100 flex items-center justify-center flex-shrink-0">
+                        <iconify-icon icon="mingcute:arrow-down-fill" class="text-danger-600 text-2xl"></iconify-icon>
+                    </div>
+                    <div>
+                        <p class="text-sm text-neutral-500 mb-1">Total Kredit</p>
+                        <h6 class="text-lg font-bold text-danger-600" id="summaryKredit">Rp 0</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Card Selisih --}}
+        <div class="col-span-12 md:col-span-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                        <iconify-icon icon="mingcute:balance-fill" class="text-primary-600 text-2xl"></iconify-icon>
+                    </div>
+                    <div>
+                        <p class="text-sm text-neutral-500 mb-1">Selisih (Debit - Kredit)</p>
+                        <h6 class="text-lg font-bold text-primary-600" id="summarySelisih">Rp 0</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
     <div class="p-4">
 
         {{-- Filter --}}
@@ -116,55 +166,6 @@
 
     </div>
 </x-page-table>
-
-<div class="grid grid-cols-12 gap-5 mt-5">
-
-    {{-- Card Total Debit --}}
-    <div class="col-span-12 md:col-span-4">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body flex items-center gap-4">
-                <div class="w-12 h-12 rounded-full bg-success-100 flex items-center justify-center flex-shrink-0">
-                    <iconify-icon icon="mingcute:arrow-up-fill" class="text-success-600 text-2xl"></iconify-icon>
-                </div>
-                <div>
-                    <p class="text-sm text-neutral-500 mb-1">Total Debit</p>
-                    <h6 class="text-lg font-bold text-success-600" id="summaryDebit">Rp 0</h6>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Card Total Kredit --}}
-    <div class="col-span-12 md:col-span-4">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body flex items-center gap-4">
-                <div class="w-12 h-12 rounded-full bg-danger-100 flex items-center justify-center flex-shrink-0">
-                    <iconify-icon icon="mingcute:arrow-down-fill" class="text-danger-600 text-2xl"></iconify-icon>
-                </div>
-                <div>
-                    <p class="text-sm text-neutral-500 mb-1">Total Kredit</p>
-                    <h6 class="text-lg font-bold text-danger-600" id="summaryKredit">Rp 0</h6>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Card Selisih --}}
-    <div class="col-span-12 md:col-span-4">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body flex items-center gap-4">
-                <div class="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
-                    <iconify-icon icon="mingcute:balance-fill" class="text-primary-600 text-2xl"></iconify-icon>
-                </div>
-                <div>
-                    <p class="text-sm text-neutral-500 mb-1">Selisih (Debit - Kredit)</p>
-                    <h6 class="text-lg font-bold text-primary-600" id="summarySelisih">Rp 0</h6>
-                </div>
-            </div>
-        </div>
-    </div>
-
-</div>
 @endsection
 
 @section('scripts')
