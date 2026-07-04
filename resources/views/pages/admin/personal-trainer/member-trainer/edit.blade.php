@@ -2,7 +2,6 @@
 @php
 $title = 'Detail Member Trainer';
 $subTitle = 'Detail Member Trainer';
-$script='<script src="' . asset('assets/js/data-table.js') . '"></script>';
 @endphp
 
 @section('content')
@@ -16,44 +15,19 @@ $script='<script src="' . asset('assets/js/data-table.js') . '"></script>';
                 @endrole
             </div>
             <div class="card-body">
-                <table id="selection-table" class="border border-neutral-200 rounded-lg border-separate w-full">
-                    <thead>
+                <x-data-table tableId="riwayatPembayaranMemberTrainer" :colspan="auth()->user()->hasRole('admin') ? 5 : 4" placeholder="Cari tanggal atau metode...">
+                    <x-slot:header>
                         <tr>
                             <th>S.L</th>
                             <th>Tanggal Bayar</th>
                             <th>Jumlah Bayar</th>
                             <th>Metode Pembayaran</th>
                             @role('admin')
-                            <th>Aksi</th>
+                                <th>Aksi</th>
                             @endrole
                         </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($memberTrainer->pembayaranMemberTrainers as $index => $pembayaran)
-                            <tr>
-                                <td class="whitespace-nowrap">{{ $index + 1 }}</td>
-                                <td class="whitespace-nowrap">{{ \Carbon\Carbon::parse($pembayaran->tgl_bayar)->format('d-m-Y') }}</td>
-                                <td class="whitespace-nowrap">Rp {{ number_format($pembayaran->jumlah_bayar, 0, ',', '.') }}</td>
-                                <td class="whitespace-nowrap">{{ ucfirst($pembayaran->metode_pembayaran) }}</td>
-                                @role('admin')
-                                <td class="whitespace-nowrap flex gap-2">
-                                    <form action="{{ route('pembayaran_trainer.destroy', $pembayaran->id) }}" method="POST" class="inline-block delete-form">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="button" class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center delete-btn">
-                                            <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
-                                        </button>
-                                    </form>
-                                </td>
-                                @endrole
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5" class="text-center">Belum ada pembayaran</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                    </x-slot:header>
+                </x-data-table>
             </div>
         </div>
     </div>
@@ -239,33 +213,56 @@ $script='<script src="' . asset('assets/js/data-table.js') . '"></script>';
 @endsection
 
 @section('scripts')
+<script src="{{ asset('assets/js/ajax-table.js') }}"></script>
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    const deleteForms = document.querySelectorAll('.delete-form');
+    var isAdmin = {{ auth()->user()->hasRole('admin') ? 'true' : 'false' }};
 
-    // Delete confirmation
-    deleteForms.forEach(form => {
-        const btn = form.querySelector('.delete-btn');
-        btn.addEventListener('click', function (e) {
-            e.preventDefault();
-
-            Swal.fire({
-                title: 'Apakah kamu yakin?',
-                text: "Data pembayaran yang dihapus tidak bisa dikembalikan!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#e3342f',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Ya, hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
-        });
+    AjaxTable.init('riwayatPembayaranMemberTrainer', {
+        url: '{{ route('membertrainer.datatablePembayaran', $memberTrainer->id) }}',
+        colSpan: isAdmin ? 5 : 4,
+        renderRow: function(item) {
+            var aksiHtml = '';
+            if (isAdmin) {
+                aksiHtml = '<td class="whitespace-nowrap">' +
+                    '<button type="button" onclick="deletePembayaran(\'' + item.delete_url + '\')" ' +
+                    'class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center">' +
+                    '<iconify-icon icon="mingcute:delete-2-line"></iconify-icon>' +
+                    '</button></td>';
+            }
+            return '<tr>' +
+                '<td class="whitespace-nowrap text-center">' + item.no + '</td>' +
+                '<td class="whitespace-nowrap">' + item.tgl_bayar + '</td>' +
+                '<td class="whitespace-nowrap">' + item.jumlah_bayar + '</td>' +
+                '<td class="whitespace-nowrap">' + item.metode_pembayaran + '</td>' +
+                aksiHtml +
+                '</tr>';
+        }
     });
 
+    window.deletePembayaran = function(url) {
+        Swal.fire({
+            title: 'Apakah kamu yakin?',
+            text: "Data pembayaran yang dihapus tidak bisa dikembalikan!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e3342f',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal'
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = url;
+                form.innerHTML = '<input type="hidden" name="_token" value="{{ csrf_token() }}">' +
+                    '<input type="hidden" name="_method" value="DELETE">';
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    };
+
+document.addEventListener("DOMContentLoaded", function() {
     // Modal Pembayaran Logic
     const modalJumlahBayar = document.getElementById('modal_jumlah_bayar');
     const modalSisaSetelah = document.getElementById('modal_sisa_setelah');

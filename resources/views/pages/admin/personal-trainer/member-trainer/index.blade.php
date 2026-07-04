@@ -15,61 +15,49 @@
         <x-alert type="danger">{{ session('danger') }}</x-alert>
     @endif
 
-    <div class="grid grid-cols-12">
-        <div class="col-span-12">
-            <div class="card border-0 overflow-hidden">
-                <div class="card-header flex items-center justify-between">
-                    <h6 class="card-title mb-0 text-lg">
-                        {{ $isLaporanMode ? 'Laporan Data Member Trainer' : 'Data Member Trainer' }}
-                    </h6>
-                    <div class="flex gap-2">
-                        <!-- Tombol Export PDF -->
-                        <button type="button" onclick="HexaModal.show('export-pdf-modal')"
-                            class="text-white bg-danger-600 hover:bg-danger-700 focus:ring-4 focus:outline-none focus:ring-danger-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center">
-                            <iconify-icon icon="carbon:export" class="mr-2 text-lg"></iconify-icon>
-                            Export Laporan
-                        </button>
-
-                        {{-- Tombol Tambah Data hanya tampil jika BUKAN mode laporan --}}
-                        @if (!$isLaporanMode)
-                            @role('admin|spv')
-                                <a href="{{ route('membertrainer.create') }}"
-                                    class="text-primary-600 focus:bg-primary-600 hover:bg-primary-700 border border-primary-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center dark:text-primary-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-primary-800">
-                                    + Tambah Data
-                                </a>
-                            @endrole
-                        @endif
-                    </div>
-                </div>
-                <div class="card-body">
-                    <x-data-table
-                        tableId="memberTrainer"
-                        :colspan="$colCount"
-                        placeholder="Cari kode, anggota, trainer, paket...">
-                        <x-slot:header>
-                            <tr>
-                                <th>S.L</th>
-                                @if (!$isLaporanMode)
-                                    @role('admin')
-                                        <th>Aksi</th>
-                                    @endrole
-                                @endif
-                                <th>Kode Transaksi</th>
-                                <th>Nama Anggota</th>
-                                <th>Nama Trainer</th>
-                                <th>Sesi</th>
-                                <th>Paket</th>
-                                <th>Tgl Bayar Awal</th>
-                                <th>Metode Pembayaran</th>
-                                <th>Status Pembayaran</th>
-                                <th>Total Biaya</th>
-                            </tr>
-                        </x-slot:header>
-                    </x-data-table>
-                </div>
-            </div>
-        </div>
-    </div>
+<x-page-table
+    title="{{ $isLaporanMode ? 'Laporan Data Member Trainer' : 'Data Member Trainer' }}"
+    subtitle="Kelola data member yang menggunakan layanan personal trainer."
+>
+    <x-slot:actions>
+        <button type="button" onclick="HexaModal.show('export-pdf-modal')"
+            class="btn btn-secondary btn-sm">
+            <iconify-icon icon="carbon:export" class="text-base"></iconify-icon>
+            Export
+        </button>
+        @if (!$isLaporanMode)
+            @role('admin|spv')
+            <a href="{{ route('membertrainer.create') }}" class="btn btn-primary btn-sm">
+                + Tambah Data
+            </a>
+            @endrole
+        @endif
+    </x-slot:actions>
+    <x-data-table
+        tableId="memberTrainer"
+        :colspan="$colCount"
+        placeholder="Cari kode, anggota, trainer, paket...">
+        <x-slot:header>
+            <tr>
+                <th>S.L</th>
+                @if (!$isLaporanMode)
+                    @role('admin')
+                        <th>Aksi</th>
+                    @endrole
+                @endif
+                <th>Kode Transaksi</th>
+                <th>Nama Anggota</th>
+                <th>Nama Trainer</th>
+                <th>Sesi</th>
+                <th>Paket</th>
+                <th>Tgl Bayar Awal</th>
+                <th>Metode Pembayaran</th>
+                <th>Status Pembayaran</th>
+                <th>Total Biaya</th>
+            </tr>
+        </x-slot:header>
+    </x-data-table>
+</x-page-table>
 
     <x-modal id="export-pdf-modal" title="Filter Export Laporan">
         <x-slot:body>

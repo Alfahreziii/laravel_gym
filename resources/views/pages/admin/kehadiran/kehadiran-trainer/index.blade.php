@@ -6,67 +6,43 @@
 @endphp
 
 @section('content')
-    @if (session('success'))
-        <div
-            class="alert alert-success bg-success-50 dark:bg-success-600/25 
-        text-success-600 dark:text-success-400 border-success-50 
-        px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
-            <div class="flex items-center gap-4">{{ session('success') }}</div>
-            <button class="remove-button text-success-600 text-2xl">
-                <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
-            </button>
-        </div>
-    @endif
-    @if (session('danger'))
-        <div
-            class="alert alert-danger bg-danger-100 dark:bg-danger-600/25 
-        text-danger-600 dark:text-danger-400 border-danger-100 
-        px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
-            {{ session('danger') }}
-            <button class="remove-button text-danger-600 text-2xl">
-                <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
-            </button>
-        </div>
-    @endif
 
-    <!-- Tabel Data Kehadiran -->
-    <div class="grid grid-cols-12">
-        <div class="col-span-12">
-            <div class="card border-0 overflow-hidden">
-                <div class="card-header flex items-center justify-between">
-                    <h6 class="card-title mb-0 text-lg">
-                        {{ $isLaporanMode ? 'Laporan Data Kehadiran Trainer' : 'Riwayat Kehadiran Trainer' }}
-                    </h6>
-                    <div class="flex gap-2">
-                        <button type="button" onclick="HexaModal.show('export-pdf-modal')"
-                            class="text-white bg-danger-600 hover:bg-danger-700 focus:ring-4 focus:outline-none focus:ring-danger-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center">
-                            <iconify-icon icon="carbon:export" class="mr-2"></iconify-icon>
-                            Export Laporan
-                        </button>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <x-data-table tableId="kehadiranTrainer" :colspan="(!$isLaporanMode && auth()->user()->hasRole('admin')) ? 7 : 6" placeholder="Search...">
-                        <x-slot:header>
-                            <tr>
-                                <th>S.L</th>
-                                <th>ID Kartu</th>
-                                <th>Foto</th>
-                                <th>Nama Trainer</th>
-                                <th>Status</th>
-                                <th>Waktu</th>
-                                @if (!$isLaporanMode)
-                                    @role('admin')
-                                        <th>Aksi</th>
-                                    @endrole
-                                @endif
-                            </tr>
-                        </x-slot:header>
-                    </x-data-table>
-                </div>
-            </div>
-        </div>
-    </div>
+@if(session('success'))
+    <x-alert type="success">{{ session('success') }}</x-alert>
+@endif
+@if(session('danger'))
+    <x-alert type="danger">{{ session('danger') }}</x-alert>
+@endif
+
+<x-page-table
+    title="{{ $isLaporanMode ? 'Laporan Data Kehadiran Trainer' : 'Riwayat Kehadiran Trainer' }}"
+    subtitle="Riwayat absensi dan kehadiran trainer."
+>
+    <x-slot:actions>
+        <button type="button" onclick="HexaModal.show('export-pdf-modal')"
+            class="btn btn-secondary btn-sm">
+            <iconify-icon icon="carbon:export" class="text-base"></iconify-icon>
+            Export
+        </button>
+    </x-slot:actions>
+    <x-data-table tableId="kehadiranTrainer" :colspan="(!$isLaporanMode && auth()->user()->hasRole('admin')) ? 7 : 6" placeholder="Search...">
+        <x-slot:header>
+            <tr>
+                <th>S.L</th>
+                <th>ID Kartu</th>
+                <th>Foto</th>
+                <th>Nama Trainer</th>
+                <th>Status</th>
+                <th>Waktu</th>
+                @if (!$isLaporanMode)
+                    @role('admin')
+                        <th>Aksi</th>
+                    @endrole
+                @endif
+            </tr>
+        </x-slot:header>
+    </x-data-table>
+</x-page-table>
 
     <x-modal id="export-pdf-modal" title="Filter Export Laporan">
         <x-slot:body>

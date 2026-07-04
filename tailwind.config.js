@@ -99,6 +99,28 @@ export default {
                     2: '#273142',
                     3: '#323D4E',
                 },
+                surface: {
+                    light:        '#FAFAF9',
+                    raised:       '#F1F0ED',
+                    dark:         '#1F1B17',
+                    'dark-raised':'#28231D',
+                },
+                canvas: {
+                    light: '#EBEAE7',
+                    dark:  '#15120F',
+                },
+                line: {
+                    light: '#E2E0DB',
+                    dark:  '#332D26',
+                },
+                ink: {
+                    DEFAULT: '#1A1A18',
+                    2:  '#6E6A63',
+                    3:  '#9C978E',
+                    d:  '#F4F1EC',
+                    d2: '#A8A29A',
+                    d3: '#6E685F',
+                },
             },
         },
     },

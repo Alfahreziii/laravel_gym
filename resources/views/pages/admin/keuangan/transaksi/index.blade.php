@@ -5,167 +5,166 @@
 @endphp
 
 @section('content')
-    <div class="grid grid-cols-12 gap-5 mb-5">
+<x-page-table
+    title="Detail Transaksi Keuangan"
+    subtitle="Rincian jurnal debit dan kredit seluruh transaksi keuangan."
+>
+    <x-slot:actions>
+        <button id="btnExportExcel" class="btn btn-secondary btn-sm">
+            <iconify-icon icon="carbon:document-export" class="text-base"></iconify-icon>
+            Export Excel
+        </button>
+    </x-slot:actions>
 
-        {{-- Card Total Debit --}}
-        <div class="col-span-12 md:col-span-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-success-100 flex items-center justify-center flex-shrink-0">
-                        <iconify-icon icon="mingcute:arrow-up-fill" class="text-success-600 text-2xl"></iconify-icon>
-                    </div>
-                    <div>
-                        <p class="text-sm text-neutral-500 mb-1">Total Debit</p>
-                        <h6 class="text-lg font-bold text-success-600" id="summaryDebit">Rp 0</h6>
-                    </div>
-                </div>
+    <div class="p-4">
+
+        {{-- Filter --}}
+        <div class="grid grid-cols-12 gap-3 mb-4">
+
+            {{-- Tanggal Mulai --}}
+            <div class="col-span-12 md:col-span-3">
+                <label class="form-label text-xs text-neutral-500">Tanggal Mulai</label>
+                <input type="date" id="filterTglMulai" class="form-control form-control-sm">
             </div>
+
+            {{-- Tanggal Selesai --}}
+            <div class="col-span-12 md:col-span-3">
+                <label class="form-label text-xs text-neutral-500">Tanggal Selesai</label>
+                <input type="date" id="filterTglSelesai" class="form-control form-control-sm">
+            </div>
+
+            {{-- Filter Akun --}}
+            <div class="col-span-12 md:col-span-3">
+                <label class="form-label text-xs text-neutral-500">Akun</label>
+                <select id="filterAkun" class="form-control form-control-sm">
+                    <option value="">-- Semua Akun --</option>
+                    @foreach ($akuns as $akun)
+                        <option value="{{ $akun->id }}">
+                            {{ $akun->kode }} - {{ $akun->nama }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Filter Referensi --}}
+            <div class="col-span-12 md:col-span-3">
+                <label class="form-label text-xs text-neutral-500">Sumber Transaksi</label>
+                <select id="filterReferensi" class="form-control form-control-sm">
+                    <option value="">-- Semua Sumber --</option>
+                    <option value="anggota_memberships">Membership</option>
+                    <option value="products">Produk</option>
+                    <option value="transaksi_spas">Spa</option>
+                    <option value="personal_trainers">Personal Trainer</option>
+                </select>
+            </div>
+
+            {{-- Search + Per Page --}}
+            <div class="col-span-12 md:col-span-6">
+                <label class="form-label text-xs text-neutral-500">Cari Deskripsi / Akun</label>
+                <input type="text" id="searchTransaksi" placeholder="Ketik untuk mencari..."
+                    class="form-control form-control-sm">
+            </div>
+
+            <div class="col-span-12 md:col-span-3">
+                <label class="form-label text-xs text-neutral-500">Tampilkan</label>
+                <select id="perPageTransaksi" class="form-control form-control-sm">
+                    <option value="15" selected>15</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+
+            <div class="col-span-12 md:col-span-3 flex items-end">
+                <button id="btnResetFilter"
+                    class="w-full border border-neutral-300 text-neutral-600 hover:bg-neutral-100 rounded-lg text-sm px-4 py-2">
+                    Reset Filter
+                </button>
+            </div>
+
         </div>
 
-        {{-- Card Total Kredit --}}
-        <div class="col-span-12 md:col-span-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-danger-100 flex items-center justify-center flex-shrink-0">
-                        <iconify-icon icon="mingcute:arrow-down-fill" class="text-danger-600 text-2xl"></iconify-icon>
-                    </div>
-                    <div>
-                        <p class="text-sm text-neutral-500 mb-1">Total Kredit</p>
-                        <h6 class="text-lg font-bold text-danger-600" id="summaryKredit">Rp 0</h6>
-                    </div>
-                </div>
-            </div>
+        {{-- Table --}}
+        <div class="overflow-x-auto">
+            <table class="ajax-table border border-neutral-200 rounded-lg border-separate w-full">
+                <thead>
+                    <tr>
+                        <th class="whitespace-nowrap">No</th>
+                        <th class="whitespace-nowrap">Tanggal</th>
+                        <th class="whitespace-nowrap">Kode Akun</th>
+                        <th class="whitespace-nowrap">Nama Akun</th>
+                        <th class="whitespace-nowrap">Kategori</th>
+                        <th class="whitespace-nowrap">Deskripsi</th>
+                        <th class="whitespace-nowrap">Sumber</th>
+                        <th class="whitespace-nowrap text-success-600">Debit (Rp)</th>
+                        <th class="whitespace-nowrap text-danger-600">Kredit (Rp)</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyTransaksi">
+                    <tr>
+                        <td colspan="9" class="text-center py-8">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
 
-        {{-- Card Selisih --}}
-        <div class="col-span-12 md:col-span-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
-                        <iconify-icon icon="mingcute:balance-fill" class="text-primary-600 text-2xl"></iconify-icon>
-                    </div>
-                    <div>
-                        <p class="text-sm text-neutral-500 mb-1">Selisih (Debit - Kredit)</p>
-                        <h6 class="text-lg font-bold text-primary-600" id="summarySelisih">Rp 0</h6>
-                    </div>
-                </div>
-            </div>
+        {{-- Pagination --}}
+        <div class="flex justify-between items-center mt-4 flex-wrap gap-2">
+            <span class="text-sm text-gray-500" id="infoTransaksi"></span>
+            <div id="paginationTransaksi" class="flex gap-1 flex-wrap"></div>
         </div>
 
     </div>
+</x-page-table>
 
-    <div class="grid grid-cols-12">
-        <div class="col-span-12">
-            <div class="card border-0 overflow-hidden">
-                <div class="card-header flex flex-wrap items-center justify-between gap-3">
-                    <h6 class="text-lg font-semibold mb-0">Detail Transaksi Keuangan</h6>
-                    <button id="btnExportExcel" class="btn bg-success-600 hover:bg-success-700 text-white flex items-center gap-2 text-sm px-4 py-2">
-                        <iconify-icon icon="carbon:document-export"></iconify-icon> Export Excel
-                    </button>
+<div class="grid grid-cols-12 gap-5 mt-5">
+
+    {{-- Card Total Debit --}}
+    <div class="col-span-12 md:col-span-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body flex items-center gap-4">
+                <div class="w-12 h-12 rounded-full bg-success-100 flex items-center justify-center flex-shrink-0">
+                    <iconify-icon icon="mingcute:arrow-up-fill" class="text-success-600 text-2xl"></iconify-icon>
                 </div>
-
-                <div class="card-body">
-
-                    {{-- Filter --}}
-                    <div class="grid grid-cols-12 gap-3 mb-4">
-
-                        {{-- Tanggal Mulai --}}
-                        <div class="col-span-12 md:col-span-3">
-                            <label class="form-label text-xs text-neutral-500">Tanggal Mulai</label>
-                            <input type="date" id="filterTglMulai" class="form-control form-control-sm">
-                        </div>
-
-                        {{-- Tanggal Selesai --}}
-                        <div class="col-span-12 md:col-span-3">
-                            <label class="form-label text-xs text-neutral-500">Tanggal Selesai</label>
-                            <input type="date" id="filterTglSelesai" class="form-control form-control-sm">
-                        </div>
-
-                        {{-- Filter Akun --}}
-                        <div class="col-span-12 md:col-span-3">
-                            <label class="form-label text-xs text-neutral-500">Akun</label>
-                            <select id="filterAkun" class="form-control form-control-sm">
-                                <option value="">-- Semua Akun --</option>
-                                @foreach ($akuns as $akun)
-                                    <option value="{{ $akun->id }}">
-                                        {{ $akun->kode }} - {{ $akun->nama }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        {{-- Filter Referensi --}}
-                        <div class="col-span-12 md:col-span-3">
-                            <label class="form-label text-xs text-neutral-500">Sumber Transaksi</label>
-                            <select id="filterReferensi" class="form-control form-control-sm">
-                                <option value="">-- Semua Sumber --</option>
-                                <option value="anggota_memberships">Membership</option>
-                                <option value="products">Produk</option>
-                                <option value="transaksi_spas">Spa</option>
-                                <option value="personal_trainers">Personal Trainer</option>
-                            </select>
-                        </div>
-
-                        {{-- Search + Per Page --}}
-                        <div class="col-span-12 md:col-span-6">
-                            <label class="form-label text-xs text-neutral-500">Cari Deskripsi / Akun</label>
-                            <input type="text" id="searchTransaksi" placeholder="Ketik untuk mencari..."
-                                class="form-control form-control-sm">
-                        </div>
-
-                        <div class="col-span-12 md:col-span-3">
-                            <label class="form-label text-xs text-neutral-500">Tampilkan</label>
-                            <select id="perPageTransaksi" class="form-control form-control-sm">
-                                <option value="15" selected>15</option>
-                                <option value="25">25</option>
-                                <option value="50">50</option>
-                                <option value="100">100</option>
-                            </select>
-                        </div>
-
-                        <div class="col-span-12 md:col-span-3 flex items-end">
-                            <button id="btnResetFilter"
-                                class="w-full border border-neutral-300 text-neutral-600 hover:bg-neutral-100 rounded-lg text-sm px-4 py-2">
-                                Reset Filter
-                            </button>
-                        </div>
-
-                    </div>
-
-                    {{-- Table --}}
-                    <div class="overflow-x-auto">
-                        <table class="ajax-table border border-neutral-200 rounded-lg border-separate w-full">
-                            <thead>
-                                <tr>
-                                    <th class="whitespace-nowrap">No</th>
-                                    <th class="whitespace-nowrap">Tanggal</th>
-                                    <th class="whitespace-nowrap">Kode Akun</th>
-                                    <th class="whitespace-nowrap">Nama Akun</th>
-                                    <th class="whitespace-nowrap">Kategori</th>
-                                    <th class="whitespace-nowrap">Deskripsi</th>
-                                    <th class="whitespace-nowrap">Sumber</th>
-                                    <th class="whitespace-nowrap text-success-600">Debit (Rp)</th>
-                                    <th class="whitespace-nowrap text-danger-600">Kredit (Rp)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tbodyTransaksi">
-                                <tr>
-                                    <td colspan="9" class="text-center py-8">Loading...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {{-- Pagination --}}
-                    <div class="flex justify-between items-center mt-4 flex-wrap gap-2">
-                        <span class="text-sm text-gray-500" id="infoTransaksi"></span>
-                        <div id="paginationTransaksi" class="flex gap-1 flex-wrap"></div>
-                    </div>
-
+                <div>
+                    <p class="text-sm text-neutral-500 mb-1">Total Debit</p>
+                    <h6 class="text-lg font-bold text-success-600" id="summaryDebit">Rp 0</h6>
                 </div>
             </div>
         </div>
     </div>
+
+    {{-- Card Total Kredit --}}
+    <div class="col-span-12 md:col-span-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body flex items-center gap-4">
+                <div class="w-12 h-12 rounded-full bg-danger-100 flex items-center justify-center flex-shrink-0">
+                    <iconify-icon icon="mingcute:arrow-down-fill" class="text-danger-600 text-2xl"></iconify-icon>
+                </div>
+                <div>
+                    <p class="text-sm text-neutral-500 mb-1">Total Kredit</p>
+                    <h6 class="text-lg font-bold text-danger-600" id="summaryKredit">Rp 0</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Card Selisih --}}
+    <div class="col-span-12 md:col-span-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body flex items-center gap-4">
+                <div class="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                    <iconify-icon icon="mingcute:balance-fill" class="text-primary-600 text-2xl"></iconify-icon>
+                </div>
+                <div>
+                    <p class="text-sm text-neutral-500 mb-1">Selisih (Debit - Kredit)</p>
+                    <h6 class="text-lg font-bold text-primary-600" id="summarySelisih">Rp 0</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
 @endsection
 
 @section('scripts')

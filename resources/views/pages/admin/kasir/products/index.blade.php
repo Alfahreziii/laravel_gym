@@ -16,60 +16,51 @@
     <x-alert type="danger">{{ session('danger') }}</x-alert>
 @endif
 
-<div class="grid grid-cols-12">
-    <div class="col-span-12">
-        <div class="card border-0 overflow-hidden">
-            <div class="card-header flex items-center justify-between">
-                <h6 class="card-title mb-0 text-lg">
-                    {{ $isLaporanMode ? 'Laporan Data Produk' : 'Data Produk' }}
-                </h6>
-                <div class="flex gap-2">
-                    <button type="button" onclick="HexaModal.show('export-pdf-modal')"
-                        class="text-white bg-danger-600 hover:bg-danger-700 focus:ring-4 focus:outline-none focus:ring-danger-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center">
-                        <iconify-icon icon="carbon:export" class="mr-2 text-lg"></iconify-icon>
-                        Export Laporan
-                    </button>
-                    @if(!$isLaporanMode && $isAdmin)
-                    <a href="{{ route('products.create') }}"
-                        class="text-primary-600 focus:bg-primary-600 hover:bg-primary-700 border border-primary-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center">
-                        + Tambah Data
-                    </a>
+<x-page-table
+    title="{{ $isLaporanMode ? 'Laporan Data Produk' : 'Data Produk' }}"
+    subtitle="Kelola produk, stok, harga, dan kategori kasir."
+>
+    <x-slot:actions>
+        <button type="button" onclick="HexaModal.show('export-pdf-modal')"
+            class="btn btn-secondary btn-sm">
+            <iconify-icon icon="carbon:export" class="text-base"></iconify-icon>
+            Export
+        </button>
+        @if(!$isLaporanMode && $isAdmin)
+        <a href="{{ route('products.create') }}" class="btn btn-primary btn-sm">
+            + Tambah Data
+        </a>
+        @endif
+    </x-slot:actions>
+    <x-data-table
+        tableId="products"
+        :colspan="$colCount"
+        placeholder="Cari nama produk atau kategori...">
+        <x-slot:header>
+            <tr>
+                <th scope="col">No</th>
+                @if(!$isLaporanMode)
+                <th scope="col">Aksi</th>
+                @endif
+                <th scope="col">Foto Produk</th>
+                <th scope="col">Nama Produk</th>
+                <th scope="col">
+                    @if($isAdmin)
+                    <span>Stok<br><small>(Klik angka untuk ubah stok)</small></span>
+                    @else
+                    Stok
                     @endif
-                </div>
-            </div>
-            <div class="card-body">
-                <x-data-table
-                    tableId="products"
-                    :colspan="$colCount"
-                    placeholder="Cari nama produk atau kategori...">
-                    <x-slot:header>
-                        <tr>
-                            <th scope="col">No</th>
-                            @if(!$isLaporanMode)
-                            <th scope="col">Aksi</th>
-                            @endif
-                            <th scope="col">Foto Produk</th>
-                            <th scope="col">Nama Produk</th>
-                            <th scope="col">
-                                @if($isAdmin)
-                                <span>Stok<br><small>(Klik angka untuk ubah stok)</small></span>
-                                @else
-                                Stok
-                                @endif
-                            </th>
-                            <th scope="col">Status</th>
-                            <th scope="col">Kategori</th>
-                            <th scope="col">HPP</th>
-                            <th scope="col">Harga</th>
-                            <th scope="col">Diskon</th>
-                            <th scope="col">Reorder</th>
-                        </tr>
-                    </x-slot:header>
-                </x-data-table>
-            </div>
-        </div>
-    </div>
-</div>
+                </th>
+                <th scope="col">Status</th>
+                <th scope="col">Kategori</th>
+                <th scope="col">HPP</th>
+                <th scope="col">Harga</th>
+                <th scope="col">Diskon</th>
+                <th scope="col">Reorder</th>
+            </tr>
+        </x-slot:header>
+    </x-data-table>
+</x-page-table>
 
 <x-modal id="export-pdf-modal" title="Export Laporan Produk">
     <x-slot:body>

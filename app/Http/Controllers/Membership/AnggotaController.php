@@ -152,16 +152,35 @@ class AnggotaController extends Controller
 
     public function index()
     {
-        return view('pages.admin.membership.anggota.index');
+        $today           = now()->toDateString();
+        $totalAnggota    = Anggota::count();
+        $totalAktif      = Anggota::whereHas('anggotaMemberships', fn($q) =>
+            $q->where('tgl_mulai', '<=', $today)->where('tgl_selesai', '>=', $today)
+        )->count();
+        $totalTidakAktif = $totalAnggota - $totalAktif;
+        $totalBaru       = Anggota::whereMonth('created_at', now()->month)
+                                   ->whereYear('created_at', now()->year)->count();
+
+        return view('pages.admin.membership.anggota.index', compact(
+            'totalAnggota', 'totalAktif', 'totalTidakAktif', 'totalBaru'
+        ));
     }
 
     public function datatable(Request $request)
     {
-        $search  = $request->get('search', '');
-        $perPage = (int) $request->get('perPage', 10);
-        $page    = (int) $request->get('page', 1);
+        $search       = $request->get('search', '');
+        $perPage      = (int) $request->get('perPage', 10);
+        $page         = (int) $request->get('page', 1);
+        $statusFilter = $request->get('status_filter', 'all');
+        $today        = now()->toDateString();
 
-        $query = Anggota::with('user')->orderByRaw("FIELD(status_finger, 0, 1, 2)");
+        $query = Anggota::with([
+            'user',
+            'anggotaMemberships' => fn($q) => $q
+                ->where('tgl_mulai', '<=', $today)
+                ->where('tgl_selesai', '>=', $today)
+                ->orderByDesc('tgl_selesai'),
+        ])->orderByRaw("FIELD(status_finger, 0, 1, 2)");
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -176,24 +195,37 @@ class AnggotaController extends Controller
             });
         }
 
+        if ($statusFilter === 'aktif') {
+            $query->whereHas('anggotaMemberships', fn($q) =>
+                $q->where('tgl_mulai', '<=', $today)->where('tgl_selesai', '>=', $today)
+            );
+        } elseif ($statusFilter === 'tidak_aktif') {
+            $query->whereDoesntHave('anggotaMemberships', fn($q) =>
+                $q->where('tgl_mulai', '<=', $today)->where('tgl_selesai', '>=', $today)
+            );
+        }
+
         $total = (clone $query)->count();
         $data  = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
 
         return response()->json([
             'data' => $data->map(function ($item, $index) use ($page, $perPage) {
+                $activeMembership = $item->anggotaMemberships->first();
                 return [
-                    'no'            => (($page - 1) * $perPage) + $index + 1,
-                    'id'            => $item->id,
-                    'id_kartu'      => $item->id_kartu,
-                    'foto'          => $item->user?->photo ? asset('storage/' . $item->user->photo) : null,
-                    'name'          => $item->user?->name ?? '-',
-                    'email'         => $item->user?->email ?? '-',
-                    'tgl_lahir'     => $item->tgl_lahir ? $item->tgl_lahir->format('d M Y') : '-',
-                    'no_telp'       => $item->no_telp ?? '-',
-                    'status'        => $item->status_keanggotaan,
-                    'status_finger' => $item->status_finger,
-                    'edit_url'      => route('anggota.edit', $item->id),
-                    'delete_url'    => route('anggota.destroy', $item->id),
+                    'no'                => (($page - 1) * $perPage) + $index + 1,
+                    'id'                => $item->id,
+                    'id_kartu'          => $item->id_kartu,
+                    'foto'              => $item->user?->photo ? asset('storage/' . $item->user->photo) : null,
+                    'name'              => $item->user?->name ?? '-',
+                    'email'             => $item->user?->email ?? '-',
+                    'no_telp'           => $item->no_telp ?? '-',
+                    'paket'             => $activeMembership?->nama_paket ?? '-',
+                    'status'            => $activeMembership !== null,
+                    'bergabung'         => $item->tgl_daftar ? $item->tgl_daftar->format('d M Y') : '-',
+                    'berakhir'          => $activeMembership ? $activeMembership->tgl_selesai->format('d M Y') : '-',
+                    'status_finger'     => $item->status_finger,
+                    'edit_url'          => route('anggota.edit', $item->id),
+                    'delete_url'        => route('anggota.destroy', $item->id),
                     'status_finger_url' => route('anggota.update_status_finger', $item->id),
                 ];
             }),

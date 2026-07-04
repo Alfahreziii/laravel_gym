@@ -15,36 +15,30 @@
     <x-alert type="danger">{{ session('danger') }}</x-alert>
 @endif
 
-<div class="grid grid-cols-12">
-    <div class="col-span-12">
-        <div class="card border-0 overflow-hidden">
-            <div class="card-header flex items-center justify-between">
-                <h6 class="card-title mb-0 text-lg">Data Pembayaran Trainer</h6>
-            </div>
-            <div class="card-body">
-                <x-data-table
-                    tableId="pembayaranTrainer"
-                    :colspan="$colCount"
-                    placeholder="Cari kode transaksi atau nama anggota...">
-                    <x-slot:header>
-                        <tr>
-                            <th scope="col">No</th>
-                            <th scope="col">Aksi</th>
-                            <th scope="col">Kode Transaksi</th>
-                            <th scope="col">Nama Anggota</th>
-                            <th scope="col">Paket</th>
-                            <th scope="col">Harga</th>
-                            <th scope="col">Diskon</th>
-                            <th scope="col">Total Biaya</th>
-                            <th scope="col">Total Dibayarkan</th>
-                            <th scope="col">Status</th>
-                        </tr>
-                    </x-slot:header>
-                </x-data-table>
-            </div>
-        </div>
-    </div>
-</div>
+<x-page-table
+    title="Data Pembayaran Trainer"
+    subtitle="Riwayat dan status tagihan personal trainer."
+>
+    <x-data-table
+        tableId="pembayaranTrainer"
+        :colspan="$colCount"
+        placeholder="Cari kode transaksi atau nama anggota...">
+        <x-slot:header>
+            <tr>
+                <th scope="col">No</th>
+                <th scope="col">Aksi</th>
+                <th scope="col">Kode Transaksi</th>
+                <th scope="col">Nama Anggota</th>
+                <th scope="col">Paket</th>
+                <th scope="col">Harga</th>
+                <th scope="col">Diskon</th>
+                <th scope="col">Total Biaya</th>
+                <th scope="col">Total Dibayarkan</th>
+                <th scope="col">Status</th>
+            </tr>
+        </x-slot:header>
+    </x-data-table>
+</x-page-table>
 
 @if($isAdmin)
 <x-modal id="bayar-trainer-modal" title="Tambah Pembayaran Trainer">

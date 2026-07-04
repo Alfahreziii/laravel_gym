@@ -1,17 +1,41 @@
 /*============================================= Button Css Start =============================================*/
 .btn {
-    @apply rounded-[10px] py-2.5 px-4 inline-flex items-center gap-2 font-semibold transition-colors duration-150 focus:outline-none;
+    @apply rounded-[10px] py-2.5 px-4 inline-flex items-center gap-2 font-semibold
+           transition-colors duration-150 focus:outline-none focus:ring-4;
 }
 .btn-primary-600, .btn-primary {
-    @apply bg-primary-500 text-white hover:bg-primary-600 focus:ring-2 focus:ring-primary-400 focus:ring-offset-2;
+    @apply bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500/30;
 }
 .btn-outline-primary, .btn-outline-primary-600 {
-    @apply border border-primary-500 text-primary-600 hover:text-white hover:bg-primary-500 focus:ring-2 focus:ring-primary-400;
+    @apply border border-primary-500 text-primary-600 hover:text-white hover:bg-primary-500 focus:ring-primary-500/30;
+}
+.btn-secondary {
+    @apply bg-surface-light dark:bg-surface-dark text-ink dark:text-ink-d
+           border border-line-light dark:border-line-dark
+           hover:bg-canvas-light dark:hover:bg-canvas-dark
+           focus:ring-primary-500/30;
+}
+.btn-danger {
+    @apply bg-danger-500 text-white hover:bg-danger-600 focus:ring-danger-500/30;
+}
+.btn-ghost {
+    @apply text-ink-2 dark:text-ink-d2
+           hover:bg-canvas-light dark:hover:bg-canvas-dark
+           hover:text-ink dark:hover:text-ink-d;
+}
+.btn-icon {
+    @apply w-10 h-10 grid place-items-center p-0 rounded-[10px]
+           border border-line-light dark:border-line-dark
+           bg-surface-light dark:bg-surface-dark
+           text-ink-2 hover:bg-canvas-light dark:hover:bg-canvas-dark;
 }
 .btn-sm {
     @apply py-1.5 px-3 text-sm;
 }
 .btn-lg {
     @apply py-3 px-6 text-base;
+}
+.btn:disabled {
+    @apply opacity-40 cursor-not-allowed;
 }
 /*============================================= Button Css End =============================================*/

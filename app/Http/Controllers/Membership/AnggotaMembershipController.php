@@ -353,6 +353,34 @@ class AnggotaMembershipController extends Controller
         ]);
     }
 
+    public function datatablePembayaran(Request $request, $id)
+    {
+        $perPage = (int) $request->get('perPage', 10);
+        $page    = (int) $request->get('page', 1);
+
+        $query = PembayaranMembership::where('id_anggota_membership', $id)->latest('tgl_bayar');
+
+        $total = (clone $query)->count();
+        $data  = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        return response()->json([
+            'data' => $data->map(function ($item, $index) use ($page, $perPage) {
+                return [
+                    'no'                => (($page - 1) * $perPage) + $index + 1,
+                    'id'                => $item->id,
+                    'tgl_bayar'         => Carbon::parse($item->tgl_bayar)->format('d-m-Y'),
+                    'jumlah_bayar'      => 'Rp ' . number_format($item->jumlah_bayar, 0, ',', '.'),
+                    'metode_pembayaran' => $item->metode_pembayaran,
+                    'delete_url'        => route('pembayaran_membership.destroy', $item->id),
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
+    }
+
     public function index()
     {
         $anggotaMemberships = AnggotaMembership::with(['anggota', 'paketMembership'])->latest()->get();

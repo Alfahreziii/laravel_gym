@@ -1,0 +1,14 @@
+/*
+ * HexaGym — app.css
+ *
+ * Component styles (card, form-control, btn-*) live in the SCSS pipeline:
+ *   public/assets/scss/components/_card.scss
+ *   public/assets/scss/components/_form.scss
+ *   public/assets/scss/components/_button.scss
+ *
+ * Color tokens (surface/canvas/line/ink) are defined in tailwind.config.js
+ * and available via @apply in those SCSS files.
+ *
+ * This file is reserved for page-specific or one-off overrides
+ * that don't belong in the shared component files.
+ */

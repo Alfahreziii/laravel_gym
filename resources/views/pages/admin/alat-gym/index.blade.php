@@ -19,58 +19,49 @@
     <x-alert type="danger">{{ session('error') }}</x-alert>
 @endif
 
-<div class="grid grid-cols-12">
-    <div class="col-span-12">
-        <div class="card border-0 overflow-hidden">
-            <div class="card-header flex items-center justify-between">
-                <h6 class="card-title mb-0 text-lg">
-                    {{ $isLaporanMode ? 'Laporan Data Alat Gym' : 'Data Alat Gym' }}
-                </h6>
-                <div class="flex gap-2">
-                    <button type="button" onclick="HexaModal.show('export-pdf-modal')"
-                            class="text-white bg-danger-600 hover:bg-danger-700 focus:ring-4 focus:outline-none focus:ring-danger-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center">
-                        <iconify-icon icon="carbon:export" class="mr-2 text-lg"></iconify-icon>
-                        Export Laporan
-                    </button>
-                    @if(!$isLaporanMode)
-                        @role('admin')
-                        <a href="{{ route('alat_gym.create') }}"
-                           class="text-primary-600 focus:bg-primary-600 hover:bg-primary-700 border border-primary-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center dark:text-primary-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-primary-800">
-                           + Tambah Data
-                        </a>
-                        @endrole
-                    @endif
-                </div>
-            </div>
-            <div class="card-body">
-                <x-data-table
-                    tableId="alatGym"
-                    :colspan="$colCount"
-                    placeholder="Cari nama, barcode, kondisi...">
-                    <x-slot:header>
-                        <tr>
-                            <th scope="col">S.L</th>
-                            @if(!$isLaporanMode)
-                                @role('admin')
-                                <th scope="col">Aksi</th>
-                                @endrole
-                            @endif
-                            <th scope="col">Barcode</th>
-                            <th scope="col">Nama Alat Gym</th>
-                            <th scope="col">Jumlah</th>
-                            <th scope="col">Harga</th>
-                            <th scope="col">Tanggal Pembelian</th>
-                            <th scope="col">Lokasi Alat</th>
-                            <th scope="col">Kondisi Alat</th>
-                            <th scope="col">Vendor</th>
-                            <th scope="col">Kontak</th>
-                        </tr>
-                    </x-slot:header>
-                </x-data-table>
-            </div>
-        </div>
-    </div>
-</div>
+<x-page-table
+    title="{{ $isLaporanMode ? 'Laporan Data Alat Gym' : 'Data Alat Gym' }}"
+    subtitle="Kelola inventaris peralatan, kondisi, dan data vendor alat gym."
+>
+    <x-slot:actions>
+        <button type="button" onclick="HexaModal.show('export-pdf-modal')"
+            class="btn btn-secondary btn-sm">
+            <iconify-icon icon="carbon:export" class="text-base"></iconify-icon>
+            Export
+        </button>
+        @if(!$isLaporanMode)
+            @role('admin')
+            <a href="{{ route('alat_gym.create') }}" class="btn btn-primary btn-sm">
+                + Tambah Data
+            </a>
+            @endrole
+        @endif
+    </x-slot:actions>
+    <x-data-table
+        tableId="alatGym"
+        :colspan="$colCount"
+        placeholder="Cari nama, barcode, kondisi...">
+        <x-slot:header>
+            <tr>
+                <th scope="col">S.L</th>
+                @if(!$isLaporanMode)
+                    @role('admin')
+                    <th scope="col">Aksi</th>
+                    @endrole
+                @endif
+                <th scope="col">Barcode</th>
+                <th scope="col">Nama Alat Gym</th>
+                <th scope="col">Jumlah</th>
+                <th scope="col">Harga</th>
+                <th scope="col">Tanggal Pembelian</th>
+                <th scope="col">Lokasi Alat</th>
+                <th scope="col">Kondisi Alat</th>
+                <th scope="col">Vendor</th>
+                <th scope="col">Kontak</th>
+            </tr>
+        </x-slot:header>
+    </x-data-table>
+</x-page-table>
 
 <x-modal id="export-pdf-modal" title="Export Laporan Alat Gym">
     <x-slot:body>

@@ -268,6 +268,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
             Route::delete('/pembayaran-membership/{id}', 'destroyPembayaran')->name('pembayaran_membership.destroy');
         });
         Route::get('/anggota-membership/{id}/edit', 'edit')->middleware(RoleMiddleware::class . ':admin|spv')->name('anggota_membership.edit');
+        Route::get('/anggota-membership/{id}/pembayaran/datatable', 'datatablePembayaran')->middleware(RoleMiddleware::class . ':admin|spv')->name('anggota_membership.datatablePembayaran');
     });
 
     // Route untuk Spesialisasi Trainer
@@ -332,6 +333,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
             Route::delete('/pembayaran-trainer/{id}', 'destroyPembayaran')->name('pembayaran_trainer.destroy');
         });
         Route::get('/member-trainer/{id}/edit', 'edit')->middleware(RoleMiddleware::class . ':admin|spv')->name('membertrainer.edit');
+        Route::get('/member-trainer/{id}/pembayaran/datatable', 'datatablePembayaran')->middleware(RoleMiddleware::class . ':admin|spv')->name('membertrainer.datatablePembayaran');
     });
 
     // Route untuk Alat Gym
@@ -381,6 +383,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
             // Admin & SPV only
             Route::middleware([RoleMiddleware::class . ':admin|spv'])->group(function () {
                 Route::get('/users-list', 'usersList')->name('usersList');
+                Route::get('/users-datatable', 'datatableUsers')->name('users.datatable');
             });
 
             // Admin only

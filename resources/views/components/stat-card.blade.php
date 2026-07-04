@@ -4,76 +4,85 @@
     'icon'  => 'member',
     'color' => 'orange',
     'sub'   => null,
-    'trend' => null,   // e.g. '+4.8%' or '-2.1%' — only show if data available
+    'trend' => null,
 ])
 
 @php
 $variants = [
+    // blue → primary tone (biru→ungu)
     'blue' => [
-        'card'      => 'bg-gradient-to-br from-indigo-50 to-violet-50/80 border-indigo-200/50 dark:from-indigo-950/30 dark:to-violet-950/20 dark:border-indigo-800/40',
-        'glow'      => '0 4px 24px rgba(99,102,241,0.12), 0 1px 3px rgba(99,102,241,0.06)',
-        'glowHover' => '0 8px 32px rgba(99,102,241,0.22), 0 2px 8px rgba(99,102,241,0.12)',
-        'chip'      => 'from-indigo-500 to-violet-500',
+        'bg'        => 'linear-gradient(135deg,rgba(59,130,246,.13),rgba(139,92,246,.11))',
+        'border'    => 'rgba(124,108,246,.24)',
+        'glow'      => '0 14px 34px -12px rgba(99,102,241,.32)',
+        'glowHover' => '0 14px 34px -12px rgba(99,102,241,.46)',
+        'iconGrad'  => 'linear-gradient(135deg,#3B82F6,#8B5CF6)',
         'label'     => 'text-indigo-500 dark:text-indigo-400',
-        'value'     => 'text-indigo-900 dark:text-white',
-        'sub'       => 'text-indigo-400 dark:text-indigo-500',
+        'value'     => 'text-ink dark:text-ink-d',
+        'sub'       => 'text-ink-2 dark:text-ink-d2',
         'badge'     => 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300',
     ],
+    // cyan → attend tone (cyan→teal)
     'cyan' => [
-        'card'      => 'bg-gradient-to-br from-cyan-50 to-blue-50/80 border-cyan-200/50 dark:from-cyan-950/30 dark:to-blue-950/20 dark:border-cyan-800/40',
-        'glow'      => '0 4px 24px rgba(6,182,212,0.12), 0 1px 3px rgba(6,182,212,0.06)',
-        'glowHover' => '0 8px 32px rgba(6,182,212,0.22), 0 2px 8px rgba(6,182,212,0.12)',
-        'chip'      => 'from-cyan-500 to-blue-500',
+        'bg'        => 'linear-gradient(135deg,rgba(6,182,212,.13),rgba(13,148,136,.10))',
+        'border'    => 'rgba(6,182,212,.24)',
+        'glow'      => '0 14px 34px -12px rgba(6,182,212,.30)',
+        'glowHover' => '0 14px 34px -12px rgba(6,182,212,.46)',
+        'iconGrad'  => 'linear-gradient(135deg,#06B6D4,#0D9488)',
         'label'     => 'text-cyan-600 dark:text-cyan-400',
-        'value'     => 'text-cyan-900 dark:text-white',
-        'sub'       => 'text-cyan-500 dark:text-cyan-500',
+        'value'     => 'text-ink dark:text-ink-d',
+        'sub'       => 'text-ink-2 dark:text-ink-d2',
         'badge'     => 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/50 dark:text-cyan-300',
     ],
+    // pink → rose accent
     'pink' => [
-        'card'      => 'bg-gradient-to-br from-pink-50 to-purple-50/80 border-pink-200/50 dark:from-pink-950/30 dark:to-purple-950/20 dark:border-pink-800/40',
-        'glow'      => '0 4px 24px rgba(236,72,153,0.12), 0 1px 3px rgba(236,72,153,0.06)',
-        'glowHover' => '0 8px 32px rgba(236,72,153,0.22), 0 2px 8px rgba(236,72,153,0.12)',
-        'chip'      => 'from-pink-500 to-purple-500',
+        'bg'        => 'linear-gradient(135deg,rgba(236,72,153,.13),rgba(168,85,247,.10))',
+        'border'    => 'rgba(236,72,153,.24)',
+        'glow'      => '0 14px 34px -12px rgba(236,72,153,.30)',
+        'glowHover' => '0 14px 34px -12px rgba(236,72,153,.46)',
+        'iconGrad'  => 'linear-gradient(135deg,#EC4899,#A855F7)',
         'label'     => 'text-pink-600 dark:text-pink-400',
-        'value'     => 'text-pink-900 dark:text-white',
-        'sub'       => 'text-pink-500 dark:text-pink-500',
+        'value'     => 'text-ink dark:text-ink-d',
+        'sub'       => 'text-ink-2 dark:text-ink-d2',
         'badge'     => 'bg-pink-100 text-pink-700 dark:bg-pink-900/50 dark:text-pink-300',
     ],
+    // teal → money tone (emerald→teal)
     'teal' => [
-        'card'      => 'bg-gradient-to-br from-teal-50 to-emerald-50/80 border-teal-200/50 dark:from-teal-950/30 dark:to-emerald-950/20 dark:border-teal-800/40',
-        'glow'      => '0 4px 24px rgba(20,184,166,0.12), 0 1px 3px rgba(20,184,166,0.06)',
-        'glowHover' => '0 8px 32px rgba(20,184,166,0.22), 0 2px 8px rgba(20,184,166,0.12)',
-        'chip'      => 'from-teal-500 to-emerald-500',
-        'label'     => 'text-teal-600 dark:text-teal-400',
-        'value'     => 'text-teal-900 dark:text-white',
-        'sub'       => 'text-teal-500 dark:text-teal-500',
-        'badge'     => 'bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300',
+        'bg'        => 'linear-gradient(135deg,rgba(16,185,129,.13),rgba(20,184,166,.10))',
+        'border'    => 'rgba(16,185,129,.24)',
+        'glow'      => '0 14px 34px -12px rgba(16,185,129,.30)',
+        'glowHover' => '0 14px 34px -12px rgba(16,185,129,.46)',
+        'iconGrad'  => 'linear-gradient(135deg,#10B981,#14B8A6)',
+        'label'     => 'text-emerald-600 dark:text-emerald-400',
+        'value'     => 'text-ink dark:text-ink-d',
+        'sub'       => 'text-ink-2 dark:text-ink-d2',
+        'badge'     => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300',
     ],
+    // orange → warn tone (amber→merah)
     'orange' => [
-        'card'      => 'bg-gradient-to-br from-primary-50 to-orange-50/80 border-primary-200/50 dark:from-primary-900/20 dark:to-orange-950/15 dark:border-primary-800/40',
-        'glow'      => '0 4px 24px rgba(242,98,46,0.12), 0 1px 3px rgba(242,98,46,0.06)',
-        'glowHover' => '0 8px 32px rgba(242,98,46,0.22), 0 2px 8px rgba(242,98,46,0.12)',
-        'chip'      => 'from-primary-500 to-orange-400',
-        'label'     => 'text-primary-600 dark:text-primary-400',
-        'value'     => 'text-primary-900 dark:text-white',
-        'sub'       => 'text-primary-500 dark:text-primary-400',
-        'badge'     => 'bg-primary-100 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300',
+        'bg'        => 'linear-gradient(135deg,rgba(245,158,11,.14),rgba(239,68,68,.11))',
+        'border'    => 'rgba(245,158,11,.26)',
+        'glow'      => '0 14px 34px -12px rgba(239,68,68,.30)',
+        'glowHover' => '0 14px 34px -12px rgba(239,68,68,.46)',
+        'iconGrad'  => 'linear-gradient(135deg,#F59E0B,#EF4444)',
+        'label'     => 'text-amber-600 dark:text-amber-400',
+        'value'     => 'text-ink dark:text-ink-d',
+        'sub'       => 'text-ink-2 dark:text-ink-d2',
+        'badge'     => 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300',
     ],
 ];
 
-$v               = $variants[$color] ?? $variants['orange'];
-$glow            = $v['glow'];
-$glowHover       = $v['glowHover'];
-$trendPositive   = $trend && str_starts_with(trim($trend), '+');
-$trendText       = $trend ? ltrim(trim($trend), '+-') : null;
+$v             = $variants[$color] ?? $variants['orange'];
+$trendPositive = $trend && str_starts_with(trim($trend), '+');
+$trendText     = $trend ? ltrim(trim($trend), '+-') : null;
 @endphp
 
-<div {{ $attributes->merge(['class' => 'stat-card rounded-2xl p-5 border transition-all duration-200 ' . $v['card']]) }}
-     style="box-shadow: var(--glow); --glow: {{ $glow }}; --glow-hover: {{ $glowHover }}">
+<div {{ $attributes->merge(['class' => 'stat-card rounded-2xl p-5 border transition-all duration-300']) }}
+     style="background: {{ $v['bg'] }}; border-color: {{ $v['border'] }}; box-shadow: {{ $v['glow'] }}; backdrop-filter: blur(7px); --glow-hover: {{ $v['glowHover'] }}">
 
-    {{-- Top row: icon chip (left) + trend badge (right, conditional) --}}
+    {{-- Top row: icon chip + optional trend badge --}}
     <div class="flex items-start justify-between mb-3">
-        <div class="w-11 h-11 rounded-xl flex items-center justify-center bg-gradient-to-br {{ $v['chip'] }} shadow-sm">
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center shadow-sm"
+             style="background: {{ $v['iconGrad'] }}">
             <x-dynamic-component :component="'icon.' . $icon" class="text-xl text-white" />
         </div>
         @if($trend)

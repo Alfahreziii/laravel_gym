@@ -13,53 +13,45 @@
         <x-alert type="danger">{{ session('danger') }}</x-alert>
     @endif
 
-    <div class="grid grid-cols-12">
-        <div class="col-span-12">
-            <div class="card border-0 overflow-hidden">
-                <div class="card-header flex items-center justify-between">
-                    <h6 class="card-title mb-0 text-lg">
-                        {{ $isLaporanMode ? 'Laporan Penjualan Produk' : 'Penjualan Produk' }}
-                    </h6>
-                    <div class="flex gap-2">
-                        <button type="button" onclick="HexaModal.show('export-pdf-modal')"
-                            title="Maks. 300 transaksi. Gunakan Export Excel untuk data lebih banyak."
-                            class="text-white bg-danger-600 hover:bg-danger-700 focus:ring-4 focus:outline-none focus:ring-danger-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center">
-                            <iconify-icon icon="carbon:document-pdf" class="mr-2"></iconify-icon>
-                            Export PDF <span class="ml-1 text-xs opacity-75">(maks. 300)</span>
-                        </button>
-                        <button type="button" onclick="HexaModal.show('export-csv-modal')"
-                            class="text-white bg-success-600 hover:bg-success-700 focus:ring-4 focus:outline-none focus:ring-success-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center">
-                            <iconify-icon icon="carbon:document-export" class="mr-2"></iconify-icon>
-                            Export Excel
-                        </button>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <x-data-table
-                        tableId="riwayatKasir"
-                        :colspan="12"
-                        placeholder="Cari kode, nama pelanggan, metode pembayaran...">
-                        <x-slot:header>
-                            <tr>
-                                <th>No</th>
-                                <th>Kode Transaksi</th>
-                                <th>Nama Pelanggan</th>
-                                <th>Tanggal Transaksi</th>
-                                <th>Harga Total</th>
-                                <th>Dibayarkan</th>
-                                <th>Kembalian</th>
-                                <th>Metode Pembayaran</th>
-                                <th>Harga Sebelum Diskon</th>
-                                <th>Harga Diskon / Barang</th>
-                                <th>Harga Diskon Manual</th>
-                                <th>Total HPP</th>
-                            </tr>
-                        </x-slot:header>
-                    </x-data-table>
-                </div>
-            </div>
-        </div>
-    </div>
+<x-page-table
+    title="{{ $isLaporanMode ? 'Laporan Penjualan Produk' : 'Penjualan Produk' }}"
+    subtitle="Riwayat dan laporan transaksi penjualan kasir."
+>
+    <x-slot:actions>
+        <button type="button" onclick="HexaModal.show('export-pdf-modal')"
+            title="Maks. 300 transaksi. Gunakan Export Excel untuk data lebih banyak."
+            class="btn btn-secondary btn-sm">
+            <iconify-icon icon="carbon:document-pdf" class="text-base"></iconify-icon>
+            Export PDF <span class="text-xs opacity-75">(maks. 300)</span>
+        </button>
+        <button type="button" onclick="HexaModal.show('export-csv-modal')"
+            class="btn btn-secondary btn-sm">
+            <iconify-icon icon="carbon:document-export" class="text-base"></iconify-icon>
+            Export Excel
+        </button>
+    </x-slot:actions>
+    <x-data-table
+        tableId="riwayatKasir"
+        :colspan="12"
+        placeholder="Cari kode, nama pelanggan, metode pembayaran...">
+        <x-slot:header>
+            <tr>
+                <th>No</th>
+                <th>Kode Transaksi</th>
+                <th>Nama Pelanggan</th>
+                <th>Tanggal Transaksi</th>
+                <th>Harga Total</th>
+                <th>Dibayarkan</th>
+                <th>Kembalian</th>
+                <th>Metode Pembayaran</th>
+                <th>Harga Sebelum Diskon</th>
+                <th>Harga Diskon / Barang</th>
+                <th>Harga Diskon Manual</th>
+                <th>Total HPP</th>
+            </tr>
+        </x-slot:header>
+    </x-data-table>
+</x-page-table>
 
     <x-modal id="export-pdf-modal" title="Filter Export PDF">
         <x-slot:body>

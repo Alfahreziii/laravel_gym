@@ -2,185 +2,156 @@
 @php
     $title = 'List User';
     $subTitle = 'List User Management System';
-    $script = '<script src="' . asset('assets/js/data-table.js') . '"></script>';
 @endphp
 
 @section('content')
-    @if (session('success'))
-        <div
-            class="alert alert-success bg-success-50 dark:bg-success-600/25
-        text-success-600 dark:text-success-400 border-success-50
-        px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                {{ session('success') }}
-            </div>
-            <button class="remove-button text-success-600 text-2xl"> <iconify-icon
-                    icon="iconamoon:sign-times-light"></iconify-icon>
-            </button>
-        </div>
-    @endif
-    @if (session('danger'))
-        <div
-            class="alert alert-danger bg-danger-100 dark:bg-danger-600/25
-        text-danger-600 dark:text-danger-400 border-danger-100
-        px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
-            {{ session('danger') }}
-            <button class="remove-button text-danger-600 text-2xl">
-                <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
-            </button>
-        </div>
-    @endif
 
-    <div class="grid grid-cols-12">
-        <div class="col-span-12">
-            <div class="card border-0 overflow-hidden">
-                <div class="card-body">
-                    <table id="selection-table" class="border border-neutral-200 rounded-lg border-separate">
-                        <thead>
-                            <tr>
-                                <th scope="col">No</th>
-                                @role('admin')
-                                    <th scope="col">Aksi</th>
-                                @endrole
-                                <th scope="col">Foto</th>
-                                <th scope="col">Name</th>
-                                <th scope="col">Email</th>
-                                <th scope="col">Role</th>
-                                <th scope="col">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($users as $index => $item)
-                                @php $currentRole = $item->getRoleNames()->first(); @endphp
-                                <tr>
-                                    <td class="whitespace-nowrap">{{ $index + 1 }}</td>
-                                    @role('admin')
-                                        <td class="whitespace-nowrap">
-                                            @if (!in_array($currentRole, ['member', 'trainer']))
-                                                <button type="button" title="Ubah Role"
-                                                    onclick="HexaModal.show('editUserRole{{ $item->id }}')"
-                                                    class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
-                                                    <iconify-icon icon="lucide:edit"></iconify-icon>
-                                                </button>
-                                            @else
-                                                <span
-                                                    class="w-8 h-8 bg-gray-100 text-gray-400 rounded-full inline-flex items-center justify-center cursor-not-allowed"
-                                                    title="Role ini tidak dapat diubah">
-                                                    <iconify-icon icon="lucide:lock"></iconify-icon>
-                                                </span>
-                                            @endif
-                                        </td>
-                                    @endrole
-                                    <td class="whitespace-nowrap">
-                                        @if ($item->foto)
-                                            <img src="{{ asset('storage/' . $item->foto) }}"
-                                                alt="Photo {{ $item->anggota->name }}"
-                                                class="w-10 h-10 rounded-lg object-cover cursor-pointer item-photo"
-                                                data-photo="{{ asset('storage/' . $item->foto) }}">
-                                        @else
-                                            <span class="text-gray-400 italic">No photo</span>
-                                        @endif
-                                    </td>
-                                    <td class="whitespace-nowrap">{{ $item->name }}</td>
-                                    <td class="whitespace-nowrap">{{ $item->email }}</td>
-                                    <td class="whitespace-nowrap">{{ $item->getRoleNames()->implode(', ') }}</td>
-                                    <td>
-                                        @php
-                                            if ($item->last_activity) {
-                                                $last = \Carbon\Carbon::parse($item->last_activity)->setTimezone('Asia/Jakarta');
-                                                $now = now()->setTimezone('Asia/Jakarta');
-                                                $diffInMinutes = abs($now->diffInMinutes($last));
-                                                $isActive = $last->diffInMinutes($now, false) <= 2;
+@if(session('success'))
+    <x-alert type="success">{{ session('success') }}</x-alert>
+@endif
+@if(session('danger'))
+    <x-alert type="danger">{{ session('danger') }}</x-alert>
+@endif
 
-                                                if ($isActive && $last <= $now) {
-                                                    $status = 'Active';
-                                                    $statusClass = 'text-green-600 font-semibold';
-                                                    $timeInfo = '(' . number_format($diffInMinutes, 0) . ' menit yang lalu)';
-                                                } else {
-                                                    $status = 'Offline';
-                                                    $statusClass = 'text-gray-400';
-                                                    if ($diffInMinutes < 60) {
-                                                        $timeInfo = '(' . number_format($diffInMinutes, 0) . ' menit yang lalu)';
-                                                    } elseif ($diffInMinutes < 1440) {
-                                                        $hours = floor($diffInMinutes / 60);
-                                                        $timeInfo = '(' . $hours . ' jam yang lalu)';
-                                                    } else {
-                                                        $days = floor($diffInMinutes / 1440);
-                                                        $timeInfo = '(' . $days . ' hari yang lalu)';
-                                                    }
-                                                }
-                                            } else {
-                                                $status = 'Never Active';
-                                                $statusClass = 'text-gray-300 italic';
-                                                $timeInfo = '';
-                                            }
-                                        @endphp
-                                        <span class="{{ $statusClass }}">
-                                            {{ $status }} <span class="text-xs text-gray-500">{{ $timeInfo }}</span>
-                                        </span>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
+<x-page-table
+    title="Manajemen User"
+    subtitle="Kelola role dan akun pengguna sistem."
+>
+    <x-data-table tableId="users" :colspan="auth()->user()->hasRole('admin') ? 7 : 6" placeholder="Cari nama, email, atau role...">
+        <x-slot:header>
+            <tr>
+                <th scope="col">No</th>
+                @role('admin')
+                    <th scope="col">Aksi</th>
+                @endrole
+                <th scope="col">Foto</th>
+                <th scope="col">Name</th>
+                <th scope="col">Email</th>
+                <th scope="col">Role</th>
+                <th scope="col">Status</th>
+            </tr>
+        </x-slot:header>
+    </x-data-table>
+</x-page-table>
 
-    {{-- Modal Edit Role (satu per user, di luar tabel) --}}
-    @foreach ($users as $item)
-        @php $currentRole = $item->getRoleNames()->first(); @endphp
-        @if (!in_array($currentRole, ['member', 'trainer']))
-            <x-modal id="editUserRole{{ $item->id }}" title="Edit Role User">
-                <x-slot:body>
-                    <form action="{{ route('role.update', $item->id) }}" method="POST">
-                        @csrf
-                        @method('PUT')
-                        <div class="grid grid-cols-1 gap-6">
-                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="text-sm font-medium text-gray-500">Nama User:</label>
-                                        <p class="text-base font-semibold text-gray-900">{{ $item->name }}</p>
-                                    </div>
-                                    <div>
-                                        <label class="text-sm font-medium text-gray-500">Email:</label>
-                                        <p class="text-base font-semibold text-gray-900">{{ $item->email }}</p>
-                                    </div>
-                                </div>
-                            </div>
-
+    {{-- Modal Edit Role (shared) --}}
+    @role('admin')
+    <x-modal id="editUserRoleModal" title="Edit Role User">
+        <x-slot:body>
+            <form id="formEditRole" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="grid grid-cols-1 gap-6">
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label for="role_{{ $item->id }}" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
-                                    Pilih Role <span class="text-danger-600">*</span>
-                                </label>
-                                <select id="role_{{ $item->id }}" name="role"
-                                    class="form-control rounded-lg w-full border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                                    required>
-                                    <option value="" disabled>-- Pilih Role --</option>
-                                    <option value="admin" {{ $currentRole == 'admin' ? 'selected' : '' }}>Admin</option>
-                                    <option value="spv" {{ $currentRole == 'spv' ? 'selected' : '' }}>Supervisor (SPV)</option>
-                                    <option value="guest" {{ $currentRole == 'guest' ? 'selected' : '' }}>Guest</option>
-                                </select>
-                                <p class="text-xs text-gray-500 mt-1">Role saat ini: <span class="font-semibold text-primary-600">{{ ucfirst($currentRole ?? 'Tidak ada role') }}</span></p>
+                                <label class="text-sm font-medium text-gray-500">Nama User:</label>
+                                <p class="text-base font-semibold text-gray-900" id="modalUserName">-</p>
                             </div>
-
-                            <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
-                                <button type="button" data-close-modal="editUserRole{{ $item->id }}"
-                                    class="border border-gray-300 hover:bg-gray-100 text-gray-700 text-base px-8 py-2.5 rounded-lg transition-colors">
-                                    Batal
-                                </button>
-                                <button type="submit"
-                                    class="bg-primary-600 hover:bg-primary-700 text-white text-base px-8 py-2.5 rounded-lg transition-colors font-medium">
-                                    Update Role
-                                </button>
+                            <div>
+                                <label class="text-sm font-medium text-gray-500">Email:</label>
+                                <p class="text-base font-semibold text-gray-900" id="modalUserEmail">-</p>
                             </div>
                         </div>
-                    </form>
-                </x-slot:body>
-            </x-modal>
-        @endif
-    @endforeach
+                    </div>
+                    <div>
+                        <label class="inline-block font-semibold text-neutral-600 text-sm mb-2">
+                            Pilih Role <span class="text-danger-600">*</span>
+                        </label>
+                        <select id="modalRoleSelect" name="role"
+                            class="form-control rounded-lg w-full border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                            required>
+                            <option value="" disabled>-- Pilih Role --</option>
+                            <option value="admin">Admin</option>
+                            <option value="spv">Supervisor (SPV)</option>
+                            <option value="guest">Guest</option>
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">Role saat ini:
+                            <span id="modalCurrentRole" class="font-semibold text-primary-600">-</span>
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+                        <button type="button" data-close-modal="editUserRoleModal"
+                            class="border border-gray-300 hover:bg-gray-100 text-gray-700 text-base px-8 py-2.5 rounded-lg transition-colors">
+                            Batal
+                        </button>
+                        <button type="submit"
+                            class="bg-primary-600 hover:bg-primary-700 text-white text-base px-8 py-2.5 rounded-lg transition-colors font-medium">
+                            Update Role
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </x-slot:body>
+    </x-modal>
+    @endrole
 
+@endsection
+
+@section('scripts')
+    <script src="{{ asset('assets/js/ajax-table.js') }}"></script>
+    <script>
+        var isAdmin = {{ auth()->user()->hasRole('admin') ? 'true' : 'false' }};
+
+        AjaxTable.init('users', {
+            url: '{{ route('users.datatable') }}',
+            colSpan: isAdmin ? 7 : 6,
+            renderRow: function(item) {
+                var fotoHtml = item.foto
+                    ? '<img src="' + item.foto + '" alt="' + item.name + '" class="w-10 h-10 rounded-lg object-cover">'
+                    : '<span class="text-gray-400 italic text-xs">No photo</span>';
+
+                var actionHtml = '';
+                if (isAdmin) {
+                    if (item.can_edit_role) {
+                        actionHtml = '<td class="whitespace-nowrap">' +
+                            '<button type="button" title="Ubah Role" ' +
+                            'data-id="' + item.id + '" ' +
+                            'data-name="' + item.name.replace(/"/g, '&quot;') + '" ' +
+                            'data-email="' + item.email.replace(/"/g, '&quot;') + '" ' +
+                            'data-role="' + (item.current_role || '') + '" ' +
+                            'data-url="' + item.update_url + '" ' +
+                            'onclick="openEditRoleModal(this)" ' +
+                            'class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">' +
+                            '<iconify-icon icon="lucide:edit"></iconify-icon>' +
+                            '</button>' +
+                            '</td>';
+                    } else {
+                        actionHtml = '<td class="whitespace-nowrap">' +
+                            '<span class="w-8 h-8 bg-gray-100 text-gray-400 rounded-full inline-flex items-center justify-center cursor-not-allowed" title="Role ini tidak dapat diubah">' +
+                            '<iconify-icon icon="lucide:lock"></iconify-icon>' +
+                            '</span>' +
+                            '</td>';
+                    }
+                }
+
+                return '<tr>' +
+                    '<td class="whitespace-nowrap text-center">' + item.no + '</td>' +
+                    actionHtml +
+                    '<td class="whitespace-nowrap">' + fotoHtml + '</td>' +
+                    '<td class="whitespace-nowrap">' + item.name + '</td>' +
+                    '<td class="whitespace-nowrap">' + item.email + '</td>' +
+                    '<td class="whitespace-nowrap">' + (item.role || '-') + '</td>' +
+                    '<td class="whitespace-nowrap"><span class="' + item.status_class + '">' + item.status + ' <span class="text-xs text-gray-500">' + item.time_info + '</span></span></td>' +
+                    '</tr>';
+            }
+        });
+
+        window.openEditRoleModal = function(btn) {
+            var name = btn.getAttribute('data-name');
+            var email = btn.getAttribute('data-email');
+            var role = btn.getAttribute('data-role');
+            var url = btn.getAttribute('data-url');
+
+            document.getElementById('modalUserName').textContent = name;
+            document.getElementById('modalUserEmail').textContent = email;
+            document.getElementById('modalCurrentRole').textContent = role
+                ? (role.charAt(0).toUpperCase() + role.slice(1))
+                : 'Tidak ada role';
+            document.getElementById('modalRoleSelect').value = role || '';
+            document.getElementById('formEditRole').action = url;
+
+            HexaModal.show('editUserRoleModal');
+        };
+    </script>
 @endsection
