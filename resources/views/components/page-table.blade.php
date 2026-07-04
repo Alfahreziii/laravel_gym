@@ -15,6 +15,10 @@
     @endisset
 </div>
 
+@isset($stats)
+    {{ $stats }}
+@endisset
+
 {{-- Card: flush (p-0) agar tabel edge-to-edge, padding diatur per-section di data-table --}}
 <x-card flush>
     {{ $slot }}
