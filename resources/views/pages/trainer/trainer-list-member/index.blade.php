@@ -14,39 +14,35 @@
     <x-alert type="danger">{{ session('error') }}</x-alert>
 @endif
 
-<div class="grid grid-cols-12 mt-6">
-    <div class="col-span-12">
-        <div class="card border-0 overflow-hidden">
-            <div class="card-header flex items-center justify-between">
-                <h6 class="card-title mb-0 text-lg">Daftar Member Anda</h6>
-                <a href="{{ route('trainer.session.logs') }}"
-                    class="text-primary-600 focus:bg-primary-600 hover:bg-primary-700 border border-primary-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center dark:text-primary-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-primary-800">
-                    📋 Lihat Riwayat Sesi
-                </a>
-            </div>
-            <div class="card-body">
-                <x-data-table
-                    tableId="trainerListMember"
-                    :colspan="9"
-                    placeholder="Cari nama atau nomor telepon member...">
-                    <x-slot:header>
-                        <tr>
-                            <th scope="col">No</th>
-                            <th scope="col">Member</th>
-                            <th scope="col">Paket Aktif</th>
-                            <th scope="col">Sesi Aktif</th>
-                            <th scope="col">Sesi Selesai</th>
-                            <th scope="col">Sesi Kadaluarsa</th>
-                            <th scope="col">Status Kehadiran</th>
-                            <th scope="col">Status Sesi</th>
-                            <th scope="col">Aksi</th>
-                        </tr>
-                    </x-slot:header>
-                </x-data-table>
-            </div>
-        </div>
-    </div>
-</div>
+<x-page-table
+    title="Daftar Member Anda"
+    subtitle="Daftar member yang ditangani dan kelola sesi training aktif."
+>
+    <x-slot:actions>
+        <a href="{{ route('trainer.session.logs') }}" class="btn btn-secondary btn-sm">
+            📋 Lihat Riwayat Sesi
+        </a>
+    </x-slot:actions>
+
+    <x-data-table
+        tableId="trainerListMember"
+        :colspan="9"
+        placeholder="Cari nama atau nomor telepon member...">
+        <x-slot:header>
+            <tr>
+                <th scope="col">No</th>
+                <th scope="col">Member</th>
+                <th scope="col">Paket Aktif</th>
+                <th scope="col">Sesi Aktif</th>
+                <th scope="col">Sesi Selesai</th>
+                <th scope="col">Sesi Kadaluarsa</th>
+                <th scope="col">Status Kehadiran</th>
+                <th scope="col">Status Sesi</th>
+                <th scope="col">Aksi</th>
+            </tr>
+        </x-slot:header>
+    </x-data-table>
+</x-page-table>
 
 {{-- Modal Mulai Sesi --}}
 <x-modal id="start-session-modal" title="Mulai Sesi Training">

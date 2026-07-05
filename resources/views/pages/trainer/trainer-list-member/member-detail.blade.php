@@ -115,56 +115,44 @@
 </div>
 
 {{-- Paket Aktif --}}
-<div class="grid grid-cols-12 mb-6">
-    <div class="col-span-12">
-        <div class="card border-0 overflow-hidden">
-            <div class="card-header">
-                <h6 class="card-title mb-0 text-lg">Paket Aktif</h6>
-            </div>
-            <div class="card-body">
-                <x-data-table tableId="paketAktif" :colspan="6" placeholder="Cari paket atau kode transaksi...">
-                    <x-slot:header>
-                        <tr>
-                            <th scope="col">No</th>
-                            <th scope="col">Paket</th>
-                            <th scope="col">Periode</th>
-                            <th scope="col">Sesi Tersisa</th>
-                            <th scope="col">Status</th>
-                            <th scope="col">Aksi</th>
-                        </tr>
-                    </x-slot:header>
-                </x-data-table>
-            </div>
-        </div>
+<div class="card border-0 overflow-hidden mb-6">
+    <div class="flex items-center px-4 py-3 border-b border-neutral-200">
+        <span class="font-semibold text-base">Paket Aktif</span>
     </div>
+    <x-data-table tableId="paketAktif" :colspan="6" placeholder="Cari paket atau kode transaksi...">
+        <x-slot:header>
+            <tr>
+                <th scope="col">No</th>
+                <th scope="col">Paket</th>
+                <th scope="col">Periode</th>
+                <th scope="col">Sesi Tersisa</th>
+                <th scope="col">Status</th>
+                <th scope="col">Aksi</th>
+            </tr>
+        </x-slot:header>
+    </x-data-table>
 </div>
 
 {{-- Riwayat Semua Paket --}}
-<div class="grid grid-cols-12">
-    <div class="col-span-12">
-        <div class="card border-0 overflow-hidden">
-            <div class="card-header">
-                <h6 class="card-title mb-0 text-lg">Riwayat Semua Paket</h6>
-            </div>
-            <div class="card-body">
-                <x-data-table tableId="riwayatPaket" :colspan="9" placeholder="Cari kode transaksi atau paket...">
-                    <x-slot:header>
-                        <tr>
-                            <th scope="col">No</th>
-                            <th scope="col">Kode Transaksi</th>
-                            <th scope="col">Riwayat Gym</th>
-                            <th scope="col">Paket</th>
-                            <th scope="col">Periode</th>
-                            <th scope="col">Total Sesi</th>
-                            <th scope="col">Sesi Selesai</th>
-                            <th scope="col">Sisa Sesi</th>
-                            <th scope="col">Status</th>
-                        </tr>
-                    </x-slot:header>
-                </x-data-table>
-            </div>
-        </div>
+<div class="card border-0 overflow-hidden">
+    <div class="flex items-center px-4 py-3 border-b border-neutral-200">
+        <span class="font-semibold text-base">Riwayat Semua Paket</span>
     </div>
+    <x-data-table tableId="riwayatPaket" :colspan="9" placeholder="Cari kode transaksi atau paket...">
+        <x-slot:header>
+            <tr>
+                <th scope="col">No</th>
+                <th scope="col">Kode Transaksi</th>
+                <th scope="col">Riwayat Gym</th>
+                <th scope="col">Paket</th>
+                <th scope="col">Periode</th>
+                <th scope="col">Total Sesi</th>
+                <th scope="col">Sesi Selesai</th>
+                <th scope="col">Sisa Sesi</th>
+                <th scope="col">Status</th>
+            </tr>
+        </x-slot:header>
+    </x-data-table>
 </div>
 
 {{-- Modal Mulai Sesi --}}

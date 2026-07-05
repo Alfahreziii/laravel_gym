@@ -15,37 +15,33 @@
     <x-alert type="danger">{{ session('danger') }}</x-alert>
 @endif
 
-<div class="grid grid-cols-12">
-    <div class="col-span-12">
-        <div class="card border-0 overflow-hidden">
-            <div class="card-header flex items-center justify-between">
-                <h6 class="card-title mb-0 text-lg">Level Trainer</h6>
+<x-page-table
+    title="Level Trainer"
+    subtitle="Kelola level jenjang karier trainer (Junior, Senior, Expert, dst.)."
+>
+    <x-slot:actions>
+        @if($isAdmin)
+        <button type="button" onclick="HexaModal.show('add-level-modal')" class="btn btn-primary btn-sm">
+            + Tambah Data
+        </button>
+        @endif
+    </x-slot:actions>
+
+    <x-data-table
+        tableId="levelTrainer"
+        :colspan="$colCount"
+        placeholder="Cari nama level...">
+        <x-slot:header>
+            <tr>
+                <th scope="col">No</th>
+                <th scope="col">Nama Level</th>
                 @if($isAdmin)
-                <button type="button" onclick="HexaModal.show('add-level-modal')"
-                    class="text-primary-600 focus:bg-primary-600 hover:bg-primary-700 border border-primary-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center dark:text-primary-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-primary-800">
-                    + Tambah Data
-                </button>
+                <th scope="col">Aksi</th>
                 @endif
-            </div>
-            <div class="card-body">
-                <x-data-table
-                    tableId="levelTrainer"
-                    :colspan="$colCount"
-                    placeholder="Cari nama level...">
-                    <x-slot:header>
-                        <tr>
-                            <th scope="col">No</th>
-                            <th scope="col">Nama Level</th>
-                            @if($isAdmin)
-                            <th scope="col">Aksi</th>
-                            @endif
-                        </tr>
-                    </x-slot:header>
-                </x-data-table>
-            </div>
-        </div>
-    </div>
-</div>
+            </tr>
+        </x-slot:header>
+    </x-data-table>
+</x-page-table>
 
 @if($isAdmin)
 <x-modal id="edit-level-modal" title="Edit Level Trainer">

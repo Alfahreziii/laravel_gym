@@ -89,35 +89,28 @@
 </div>
 
 {{-- Daftar Member --}}
-<div class="grid grid-cols-12">
-    <div class="col-span-12">
-        <div class="card border-0 overflow-hidden">
-            <div class="card-header flex items-center justify-between">
-                <h6 class="card-title mb-0 text-lg">Daftar Member Anda (Yang Aktif)</h6>
-                <a href="{{ route('trainer.session.logs') }}"
-                    class="text-primary-600 focus:bg-primary-600 hover:bg-primary-700 border border-primary-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center dark:text-primary-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-primary-800">
-                    📋 Lihat Riwayat Sesi
-                </a>
-            </div>
-            <div class="card-body">
-                <x-data-table tableId="dashboardMember" :colspan="9" placeholder="Cari nama member atau paket...">
-                    <x-slot:header>
-                        <tr>
-                            <th scope="col">No</th>
-                            <th scope="col">Member</th>
-                            <th scope="col">Riwayat Gym</th>
-                            <th scope="col">Paket</th>
-                            <th scope="col">Sesi Selesai</th>
-                            <th scope="col">Sisa Sesi</th>
-                            <th scope="col">Status Kehadiran</th>
-                            <th scope="col">Status Sesi</th>
-                            <th scope="col">Aksi</th>
-                        </tr>
-                    </x-slot:header>
-                </x-data-table>
-            </div>
-        </div>
+<div class="card border-0 overflow-hidden">
+    <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-200">
+        <span class="font-semibold text-base">Daftar Member Anda (Yang Aktif)</span>
+        <a href="{{ route('trainer.session.logs') }}" class="btn btn-secondary btn-sm">
+            📋 Lihat Riwayat Sesi
+        </a>
     </div>
+    <x-data-table tableId="dashboardMember" :colspan="9" placeholder="Cari nama member atau paket...">
+        <x-slot:header>
+            <tr>
+                <th scope="col">No</th>
+                <th scope="col">Member</th>
+                <th scope="col">Riwayat Gym</th>
+                <th scope="col">Paket</th>
+                <th scope="col">Sesi Selesai</th>
+                <th scope="col">Sisa Sesi</th>
+                <th scope="col">Status Kehadiran</th>
+                <th scope="col">Status Sesi</th>
+                <th scope="col">Aksi</th>
+            </tr>
+        </x-slot:header>
+    </x-data-table>
 </div>
 
 {{-- Modal Mulai Sesi --}}

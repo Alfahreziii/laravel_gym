@@ -14,32 +14,26 @@
     <x-alert type="danger">{{ session('danger') }}</x-alert>
 @endif
 
-<div class="grid grid-cols-12">
-    <div class="col-span-12">
-        <div class="card border-0 overflow-hidden">
-            <div class="card-header flex items-center justify-between">
-                <h6 class="card-title mb-0 text-lg">Data Pembayaran Gaji Trainer</h6>
-            </div>
-            <div class="card-body">
-                <x-data-table
-                    tableId="gajiTrainer"
-                    :colspan="$colCount"
-                    placeholder="Cari nama trainer...">
-                    <x-slot:header>
-                        <tr>
-                            <th scope="col">No</th>
-                            <th scope="col">Aksi</th>
-                            <th scope="col">Nama Trainer</th>
-                            <th scope="col">Terakhir Gajian</th>
-                            <th scope="col">Sesi Belum Dibayar</th>
-                            <th scope="col">Base Rate</th>
-                        </tr>
-                    </x-slot:header>
-                </x-data-table>
-            </div>
-        </div>
-    </div>
-</div>
+<x-page-table
+    title="Data Pembayaran Gaji Trainer"
+    subtitle="Proses pembayaran gaji trainer berdasarkan sesi yang sudah dijalani."
+>
+    <x-data-table
+        tableId="gajiTrainer"
+        :colspan="$colCount"
+        placeholder="Cari nama trainer...">
+        <x-slot:header>
+            <tr>
+                <th scope="col">No</th>
+                <th scope="col">Aksi</th>
+                <th scope="col">Nama Trainer</th>
+                <th scope="col">Terakhir Gajian</th>
+                <th scope="col">Sesi Belum Dibayar</th>
+                <th scope="col">Base Rate</th>
+            </tr>
+        </x-slot:header>
+    </x-data-table>
+</x-page-table>
 
 <x-modal id="bayar-gaji-modal" title="Form Pembayaran Gaji Trainer" maxWidth="max-w-2xl">
     <x-slot:body>

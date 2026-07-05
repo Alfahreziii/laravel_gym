@@ -5,46 +5,34 @@
 @endphp
 
 @section('content')
-    <div class="grid grid-cols-12 mb-5">
-        <div class="col-span-12">
-            <div class="card border-0 overflow-hidden">
-                <div class="card-header flex items-center justify-between">
-                    <h6 class="card-title mb-0 text-lg">Riwayat Pembayaran</h6>
-                    @role('admin')
-                        <button type="button" onclick="openPopupModal()"
-                            class="text-primary-600 focus:bg-primary-600 hover:bg-primary-700 border border-primary-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center dark:text-primary-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-primary-800">
-                            + Tambah Data
-                        </button>
-                    @endrole
-                </div>
-                <div class="card-body">
-                    <x-data-table tableId="riwayatPembayaranMembership" :colspan="auth()->user()->hasRole('admin') ? 5 : 4" placeholder="Cari tanggal atau metode...">
-                        <x-slot:header>
-                            <tr>
-                                <th>S.L</th>
-                                <th>Tanggal Bayar</th>
-                                <th>Jumlah Bayar</th>
-                                <th>Metode Pembayaran</th>
-                                @role('admin')
-                                    <th>Aksi</th>
-                                @endrole
-                            </tr>
-                        </x-slot:header>
-                    </x-data-table>
-                </div>
-            </div>
-        </div>
+<div class="card border-0 overflow-hidden mb-5">
+    <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-200">
+        <span class="font-semibold text-base">Riwayat Pembayaran</span>
+        @role('admin')
+        <button type="button" onclick="openPopupModal()" class="btn btn-primary btn-sm">+ Tambah Data</button>
+        @endrole
     </div>
+    <x-data-table tableId="riwayatPembayaranMembership" :colspan="auth()->user()->hasRole('admin') ? 5 : 4" placeholder="Cari tanggal atau metode...">
+        <x-slot:header>
+            <tr>
+                <th>S.L</th>
+                <th>Tanggal Bayar</th>
+                <th>Jumlah Bayar</th>
+                <th>Metode Pembayaran</th>
+                @role('admin')
+                    <th>Aksi</th>
+                @endrole
+            </tr>
+        </x-slot:header>
+    </x-data-table>
+</div>
 
     <div class="grid grid-cols-12">
         <div class="col-span-12">
             <div class="card border-0">
                 <div class="card-header flex items-center justify-between">
                     <h6 class="card-title mb-0 text-lg">Detail Anggota Membership</h6>
-                    <a href="{{ route('anggota_membership.index') }}"
-                        class="text-danger-600 focus:bg-danger-600 hover:bg-danger-700 border border-danger-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-danger-300 font-medium rounded-lg text-base px-6 py-3 text-center inline-flex items-center dark:text-danger-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-danger-800">
-                        Kembali
-                    </a>
+                    <a href="{{ route('anggota_membership.index') }}" class="btn btn-danger btn-sm">Kembali</a>
                 </div>
                 <div class="card-body">
                     <form action="{{ route('anggota_membership.update', $anggotaMembership->id) }}" method="POST">

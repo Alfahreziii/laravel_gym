@@ -6,88 +6,56 @@
 @endphp
 
 @section('content')
-    @if (session('success'))
-        <div
-            class="alert alert-success bg-success-50 dark:bg-success-600/25 
-        text-success-600 dark:text-success-400 border-success-50 
-        px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                {{ session('success') }}
-            </div>
-            <button class="remove-button text-success-600 text-2xl">
-                <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
-            </button>
-        </div>
-    @endif
-    @if (session('error'))
-        <div
-            class="alert alert-danger bg-danger-100 dark:bg-danger-600/25 
-        text-danger-600 dark:text-danger-400 border-danger-100 
-        px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
-            {{ session('error') }}
-            <button class="remove-button text-danger-600 text-2xl">
-                <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
-            </button>
-        </div>
-    @endif
+@if(session('success'))
+    <x-alert type="success">{{ session('success') }}</x-alert>
+@endif
+@if(session('error'))
+    <x-alert type="danger">{{ session('error') }}</x-alert>
+@endif
 
-    <div class="grid grid-cols-12">
-        <div class="col-span-12">
-            <div class="card border-0 overflow-hidden">
-                <div class="card-header flex items-center justify-between">
-                    <h6 class="card-title mb-0 text-lg">
-                        {{ $isLaporanMode ? 'Laporan Data Trainer' : 'Data Trainer' }}
-                    </h6>
-                    <div class="flex gap-2">
-                        <!-- Tombol Export PDF -->
-                        <button type="button" onclick="HexaModal.show('export-pdf-modal')"
-                            class="text-white bg-danger-600 hover:bg-danger-700 focus:ring-4 focus:outline-none focus:ring-danger-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center">
-                            <iconify-icon icon="carbon:export" class="mr-2 text-lg"></iconify-icon>
-                            Export Laporan
-                        </button>
+<x-page-table
+    title="{{ $isLaporanMode ? 'Laporan Data Trainer' : 'Data Trainer' }}"
+    subtitle="Kelola data trainer, status keaktifan, dan spesialisasi."
+>
+    <x-slot:actions>
+        <button type="button" onclick="HexaModal.show('export-pdf-modal')" class="btn btn-danger btn-sm">
+            <iconify-icon icon="carbon:export" class="text-base"></iconify-icon>
+            Export Laporan
+        </button>
+        @if (!$isLaporanMode)
+            @role('admin')
+                <a href="{{ route('trainer.create') }}" class="btn btn-primary btn-sm">+ Tambah Data</a>
+            @endrole
+        @endif
+    </x-slot:actions>
 
-                        {{-- Tombol Tambah Data hanya tampil jika BUKAN mode laporan --}}
-                        @if (!$isLaporanMode)
-                            @role('admin')
-                                <a href="{{ route('trainer.create') }}"
-                                    class="text-primary-600 focus:bg-primary-600 hover:bg-primary-700 border border-primary-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center dark:text-primary-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-primary-800">
-                                    + Tambah Data
-                                </a>
-                            @endrole
-                        @endif
-                    </div>
-                </div>
-                <div class="card-body">
-                    <x-data-table tableId="trainer" :colspan="$isLaporanMode ? 11 : 13" placeholder="Search...">
-                        <x-slot:header>
-                            <tr>
-                                <th>S.L</th>
-                                @if (!$isLaporanMode)
-                                    <th>Aksi</th>
-                                @endif
-                                <th>Fingerprint</th>
-                                <th>Foto</th>
-                                <th>Nama</th>
-                                <th>No Telp</th>
-                                <th>Spesialisasi</th>
-                                <th>Sesi Belum Dijalani</th>
-                                <th>Sesi Sudah Dijalani</th>
-                                <th>Experience</th>
-                                <th>Tanggal Gabung</th>
-                                <th>Status</th>
-                                <th>Fingerprint</th>
-                                @if (!$isLaporanMode)
-                                    <th></th>
-                                @endif
-                            </tr>
-                        </x-slot:header>
-                    </x-data-table>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-data-table tableId="trainer" :colspan="$isLaporanMode ? 11 : 13" placeholder="Search...">
+        <x-slot:header>
+            <tr>
+                <th>S.L</th>
+                @if (!$isLaporanMode)
+                    <th>Aksi</th>
+                @endif
+                <th>Fingerprint</th>
+                <th>Foto</th>
+                <th>Nama</th>
+                <th>No Telp</th>
+                <th>Spesialisasi</th>
+                <th>Sesi Belum Dijalani</th>
+                <th>Sesi Sudah Dijalani</th>
+                <th>Experience</th>
+                <th>Tanggal Gabung</th>
+                <th>Status</th>
+                <th>Fingerprint</th>
+                @if (!$isLaporanMode)
+                    <th></th>
+                @endif
+            </tr>
+        </x-slot:header>
+    </x-data-table>
+</x-page-table>
 
-    <x-modal id="export-pdf-modal" title="Filter Export Laporan">
+<x-modal id="export-pdf-modal" title="Filter Export Laporan">
         <x-slot:body>
             <form action="{{ route('trainer.export_pdf') }}" method="POST" id="export-pdf-form">
                 @csrf

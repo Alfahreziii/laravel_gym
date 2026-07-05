@@ -13,33 +13,29 @@
     <x-alert type="danger">{{ session('danger') }}</x-alert>
 @endif
 
-<div class="grid grid-cols-12">
-    <div class="col-span-12">
-        <div class="card border-0 overflow-hidden">
-            <div class="card-header flex items-center justify-between">
-                <h6 class="card-title mb-0 text-lg">PlayList Trainer</h6>
-                <button type="button" onclick="HexaModal.show('add-playlist-modal')"
-                    class="text-primary-600 focus:bg-primary-600 hover:bg-primary-700 border border-primary-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center dark:text-primary-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-primary-800">
-                    + Tambah Data
-                </button>
-            </div>
-            <div class="card-body">
-                <x-data-table
-                    tableId="playlistTrainer"
-                    :colspan="3"
-                    placeholder="Cari nama latihan...">
-                    <x-slot:header>
-                        <tr>
-                            <th scope="col">No</th>
-                            <th scope="col">Nama Latihan</th>
-                            <th scope="col">Aksi</th>
-                        </tr>
-                    </x-slot:header>
-                </x-data-table>
-            </div>
-        </div>
-    </div>
-</div>
+<x-page-table
+    title="Playlist Trainer"
+    subtitle="Kelola daftar latihan untuk program training member."
+>
+    <x-slot:actions>
+        <button type="button" onclick="HexaModal.show('add-playlist-modal')" class="btn btn-primary btn-sm">
+            + Tambah Data
+        </button>
+    </x-slot:actions>
+
+    <x-data-table
+        tableId="playlistTrainer"
+        :colspan="3"
+        placeholder="Cari nama latihan...">
+        <x-slot:header>
+            <tr>
+                <th scope="col">No</th>
+                <th scope="col">Nama Latihan</th>
+                <th scope="col">Aksi</th>
+            </tr>
+        </x-slot:header>
+    </x-data-table>
+</x-page-table>
 
 <x-modal id="edit-playlist-modal" title="Edit Playlist">
     <x-slot:body>

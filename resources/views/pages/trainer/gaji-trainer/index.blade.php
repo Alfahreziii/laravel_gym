@@ -15,42 +15,34 @@
     <x-alert type="danger">{{ session('danger') }}</x-alert>
 @endif
 
-<div class="grid grid-cols-12">
-    <div class="col-span-12">
-        <div class="card border-0 overflow-hidden">
-            <div class="card-header flex items-center justify-between">
-                <h6 class="card-title mb-0 text-lg">Data Parameter Gaji Trainer</h6>
-                <div class="flex gap-2">
-                    @role('admin')
-                    <a href="{{ route('gaji_trainer.create') }}"
-                       class="text-primary-600 focus:bg-primary-600 hover:bg-primary-700 border border-primary-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center dark:text-primary-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-primary-800">
-                       + Tambah Data
-                    </a>
-                    @endrole
-                </div>
-            </div>
-            <div class="card-body">
-                <x-data-table
-                    tableId="gajiTrainer"
-                    :colspan="$colCount"
-                    placeholder="Cari nama trainer atau level...">
-                    <x-slot:header>
-                        <tr>
-                            <th scope="col">No</th>
-                            @role('admin')
-                            <th scope="col">Aksi</th>
-                            @endrole
-                            <th scope="col">Nama Trainer</th>
-                            <th scope="col">Level</th>
-                            <th scope="col">Base Rate per Sesi</th>
-                            <th scope="col">Tanggal Gajian</th>
-                        </tr>
-                    </x-slot:header>
-                </x-data-table>
-            </div>
-        </div>
-    </div>
-</div>
+<x-page-table
+    title="Data Parameter Gaji Trainer"
+    subtitle="Atur parameter base rate dan jadwal gajian per trainer."
+>
+    <x-slot:actions>
+        @role('admin')
+        <a href="{{ route('gaji_trainer.create') }}" class="btn btn-primary btn-sm">+ Tambah Data</a>
+        @endrole
+    </x-slot:actions>
+
+    <x-data-table
+        tableId="gajiTrainer"
+        :colspan="$colCount"
+        placeholder="Cari nama trainer atau level...">
+        <x-slot:header>
+            <tr>
+                <th scope="col">No</th>
+                @role('admin')
+                <th scope="col">Aksi</th>
+                @endrole
+                <th scope="col">Nama Trainer</th>
+                <th scope="col">Level</th>
+                <th scope="col">Base Rate per Sesi</th>
+                <th scope="col">Tanggal Gajian</th>
+            </tr>
+        </x-slot:header>
+    </x-data-table>
+</x-page-table>
 
 @endsection
 
