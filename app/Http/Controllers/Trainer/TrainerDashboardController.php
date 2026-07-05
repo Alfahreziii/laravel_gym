@@ -269,11 +269,52 @@ class TrainerDashboardController extends Controller
             return redirect()->back()->with('error', 'Anda tidak terdaftar sebagai trainer.');
         }
 
-        $logs = SesiTrainer::where('id_trainer', $trainer->id)
-            ->latest()
-            ->paginate(20);
+        return view('pages.trainer.dashboard.session-logs', compact('trainer'));
+    }
 
-        return view('pages.trainer.dashboard.session-logs', compact('trainer', 'logs'));
+    public function sessionLogsDatatable(Request $request)
+    {
+        $user    = Auth::user();
+        $trainer = Trainer::where('id', $user->trainer_id ?? 0)->first();
+
+        if (!$trainer) {
+            return response()->json(['data' => [], 'total' => 0, 'perPage' => 10, 'page' => 1, 'lastPage' => 1]);
+        }
+
+        $search  = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page    = (int) $request->get('page', 1);
+
+        $query = SesiTrainer::where('id_trainer', $trainer->id)->latest();
+
+        if ($search) {
+            $query->where('description', 'like', "%{$search}%");
+        }
+
+        $total = (clone $query)->count();
+        $data  = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        return response()->json([
+            'data' => $data->map(function ($log, $index) use ($page, $perPage) {
+                $cleanDescription = preg_replace_callback(
+                    '/durasi:\s*(-?[\d.]+)\s*menit/i',
+                    fn($m) => 'durasi: ' . round(abs((float) $m[1])) . ' menit',
+                    $log->description ?? '',
+                );
+                return [
+                    'no'          => (($page - 1) * $perPage) + $index + 1,
+                    'created_at'  => $log->created_at->format('d M Y H:i'),
+                    'type'        => $log->type,
+                    'sesi'        => $log->sesi,
+                    'current_sesi'=> $log->current_sesi,
+                    'description' => $cleanDescription,
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, (int) ceil($total / $perPage)),
+        ]);
     }
 
     public function exportSessionLogsPdf(Request $request)

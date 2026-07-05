@@ -14,86 +14,41 @@
     <x-alert type="danger">{{ session('error') }}</x-alert>
 @endif
 
-{{-- Status Training --}}
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-    <div class="card shadow-none border border-gray-200 rounded-lg h-full bg-gradient-to-r from-cyan-600/10 to-bg-white">
-        <div class="card-body p-5">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                    <p class="font-medium text-neutral-900 mb-1">Status</p>
-                    <h6>
-                        @if($trainer->isTraining())
-                            <span>🔴 Training</span>
-                        @else
-                            <span>🟢 Available</span>
-                        @endif
-                    </h6>
-                </div>
-                <div class="w-[50px] h-[50px] bg-cyan-600 rounded-full flex justify-center items-center">
-                    <iconify-icon icon="gridicons:multiple-users" class="text-white text-2xl mb-0"></iconify-icon>
-                </div>
-            </div>
-            @if($trainer->active_session)
-                <p class="font-medium text-sm text-neutral-600 mt-3 mb-0 flex items-center gap-2">
-                    <span class="inline-flex items-center gap-1 text-success-600">
-                        <iconify-icon icon="bxs:up-arrow" class="text-xs"></iconify-icon>
-                        Sedang melatih:
-                    </span>
-                    {{ $trainer->active_session->anggota->name }}
-                </p>
-            @endif
-        </div>
-    </div>
+@php
+    $isTraining  = $trainer->isTraining();
+    $statusLabel = $isTraining ? 'Training' : 'Available';
+    $statusColor = $isTraining ? 'orange' : 'teal';
+    $statusSub   = $isTraining && $trainer->active_session
+        ? 'Melatih: ' . $trainer->active_session->anggota->name
+        : 'Tidak ada sesi aktif';
+@endphp
 
-    <div class="card shadow-none border border-gray-200 rounded-lg h-full bg-gradient-to-r from-cyan-600/10 to-bg-white">
-        <div class="card-body p-5">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                    <p class="font-medium text-neutral-900 mb-1">Sesi Sudah Dijalani</p>
-                    <h6>{{ $trainer->sesi_sudah_dijalani }}</h6>
-                </div>
-                <div class="w-[50px] h-[50px] bg-purple-600 rounded-full flex justify-center items-center">
-                    <iconify-icon icon="fa-solid:award" class="text-white text-2xl mb-0"></iconify-icon>
-                </div>
-            </div>
-        </div>
-    </div>
+{{-- KPI Row --}}
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
 
-    <div class="card shadow-none border border-gray-200 rounded-lg h-full bg-gradient-to-r from-blue-600/10 to-bg-white">
-        <div class="card-body p-5">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                    <p class="font-medium text-neutral-900 mb-1">Sesi Belum Dijalani</p>
-                    <h6>{{ $trainer->sesi_belum_dijalani }}</h6>
-                </div>
-                <div class="w-[50px] h-[50px] bg-blue-600 rounded-full flex justify-center items-center">
-                    <iconify-icon icon="fa-solid:award" class="text-white text-2xl mb-0"></iconify-icon>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card :color="$statusColor" label="Status Training" icon="personal-trainer"
+        :value="$statusLabel" :sub="$statusSub" />
 
-    <div class="card shadow-none border border-gray-200 rounded-lg h-full bg-gradient-to-r from-blue-600/10 to-bg-white">
-        <div class="card-body p-5">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                    <p class="font-medium text-neutral-900 mb-1">Total Member</p>
-                    <h6>{{ $memberTrainers->count() }}</h6>
-                </div>
-                <div class="w-[50px] h-[50px] bg-blue-600 rounded-full flex justify-center items-center">
-                    <iconify-icon icon="fluent:people-20-filled" class="text-white text-2xl mb-0"></iconify-icon>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card color="teal" label="Sesi Selesai" icon="kehadiran"
+        value="{{ $trainer->sesi_sudah_dijalani }}" sub="Total sesi yang telah dijalani" />
+
+    <x-stat-card color="blue" label="Sesi Tersisa" icon="paket-member"
+        value="{{ $trainer->sesi_belum_dijalani }}" sub="Total sesi belum dijalani" />
+
+    <x-stat-card color="cyan" label="Total Member" icon="member"
+        value="{{ $memberTrainers->count() }}" sub="Member aktif saat ini" />
+
 </div>
 
 {{-- Daftar Member --}}
-<div class="card border-0 overflow-hidden">
-    <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-200">
-        <span class="font-semibold text-base">Daftar Member Anda (Yang Aktif)</span>
-        <a href="{{ route('trainer.session.logs') }}" class="btn btn-secondary btn-sm">
-            📋 Lihat Riwayat Sesi
+<div class="card border-0 overflow-hidden mt-6">
+    <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-200 dark:border-neutral-700">
+        <h6 class="font-display font-semibold text-[20px] leading-snug tracking-[.01em] text-ink dark:text-ink-d">
+            Daftar Member Aktif
+        </h6>
+        <a href="{{ route('trainer.session.logs') }}" class="btn btn-secondary btn-sm inline-flex items-center gap-1.5">
+            <iconify-icon icon="lucide:clock" class="text-base"></iconify-icon>
+            Riwayat Sesi
         </a>
     </div>
     <x-data-table tableId="dashboardMember" :colspan="9" placeholder="Cari nama member atau paket...">

@@ -87,6 +87,8 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddle
 
     Route::get('/trainer/session-logs', [TrainerDashboardController::class, 'sessionLogs'])
         ->name('trainer.session.logs');
+    Route::get('/trainer/session-logs/datatable', [TrainerDashboardController::class, 'sessionLogsDatatable'])
+        ->name('trainer.session.logs.datatable');
 
     Route::post('/trainer/session-logs/export-pdf', [TrainerDashboardController::class, 'exportSessionLogsPdf'])
         ->name('trainer.session.logs.export_pdf');

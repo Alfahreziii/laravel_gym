@@ -3,6 +3,11 @@
 @php
     $title    = 'Detail Member';
     $subTitle = $member->name;
+
+    $nameParts = explode(' ', trim($member->name));
+    $initials  = count($nameParts) >= 2
+        ? strtoupper(mb_substr($nameParts[0], 0, 1) . mb_substr(end($nameParts), 0, 1))
+        : strtoupper(mb_substr($member->name, 0, 2));
 @endphp
 
 @section('content')
@@ -14,145 +19,279 @@
     <x-alert type="danger">{{ session('error') }}</x-alert>
 @endif
 
-{{-- Statistik --}}
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-    <div class="card shadow-none border border-gray-200 rounded-lg h-full bg-gradient-to-r from-blue-600/10 to-bg-white">
-        <div class="card-body p-5">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                    <p class="font-medium text-neutral-900 mb-1">Total Paket</p>
-                    <h6>{{ $totalPaket }}</h6>
-                </div>
-                <div class="w-[50px] h-[50px] bg-blue-600 rounded-full flex justify-center items-center">
-                    <iconify-icon icon="mdi:package-variant" class="text-white text-2xl mb-0"></iconify-icon>
-                </div>
-            </div>
-        </div>
+{{-- ==================== HERO CARD ==================== --}}
+<div class="card overflow-hidden border border-neutral-200 dark:border-neutral-700">
+
+    {{-- Banner --}}
+    <div class="h-20 relative flex-none" style="background: linear-gradient(120deg, #BC3E14, #F2622E 70%, #FB7843)">
+        <div class="absolute inset-0" style="background: radial-gradient(300px 160px at 88% 0%, rgba(255,255,255,0.18), transparent)"></div>
     </div>
 
-    <div class="card shadow-none border border-gray-200 rounded-lg h-full bg-gradient-to-r from-green-600/10 to-bg-white">
-        <div class="card-body p-5">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                    <p class="font-medium text-neutral-900 mb-1">Sesi Aktif</p>
-                    <h6>{{ $totalSesiAktif }}</h6>
-                </div>
-                <div class="w-[50px] h-[50px] bg-green-600 rounded-full flex justify-center items-center">
-                    <iconify-icon icon="mdi:timer-sand" class="text-white text-2xl mb-0"></iconify-icon>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{-- Profile row --}}
+    <div class="px-6 pb-6 flex flex-wrap items-end gap-5 relative" style="margin-top: -42px">
 
-    <div class="card shadow-none border border-gray-200 rounded-lg h-full bg-gradient-to-r from-purple-600/10 to-bg-white">
-        <div class="card-body p-5">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                    <p class="font-medium text-neutral-900 mb-1">Sesi Selesai</p>
-                    <h6>{{ $totalSesiSelesai }}</h6>
-                </div>
-                <div class="w-[50px] h-[50px] bg-purple-600 rounded-full flex justify-center items-center">
-                    <iconify-icon icon="mdi:check-circle" class="text-white text-2xl mb-0"></iconify-icon>
-                </div>
-            </div>
+        {{-- Avatar initials --}}
+        <div class="w-[84px] h-[84px] flex-none flex items-center justify-center rounded-[18px] bg-teal-600 border-4 border-white dark:border-neutral-800 shadow font-display font-bold text-[28px] leading-none text-white" style="z-index:1">
+            {{ $initials }}
         </div>
-    </div>
 
-    <div class="card shadow-none border border-gray-200 rounded-lg h-full bg-gradient-to-r from-orange-600/10 to-bg-white">
-        <div class="card-body p-5">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                    <p class="font-medium text-neutral-900 mb-1">Sesi Kadaluarsa</p>
-                    <h6>{{ $totalSesiKadaluarsa }}</h6>
-                </div>
-                <div class="w-[50px] h-[50px] bg-orange-600 rounded-full flex justify-center items-center">
-                    <iconify-icon icon="mdi:clock-alert" class="text-white text-2xl mb-0"></iconify-icon>
-                </div>
+        {{-- Name + meta --}}
+        <div class="flex-1 min-w-0 pb-1">
+            <div class="flex items-center gap-3 flex-wrap">
+                <h1 class="font-display font-bold text-2xl leading-none text-ink dark:text-ink-d">{{ $member->name }}</h1>
+                @if($isCheckedIn)
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-success-50 text-success-700 dark:bg-success-600/20 dark:text-success-400">
+                        <i class="w-1.5 h-1.5 rounded-full bg-success-500 flex-none"></i>Sudah Check-in
+                    </span>
+                @else
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-neutral-100 text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400">
+                        <i class="w-1.5 h-1.5 rounded-full bg-neutral-400 flex-none"></i>Belum Check-in
+                    </span>
+                @endif
+            </div>
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-2 text-sm text-ink-2 dark:text-ink-d2">
+                <span class="inline-flex items-center gap-1.5">
+                    <iconify-icon icon="mage:email" class="text-neutral-400 text-base flex-none"></iconify-icon>
+                    {{ $member->email ?? '-' }}
+                </span>
+                <span class="inline-flex items-center gap-1.5">
+                    <iconify-icon icon="lucide:phone" class="text-neutral-400 text-base flex-none"></iconify-icon>
+                    {{ $member->no_telp }}
+                </span>
+                <span class="inline-flex items-center gap-1.5">
+                    <iconify-icon icon="lucide:credit-card" class="text-neutral-400 text-base flex-none"></iconify-icon>
+                    <span class="tabular-nums">{{ $member->id_kartu }}</span>
+                </span>
             </div>
         </div>
+
+        {{-- Stat counters --}}
+        <div class="flex items-center gap-5 pb-1 flex-none">
+            <div class="text-center">
+                <div class="font-display font-bold text-[22px] leading-none tabular-nums text-ink dark:text-ink-d">{{ $totalPaket }}</div>
+                <div class="text-[11px] text-ink-3 dark:text-ink-d3 mt-1.5">Total Paket</div>
+            </div>
+            <div class="w-px h-8 bg-neutral-200 dark:bg-neutral-700 flex-none"></div>
+            <div class="text-center">
+                <div class="font-display font-bold text-[22px] leading-none tabular-nums text-ink dark:text-ink-d">{{ $totalSesiAktif }}</div>
+                <div class="text-[11px] text-ink-3 dark:text-ink-d3 mt-1.5">Sesi Aktif</div>
+            </div>
+            <div class="w-px h-8 bg-neutral-200 dark:bg-neutral-700 flex-none"></div>
+            <div class="text-center">
+                <div class="font-display font-bold text-[22px] leading-none tabular-nums text-ink dark:text-ink-d">{{ $totalSesiSelesai }}</div>
+                <div class="text-[11px] text-ink-3 dark:text-ink-d3 mt-1.5">Sesi Selesai</div>
+            </div>
+            <div class="w-px h-8 bg-neutral-200 dark:bg-neutral-700 flex-none"></div>
+            <div class="text-center">
+                <div class="font-display font-bold text-[22px] leading-none tabular-nums text-ink dark:text-ink-d">{{ $totalSesiKadaluarsa }}</div>
+                <div class="text-[11px] text-ink-3 dark:text-ink-d3 mt-1.5">Sesi Kadaluarsa</div>
+            </div>
+        </div>
+
     </div>
 </div>
 
-{{-- Info Member --}}
-<div class="grid grid-cols-12 mb-6">
-    <div class="col-span-12">
-        <div class="card border border-gray-200">
-            <div class="card-header">
-                <h6 class="card-title mb-0 text-lg">Informasi Member</h6>
+{{-- ==================== MAIN (LEFT + RIGHT) ==================== --}}
+<div class="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-5 mt-5 items-start">
+
+    {{-- ─── LEFT PANEL ─────────────────────────────── --}}
+    <div class="flex flex-col gap-5">
+
+        {{-- Status Hari Ini --}}
+        <div class="card overflow-hidden border border-neutral-200 dark:border-neutral-700">
+            <div class="flex items-center gap-3 px-5 py-4 border-b border-neutral-200 dark:border-neutral-700">
+                <div class="w-1.5 h-5 rounded-full bg-primary-500 flex-none"></div>
+                <h3 class="font-display font-semibold text-lg text-ink dark:text-ink-d">Status Hari Ini</h3>
             </div>
-            <div class="card-body">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div>
-                        <p class="text-muted mb-1">Nama</p>
-                        <p class="font-semibold">{{ $member->name }}</p>
-                    </div>
-                    <div>
-                        <p class="text-muted mb-1">No. Telepon</p>
-                        <p class="font-semibold">{{ $member->no_telp }}</p>
-                    </div>
-                    <div>
-                        <p class="text-muted mb-1">Email</p>
-                        <p class="font-semibold">{{ $member->email ?? '-' }}</p>
-                    </div>
-                    <div>
-                        <p class="text-muted mb-1">Status Hari Ini</p>
-                        @if($isCheckedIn)
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-success-50 text-success-700 dark:bg-success-600/20 dark:text-success-400">
-                                <span class="w-1.5 h-1.5 rounded-full bg-success-500 flex-shrink-0"></span>
-                                Sudah Check-in
-                            </span>
-                        @else
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-neutral-100 text-neutral-600 dark:bg-neutral-700 dark:text-neutral-300">
-                                <span class="w-1.5 h-1.5 rounded-full bg-neutral-400 flex-shrink-0"></span>
-                                Belum Check-in
-                            </span>
-                        @endif
+            <div class="px-5 py-5 flex flex-col gap-5">
+
+                {{-- Check-in --}}
+                <div>
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-ink-3 dark:text-ink-d3 mb-2">Kehadiran</div>
+                    @if($isCheckedIn)
+                        <div class="flex items-center gap-3 px-4 py-3 rounded-xl bg-success-50 dark:bg-success-600/10 border border-success-200 dark:border-success-600/30">
+                            <div class="w-9 h-9 rounded-full flex items-center justify-center bg-success-100 dark:bg-success-600/20 flex-none">
+                                <iconify-icon icon="lucide:check-circle" class="text-success-600 dark:text-success-400 text-xl"></iconify-icon>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-sm text-success-700 dark:text-success-400">Sudah Check-in</div>
+                                <div class="text-xs text-success-600/80 dark:text-success-500 mt-0.5">Member hadir hari ini</div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="flex items-center gap-3 px-4 py-3 rounded-xl bg-neutral-50 dark:bg-neutral-700/30 border border-neutral-200 dark:border-neutral-700">
+                            <div class="w-9 h-9 rounded-full flex items-center justify-center bg-neutral-100 dark:bg-neutral-700 flex-none">
+                                <iconify-icon icon="lucide:clock" class="text-neutral-400 text-xl"></iconify-icon>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-sm text-ink dark:text-ink-d">Belum Check-in</div>
+                                <div class="text-xs text-ink-3 dark:text-ink-d3 mt-0.5">Member belum hadir hari ini</div>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Sesi PT aktif --}}
+                @if($activeSession)
+                <div class="border-t border-neutral-200 dark:border-neutral-700 pt-4">
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-ink-3 dark:text-ink-d3 mb-2">Sesi PT Aktif</div>
+                    <div class="px-4 py-3 rounded-xl bg-warning-50 dark:bg-warning-600/10 border border-warning-200 dark:border-warning-600/30">
+                        <div class="flex items-center gap-2 mb-1.5">
+                            <iconify-icon icon="lucide:dumbbell" class="text-warning-600 dark:text-warning-400 text-base flex-none"></iconify-icon>
+                            <span class="font-semibold text-sm text-warning-700 dark:text-warning-400">Sedang Training</span>
+                        </div>
+                        <div class="text-xs text-warning-600/80 dark:text-warning-500">
+                            {{ $activeSession->paketPersonalTrainer->nama_paket ?? '-' }}
+                        </div>
+                        <div class="text-xs text-warning-600/80 dark:text-warning-500 mt-0.5 tabular-nums">
+                            {{ $activeSession->sesi }} sesi tersisa
+                        </div>
                     </div>
                 </div>
+                @endif
+
+                {{-- Trainer --}}
+                <div class="border-t border-neutral-200 dark:border-neutral-700 pt-4">
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-ink-3 dark:text-ink-d3 mb-2">Trainer</div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full flex items-center justify-center bg-primary-50 dark:bg-primary-600/10 border border-primary-200 dark:border-primary-600/30 flex-none">
+                            <iconify-icon icon="lucide:user" class="text-primary-600 dark:text-primary-400 text-sm"></iconify-icon>
+                        </div>
+                        <span class="text-sm font-semibold text-ink dark:text-ink-d">{{ $trainer->name ?? '-' }}</span>
+                    </div>
+                </div>
+
             </div>
         </div>
-    </div>
-</div>
 
-{{-- Paket Aktif --}}
-<div class="card border-0 overflow-hidden mb-6">
-    <div class="flex items-center px-4 py-3 border-b border-neutral-200">
-        <span class="font-semibold text-base">Paket Aktif</span>
-    </div>
-    <x-data-table tableId="paketAktif" :colspan="6" placeholder="Cari paket atau kode transaksi...">
-        <x-slot:header>
-            <tr>
-                <th scope="col">No</th>
-                <th scope="col">Paket</th>
-                <th scope="col">Periode</th>
-                <th scope="col">Sesi Tersisa</th>
-                <th scope="col">Status</th>
-                <th scope="col">Aksi</th>
-            </tr>
-        </x-slot:header>
-    </x-data-table>
-</div>
+        {{-- Data Anggota --}}
+        <div class="card overflow-hidden border border-neutral-200 dark:border-neutral-700">
+            <div class="flex items-center gap-3 px-5 py-4 border-b border-neutral-200 dark:border-neutral-700">
+                <div class="w-1.5 h-5 rounded-full bg-violet-500 flex-none"></div>
+                <h3 class="font-display font-semibold text-lg text-ink dark:text-ink-d">Data Anggota</h3>
+            </div>
+            <div class="px-5 py-5 flex flex-col gap-4 text-sm">
 
-{{-- Riwayat Semua Paket --}}
-<div class="card border-0 overflow-hidden">
-    <div class="flex items-center px-4 py-3 border-b border-neutral-200">
-        <span class="font-semibold text-base">Riwayat Semua Paket</span>
+                @if($member->jenis_kelamin)
+                <div>
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-ink-3 dark:text-ink-d3">Jenis Kelamin</div>
+                    <div class="font-semibold text-ink dark:text-ink-d mt-1">{{ $member->jenis_kelamin }}</div>
+                </div>
+                @endif
+
+                @if($member->tgl_lahir)
+                <div>
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-ink-3 dark:text-ink-d3">Tanggal Lahir</div>
+                    <div class="font-semibold text-ink dark:text-ink-d mt-1 tabular-nums">
+                        {{ $member->tgl_lahir->format('d M Y') }}
+                        @if($member->age)<span class="font-normal text-ink-3 dark:text-ink-d3"> · {{ $member->age }} th</span>@endif
+                    </div>
+                </div>
+                @endif
+
+                @if($member->tempat_lahir)
+                <div>
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-ink-3 dark:text-ink-d3">Tempat Lahir</div>
+                    <div class="font-semibold text-ink dark:text-ink-d mt-1">{{ $member->tempat_lahir }}</div>
+                </div>
+                @endif
+
+                @if($member->alamat)
+                <div>
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-ink-3 dark:text-ink-d3">Alamat</div>
+                    <div class="font-semibold text-ink dark:text-ink-d mt-1 leading-relaxed">{{ $member->alamat }}</div>
+                </div>
+                @endif
+
+                @if($member->tgl_daftar)
+                <div>
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-ink-3 dark:text-ink-d3">Tanggal Daftar</div>
+                    <div class="font-semibold text-ink dark:text-ink-d mt-1 tabular-nums">{{ $member->tgl_daftar->format('d M Y') }}</div>
+                </div>
+                @endif
+
+                @if($member->tinggi || $member->berat)
+                <div class="grid grid-cols-3 gap-3 pt-2 border-t border-neutral-200 dark:border-neutral-700">
+                    <div>
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-ink-3 dark:text-ink-d3">Tinggi</div>
+                        <div class="font-semibold text-ink dark:text-ink-d mt-1">{{ $member->tinggi ? $member->tinggi . ' cm' : '—' }}</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-ink-3 dark:text-ink-d3">Berat</div>
+                        <div class="font-semibold text-ink dark:text-ink-d mt-1">{{ $member->berat ? $member->berat . ' kg' : '—' }}</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-ink-3 dark:text-ink-d3">BMI</div>
+                        <div class="font-semibold text-ink dark:text-ink-d mt-1">{{ $member->bmi ?? '—' }}</div>
+                    </div>
+                </div>
+                @endif
+
+                @if($member->gol_darah)
+                <div>
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-ink-3 dark:text-ink-d3">Gol. Darah</div>
+                    <div class="font-semibold text-ink dark:text-ink-d mt-1">{{ $member->gol_darah }}</div>
+                </div>
+                @endif
+
+            </div>
+        </div>
+
     </div>
-    <x-data-table tableId="riwayatPaket" :colspan="9" placeholder="Cari kode transaksi atau paket...">
-        <x-slot:header>
-            <tr>
-                <th scope="col">No</th>
-                <th scope="col">Kode Transaksi</th>
-                <th scope="col">Riwayat Gym</th>
-                <th scope="col">Paket</th>
-                <th scope="col">Periode</th>
-                <th scope="col">Total Sesi</th>
-                <th scope="col">Sesi Selesai</th>
-                <th scope="col">Sisa Sesi</th>
-                <th scope="col">Status</th>
-            </tr>
-        </x-slot:header>
-    </x-data-table>
+
+    {{-- ─── RIGHT PANEL: tabbed datatables ─────────── --}}
+    <div class="card border-0 overflow-hidden">
+
+        {{-- Tab buttons --}}
+        <div class="flex items-center gap-1 px-4 py-3 border-b border-neutral-200 dark:border-neutral-700">
+            <button onclick="mdTab('aktif')" id="tab-btn-aktif"
+                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-colors bg-primary-50 dark:bg-primary-600/15 text-primary-600 dark:text-primary-400">
+                Paket Aktif
+                <span id="badge-aktif" class="text-xs font-bold px-1.5 py-0.5 rounded-full tabular-nums bg-primary-100 dark:bg-primary-600/20 text-primary-700 dark:text-primary-300">{{ $activePackages->count() }}</span>
+            </button>
+            <button onclick="mdTab('riwayat')" id="tab-btn-riwayat"
+                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-colors text-ink-2 dark:text-ink-d2 hover:bg-neutral-100 dark:hover:bg-neutral-700">
+                Riwayat Semua Paket
+                <span id="badge-riwayat" class="text-xs font-bold px-1.5 py-0.5 rounded-full tabular-nums bg-neutral-100 dark:bg-neutral-700 text-ink-3 dark:text-ink-d3">{{ $memberTrainers->count() }}</span>
+            </button>
+        </div>
+
+        {{-- Panel: Paket Aktif --}}
+        <div id="tab-panel-aktif">
+            <x-data-table tableId="paketAktif" :colspan="6" placeholder="Cari paket atau kode transaksi...">
+                <x-slot:header>
+                    <tr>
+                        <th scope="col">No</th>
+                        <th scope="col">Paket</th>
+                        <th scope="col">Periode</th>
+                        <th scope="col">Sesi Tersisa</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Aksi</th>
+                    </tr>
+                </x-slot:header>
+            </x-data-table>
+        </div>
+
+        {{-- Panel: Riwayat Paket --}}
+        <div id="tab-panel-riwayat" style="display:none">
+            <x-data-table tableId="riwayatPaket" :colspan="9" placeholder="Cari kode transaksi atau paket...">
+                <x-slot:header>
+                    <tr>
+                        <th scope="col">No</th>
+                        <th scope="col">Kode Transaksi</th>
+                        <th scope="col">Riwayat Gym</th>
+                        <th scope="col">Paket</th>
+                        <th scope="col">Periode</th>
+                        <th scope="col">Total Sesi</th>
+                        <th scope="col">Sesi Selesai</th>
+                        <th scope="col">Sisa Sesi</th>
+                        <th scope="col">Status</th>
+                    </tr>
+                </x-slot:header>
+            </x-data-table>
+        </div>
+
+    </div>
 </div>
 
 {{-- Modal Mulai Sesi --}}
@@ -176,6 +315,24 @@
         </button>
     </x-slot:footer>
 </x-modal>
+
+<script>
+(function () {
+    var BTN_ACTIVE   = 'inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-colors bg-primary-50 dark:bg-primary-600/15 text-primary-600 dark:text-primary-400';
+    var BTN_INACTIVE = 'inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-colors text-ink-2 dark:text-ink-d2 hover:bg-neutral-100 dark:hover:bg-neutral-700';
+    var BADGE_ACTIVE   = 'text-xs font-bold px-1.5 py-0.5 rounded-full tabular-nums bg-primary-100 dark:bg-primary-600/20 text-primary-700 dark:text-primary-300';
+    var BADGE_INACTIVE = 'text-xs font-bold px-1.5 py-0.5 rounded-full tabular-nums bg-neutral-100 dark:bg-neutral-700 text-ink-3 dark:text-ink-d3';
+
+    window.mdTab = function (t) {
+        ['aktif', 'riwayat'].forEach(function (id) {
+            var isActive = id === t;
+            document.getElementById('tab-panel-' + id).style.display = isActive ? '' : 'none';
+            document.getElementById('tab-btn-' + id).className        = isActive ? BTN_ACTIVE : BTN_INACTIVE;
+            document.getElementById('badge-' + id).className          = isActive ? BADGE_ACTIVE : BADGE_INACTIVE;
+        });
+    };
+}());
+</script>
 
 @endsection
 
