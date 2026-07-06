@@ -31,13 +31,6 @@ class KehadiranTrainerController extends Controller
         try {
             $filterType = $request->filter_type;
 
-            $allKehadiran = KehadiranTrainer::all();
-
-            $totalKehadiran   = $allKehadiran->count();
-            $totalIn          = $allKehadiran->where('status', 'in')->count();
-            $totalOut         = $allKehadiran->where('status', 'out')->count();
-            $totalTrainerUnik = $allKehadiran->unique('rfid')->count();
-
             $query = KehadiranTrainer::query();
 
             $filterInfo = '';
@@ -54,6 +47,11 @@ class KehadiranTrainerController extends Controller
             }
 
             $kehadiranTrainers = $query->orderBy('created_at', 'desc')->get();
+
+            $totalKehadiran   = $kehadiranTrainers->count();
+            $totalIn          = $kehadiranTrainers->where('status', 'in')->count();
+            $totalOut         = $kehadiranTrainers->where('status', 'out')->count();
+            $totalTrainerUnik = $kehadiranTrainers->unique('rfid')->count();
 
             $title = 'Laporan Kehadiran Trainer';
             if ($filterType !== 'all') {
@@ -101,13 +99,6 @@ class KehadiranTrainerController extends Controller
         try {
             $filterType = $request->filter_type;
 
-            $allKehadiran = KehadiranTrainer::all();
-
-            $totalKehadiran   = $allKehadiran->count();
-            $totalIn          = $allKehadiran->where('status', 'in')->count();
-            $totalOut         = $allKehadiran->where('status', 'out')->count();
-            $totalTrainerUnik = $allKehadiran->unique('rfid')->count();
-
             $query = KehadiranTrainer::query();
 
             $filterInfo = '';
@@ -124,6 +115,11 @@ class KehadiranTrainerController extends Controller
             }
 
             $kehadiranTrainers = $query->orderBy('created_at', 'desc')->get();
+
+            $totalKehadiran   = $kehadiranTrainers->count();
+            $totalIn          = $kehadiranTrainers->where('status', 'in')->count();
+            $totalOut         = $kehadiranTrainers->where('status', 'out')->count();
+            $totalTrainerUnik = $kehadiranTrainers->unique('rfid')->count();
 
             $title = 'Laporan Kehadiran Trainer';
             if ($filterType !== 'all') {

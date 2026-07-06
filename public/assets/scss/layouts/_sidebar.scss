@@ -12,7 +12,7 @@
 }
 
 .sidebar.active {
-  @apply w-[5.375rem] xl:hover:start-0 2xl:hover:w-[17.1875rem] 3xl:hover:w-[19.5rem];
+  @apply w-[5.375rem] xl:hover:start-0 xl:hover:w-[13.75rem] 2xl:hover:w-[17.1875rem] 3xl:hover:w-[19.5rem];
 }
 
 .sidebar.active:hover .sidebar-logo img.light-logo {

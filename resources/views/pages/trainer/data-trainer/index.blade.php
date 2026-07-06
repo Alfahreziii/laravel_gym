@@ -18,9 +18,9 @@
     subtitle="Kelola data trainer, status keaktifan, dan spesialisasi."
 >
     <x-slot:actions>
-        <button type="button" onclick="HexaModal.show('export-pdf-modal')" class="btn btn-danger btn-sm">
+        <button type="button" onclick="HexaModal.show('export-pdf-modal')" class="btn btn-secondary btn-sm">
             <iconify-icon icon="carbon:export" class="text-base"></iconify-icon>
-            Export Laporan
+            Export
         </button>
         @if (!$isLaporanMode)
             @role('admin')

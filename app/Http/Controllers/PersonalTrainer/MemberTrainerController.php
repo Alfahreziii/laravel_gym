@@ -43,20 +43,6 @@ class MemberTrainerController extends Controller
             $statusFilter = $request->status_filter;
             $filterType   = $request->filter_type;
 
-            // Hitung statistik dari SEMUA data (tidak terfilter)
-            $allMemberTrainers = MemberTrainer::with(['anggota', 'paketPersonalTrainer', 'trainer', 'pembayaranMemberTrainers'])->get();
-
-            $totalMemberTrainer = $allMemberTrainers->count();
-            $totalLunas         = $allMemberTrainers->where('status_pembayaran', 'Lunas')->count();
-            $totalBelumLunas    = $allMemberTrainers->where('status_pembayaran', 'Belum Lunas')->count();
-
-            $totalPendapatan = $allMemberTrainers->sum('total_biaya');
-            $totalTerbayar   = $allMemberTrainers->sum(function ($item) {
-                return $item->pembayaranMemberTrainers->sum('jumlah_bayar');
-            });
-            $totalPiutang = $totalPendapatan - $totalTerbayar;
-
-            // Query untuk data yang akan ditampilkan (terfilter)
             $query = MemberTrainer::with(['anggota', 'paketPersonalTrainer', 'trainer', 'pembayaranMemberTrainers']);
 
             if ($statusFilter === 'lunas') {
@@ -101,6 +87,16 @@ class MemberTrainerController extends Controller
             };
 
             $memberTrainers = $query->orderBy('tgl_mulai', 'desc')->get();
+
+            $totalMemberTrainer = $memberTrainers->count();
+            $totalLunas         = $memberTrainers->where('status_pembayaran', 'Lunas')->count();
+            $totalBelumLunas    = $memberTrainers->where('status_pembayaran', 'Belum Lunas')->count();
+
+            $totalPendapatan = $memberTrainers->sum('total_biaya');
+            $totalTerbayar   = $memberTrainers->sum(function ($item) {
+                return $item->pembayaranMemberTrainers->sum('jumlah_bayar');
+            });
+            $totalPiutang = $totalPendapatan - $totalTerbayar;
 
             $title = 'Laporan Member Trainer';
             if ($statusFilter !== 'all' || $filterType !== 'all') {
@@ -219,6 +215,16 @@ class MemberTrainerController extends Controller
             };
 
             $memberTrainers = $query->orderBy('tgl_mulai', 'desc')->get();
+
+            $totalMemberTrainer = $memberTrainers->count();
+            $totalLunas         = $memberTrainers->where('status_pembayaran', 'Lunas')->count();
+            $totalBelumLunas    = $memberTrainers->where('status_pembayaran', 'Belum Lunas')->count();
+
+            $totalPendapatan = $memberTrainers->sum('total_biaya');
+            $totalTerbayar   = $memberTrainers->sum(function ($item) {
+                return $item->pembayaranMemberTrainers->sum('jumlah_bayar');
+            });
+            $totalPiutang = $totalPendapatan - $totalTerbayar;
 
             $title = 'Laporan Member Trainer';
             if ($statusFilter !== 'all' || $filterType !== 'all') {

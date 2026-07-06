@@ -40,20 +40,6 @@ class AnggotaMembershipController extends Controller
             $statusFilter = $request->status_filter;
             $filterType   = $request->filter_type;
 
-            // Hitung statistik dari SEMUA data (tidak terfilter)
-            $allMemberships = AnggotaMembership::with(['anggota', 'paketMembership', 'pembayaranMemberships'])->get();
-
-            $totalMembership  = $allMemberships->count();
-            $totalLunas       = $allMemberships->where('status_pembayaran', 'Lunas')->count();
-            $totalBelumLunas  = $allMemberships->where('status_pembayaran', 'Belum Lunas')->count();
-
-            $totalPendapatan = $allMemberships->sum('total_biaya');
-            $totalTerbayar   = $allMemberships->sum(function ($item) {
-                return $item->pembayaranMemberships->sum('jumlah_bayar');
-            });
-            $totalPiutang = $totalPendapatan - $totalTerbayar;
-
-            // Query untuk data yang akan ditampilkan
             $query = AnggotaMembership::with(['anggota', 'paketMembership', 'pembayaranMemberships']);
 
             if ($statusFilter === 'lunas') {
@@ -98,6 +84,16 @@ class AnggotaMembershipController extends Controller
             };
 
             $anggotaMemberships = $query->orderBy('tgl_mulai', 'desc')->get();
+
+            $totalMembership  = $anggotaMemberships->count();
+            $totalLunas       = $anggotaMemberships->where('status_pembayaran', 'Lunas')->count();
+            $totalBelumLunas  = $anggotaMemberships->where('status_pembayaran', 'Belum Lunas')->count();
+
+            $totalPendapatan = $anggotaMemberships->sum('total_biaya');
+            $totalTerbayar   = $anggotaMemberships->sum(function ($item) {
+                return $item->pembayaranMemberships->sum('jumlah_bayar');
+            });
+            $totalPiutang = $totalPendapatan - $totalTerbayar;
 
             $title = 'Laporan Anggota Membership';
             if ($statusFilter !== 'all' || $filterType !== 'all') {
@@ -163,18 +159,6 @@ class AnggotaMembershipController extends Controller
             $statusFilter = $request->status_filter;
             $filterType   = $request->filter_type;
 
-            $allMemberships = AnggotaMembership::with(['anggota', 'paketMembership', 'pembayaranMemberships'])->get();
-
-            $totalMembership = $allMemberships->count();
-            $totalLunas      = $allMemberships->where('status_pembayaran', 'Lunas')->count();
-            $totalBelumLunas = $allMemberships->where('status_pembayaran', 'Belum Lunas')->count();
-
-            $totalPendapatan = $allMemberships->sum('total_biaya');
-            $totalTerbayar   = $allMemberships->sum(function ($item) {
-                return $item->pembayaranMemberships->sum('jumlah_bayar');
-            });
-            $totalPiutang = $totalPendapatan - $totalTerbayar;
-
             $query = AnggotaMembership::with(['anggota', 'paketMembership', 'pembayaranMemberships']);
 
             if ($statusFilter === 'lunas') {
@@ -219,6 +203,16 @@ class AnggotaMembershipController extends Controller
             };
 
             $anggotaMemberships = $query->orderBy('tgl_mulai', 'desc')->get();
+
+            $totalMembership  = $anggotaMemberships->count();
+            $totalLunas       = $anggotaMemberships->where('status_pembayaran', 'Lunas')->count();
+            $totalBelumLunas  = $anggotaMemberships->where('status_pembayaran', 'Belum Lunas')->count();
+
+            $totalPendapatan = $anggotaMemberships->sum('total_biaya');
+            $totalTerbayar   = $anggotaMemberships->sum(function ($item) {
+                return $item->pembayaranMemberships->sum('jumlah_bayar');
+            });
+            $totalPiutang = $totalPendapatan - $totalTerbayar;
 
             $title = 'Laporan Anggota Membership';
             if ($statusFilter !== 'all' || $filterType !== 'all') {

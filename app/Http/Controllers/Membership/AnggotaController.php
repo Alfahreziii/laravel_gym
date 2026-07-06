@@ -25,29 +25,27 @@ class AnggotaController extends Controller
         try {
             $statusFilter = $request->input('status_filter', 'all');
 
-            $allAnggotas = Anggota::with(['anggotaMemberships' => function ($query) {
-                $query->latest('tgl_selesai');
-            }])->get();
-
-            $totalAnggota    = $allAnggotas->count();
-            $totalAktif      = $allAnggotas->filter(fn($a) => $a->status_keanggotaan === true)->count();
-            $totalTidakAktif = $allAnggotas->filter(fn($a) => $a->status_keanggotaan === false)->count();
+            $today = now()->toDateString();
 
             $query = Anggota::with(['anggotaMemberships', 'user'])
                 ->join('users', 'anggotas.id', '=', 'users.anggota_id')
                 ->select('anggotas.*');
 
             if ($statusFilter === 'aktif') {
-                $query->whereHas('anggotaMemberships', fn($q) => $q->where('is_active', true));
+                $query->whereHas('anggotaMemberships', fn($q) => $q->where('tgl_mulai', '<=', $today)->where('tgl_selesai', '>=', $today));
                 $title = 'Laporan Anggota Aktif';
             } elseif ($statusFilter === 'tidak_aktif') {
-                $query->whereDoesntHave('anggotaMemberships', fn($q) => $q->where('is_active', true));
+                $query->whereDoesntHave('anggotaMemberships', fn($q) => $q->where('tgl_mulai', '<=', $today)->where('tgl_selesai', '>=', $today));
                 $title = 'Laporan Anggota Tidak Aktif';
             } else {
                 $title = 'Laporan Semua Anggota';
             }
 
             $anggotas = $query->orderBy('users.name', 'asc')->get();
+
+            $totalAnggota    = $anggotas->count();
+            $totalAktif      = $anggotas->filter(fn($a) => $a->status_keanggotaan === true)->count();
+            $totalTidakAktif = $anggotas->filter(fn($a) => $a->status_keanggotaan === false)->count();
 
             $pdf = Pdf::loadView('pages.admin.membership.anggota.pdf', compact(
                 'anggotas',
@@ -80,29 +78,27 @@ class AnggotaController extends Controller
         try {
             $statusFilter = $request->input('status_filter', 'all');
 
-            $allAnggotas = Anggota::with(['anggotaMemberships' => function ($query) {
-                $query->latest('tgl_selesai');
-            }])->get();
-
-            $totalAnggota    = $allAnggotas->count();
-            $totalAktif      = $allAnggotas->filter(fn($a) => $a->status_keanggotaan === true)->count();
-            $totalTidakAktif = $allAnggotas->filter(fn($a) => $a->status_keanggotaan === false)->count();
+            $today = now()->toDateString();
 
             $query = Anggota::with(['anggotaMemberships', 'user'])
                 ->join('users', 'anggotas.id', '=', 'users.anggota_id')
                 ->select('anggotas.*', 'users.name', 'users.email');
 
             if ($statusFilter === 'aktif') {
-                $query->whereHas('anggotaMemberships', fn($q) => $q->where('is_active', true));
+                $query->whereHas('anggotaMemberships', fn($q) => $q->where('tgl_mulai', '<=', $today)->where('tgl_selesai', '>=', $today));
                 $title = 'Laporan Anggota Aktif';
             } elseif ($statusFilter === 'tidak_aktif') {
-                $query->whereDoesntHave('anggotaMemberships', fn($q) => $q->where('is_active', true));
+                $query->whereDoesntHave('anggotaMemberships', fn($q) => $q->where('tgl_mulai', '<=', $today)->where('tgl_selesai', '>=', $today));
                 $title = 'Laporan Anggota Tidak Aktif';
             } else {
                 $title = 'Laporan Semua Anggota';
             }
 
             $anggotas = $query->orderBy('users.name', 'asc')->get();
+
+            $totalAnggota    = $anggotas->count();
+            $totalAktif      = $anggotas->filter(fn($a) => $a->status_keanggotaan === true)->count();
+            $totalTidakAktif = $anggotas->filter(fn($a) => $a->status_keanggotaan === false)->count();
 
             $rows = '';
             foreach ($anggotas as $i => $anggota) {

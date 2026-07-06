@@ -24,12 +24,6 @@ class TrainerController extends Controller
         try {
             $statusFilter = $request->input('status_filter', 'all');
 
-            $allTrainers    = Trainer::all();
-            $totalTrainer   = $allTrainers->count();
-            $totalAktif     = $allTrainers->where('status', Trainer::STATUS_AKTIF)->count();
-            $totalNonaktif  = $allTrainers->where('status', Trainer::STATUS_NONAKTIF)->count();
-            $totalPending   = $allTrainers->where('status', Trainer::STATUS_PENDING)->count();
-
             $query = Trainer::with(['specialisasi', 'user', 'schedules'])
                 ->join('users', 'trainers.id', '=', 'users.trainer_id')
                 ->select('trainers.*');
@@ -48,6 +42,11 @@ class TrainerController extends Controller
             }
 
             $trainers = $query->orderBy('users.name', 'asc')->get();
+
+            $totalTrainer   = $trainers->count();
+            $totalAktif     = $trainers->where('status', Trainer::STATUS_AKTIF)->count();
+            $totalNonaktif  = $trainers->where('status', Trainer::STATUS_NONAKTIF)->count();
+            $totalPending   = $trainers->where('status', Trainer::STATUS_PENDING)->count();
 
             $pdf = Pdf::loadView('pages.trainer.data-trainer.pdf', compact(
                 'trainers',

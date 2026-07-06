@@ -31,14 +31,6 @@ class KehadiranMemberController extends Controller
         try {
             $filterType = $request->filter_type;
 
-            // Statistik dari SEMUA data
-            $allKehadiran = KehadiranMember::all();
-
-            $totalKehadiran  = $allKehadiran->count();
-            $totalIn         = $allKehadiran->where('status', 'in')->count();
-            $totalOut        = $allKehadiran->where('status', 'out')->count();
-            $totalMemberUnik = $allKehadiran->unique('rfid')->count();
-
             $query = KehadiranMember::query();
 
             $filterInfo = '';
@@ -55,6 +47,11 @@ class KehadiranMemberController extends Controller
             }
 
             $kehadiranMembers = $query->orderBy('created_at', 'desc')->get();
+
+            $totalKehadiran  = $kehadiranMembers->count();
+            $totalIn         = $kehadiranMembers->where('status', 'in')->count();
+            $totalOut        = $kehadiranMembers->where('status', 'out')->count();
+            $totalMemberUnik = $kehadiranMembers->unique('rfid')->count();
 
             $title = 'Laporan Kehadiran Member';
             if ($filterType !== 'all') {
@@ -102,13 +99,6 @@ class KehadiranMemberController extends Controller
         try {
             $filterType = $request->filter_type;
 
-            $allKehadiran = KehadiranMember::all();
-
-            $totalKehadiran  = $allKehadiran->count();
-            $totalIn         = $allKehadiran->where('status', 'in')->count();
-            $totalOut        = $allKehadiran->where('status', 'out')->count();
-            $totalMemberUnik = $allKehadiran->unique('rfid')->count();
-
             $query = KehadiranMember::query();
 
             $filterInfo = '';
@@ -125,6 +115,11 @@ class KehadiranMemberController extends Controller
             }
 
             $kehadiranMembers = $query->orderBy('created_at', 'desc')->get();
+
+            $totalKehadiran  = $kehadiranMembers->count();
+            $totalIn         = $kehadiranMembers->where('status', 'in')->count();
+            $totalOut        = $kehadiranMembers->where('status', 'out')->count();
+            $totalMemberUnik = $kehadiranMembers->unique('rfid')->count();
 
             $title = 'Laporan Kehadiran Member';
             if ($filterType !== 'all') {

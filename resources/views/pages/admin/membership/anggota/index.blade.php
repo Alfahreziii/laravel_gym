@@ -25,7 +25,7 @@
         </div>
         <div class="flex items-center gap-2 shrink-0">
             <button type="button" onclick="HexaModal.show('export-pdf-modal')"
-                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-line-light dark:border-line-dark text-sm font-medium text-ink-2 dark:text-ink-d2 hover:bg-canvas-light dark:hover:bg-canvas-dark transition">
+                class="btn btn-secondary btn-sm">
                 <iconify-icon icon="carbon:export" class="text-base"></iconify-icon>
                 Export
             </button>
