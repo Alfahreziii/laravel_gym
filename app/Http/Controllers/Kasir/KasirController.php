@@ -496,9 +496,8 @@ class KasirController extends Controller
 
     public function index()
     {
-        $products = Product::with('kategori')->get();
         $kategoris = KategoriProduct::orderBy('name')->get();
-        return view('pages.kasir.index', compact('products', 'kategoris'));
+        return view('pages.kasir.index', compact('kategoris'));
     }
 
     /**

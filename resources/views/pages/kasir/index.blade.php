@@ -150,41 +150,32 @@
 </div>
 
 {{-- ===== Per-product modals ===== --}}
-@foreach($products as $product)
-<x-modal id="tambah-product-modal-{{ $product->id }}" title="Tambah Product">
+{{-- Generic product modal — populated via JS sebelum show --}}
+<x-modal id="tambah-product-modal-generic" title="Tambah Product">
     <x-slot:body>
-        <form
-            data-product-id="{{ $product->id }}"
-            data-name="{{ $product->name }}"
-            data-price="{{ $product->price }}"
-            data-discount="{{ $product->discount }}"
-            data-discount_type="{{ $product->discount_type }}"
-            data-image="{{ $product->image }}"
-            data-category="{{ $product->kategori->name ?? '' }}"
-            class="form-tambah-cart">
-
+        <form class="form-tambah-cart">
             @csrf
             @method('PUT')
             <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
                 <div class="col-span-12">
-                    <label for="quantity_{{ $product->id }}" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
+                    <label for="generic-qty" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
                         Quantity
                     </label>
-                    <input type="text" id="quantity_{{ $product->id }}" name="qty"
+                    <input type="text" id="generic-qty" name="qty"
                         class="form-control rounded-lg" required>
                 </div>
 
                 <div class="col-span-12">
-                    <label for="keterangan_{{ $product->id }}" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
+                    <label for="generic-keterangan" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
                         Keterangan (Opsional)
                     </label>
-                    <textarea id="keterangan_{{ $product->id }}" name="keterangan"
+                    <textarea id="generic-keterangan" name="keterangan"
                         class="form-control rounded-lg" rows="3"
                         placeholder="Catatan tambahan untuk item ini..."></textarea>
                 </div>
 
                 <div class="col-span-12 mt-4 flex items-center gap-3">
-                    <button type="button" data-close-modal="tambah-product-modal-{{ $product->id }}"
+                    <button type="button" data-close-modal="tambah-product-modal-generic"
                         class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
                         Cancel
                     </button>
@@ -197,7 +188,6 @@
         </form>
     </x-slot:body>
 </x-modal>
-@endforeach
 
 {{-- MODAL Hold Items --}}
 <x-modal id="hold-items-modal" title="Hold Items" maxWidth="max-w-5xl">
@@ -475,7 +465,7 @@ document.addEventListener('DOMContentLoaded', function () {
         form.querySelector('input[name="qty"]').value = '';
         form.querySelector('textarea[name="keterangan"]').value = '';
 
-        HexaModal.hide('tambah-product-modal-' + form.dataset.productId);
+        HexaModal.hide('tambah-product-modal-generic');
 
         updateCartUI();
     });
@@ -609,13 +599,27 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // === Buka modal produk manual ===
+    // === Buka modal produk generic — populate form dari data-* card ===
     document.addEventListener('click', function(e) {
         const btn = e.target.closest('.btn-open-product-modal');
         if (!btn) return;
         if (btn.dataset.unavailable === '1') return;
 
-        HexaModal.show(btn.dataset.modalId);
+        const form = document.querySelector('#tambah-product-modal-generic .form-tambah-cart');
+        if (!form) return;
+
+        form.dataset.productId     = btn.dataset.productId;
+        form.dataset.name          = btn.dataset.name;
+        form.dataset.price         = btn.dataset.price;
+        form.dataset.discount      = btn.dataset.discount;
+        form.dataset.discount_type = btn.dataset.discount_type;
+        form.dataset.image         = btn.dataset.image;
+        form.dataset.category      = btn.dataset.category;
+
+        form.querySelector('input[name="qty"]').value        = '';
+        form.querySelector('textarea[name="keterangan"]').value = '';
+
+        HexaModal.show('tambah-product-modal-generic');
     });
 
     // === Auto hitung kembalian ===
@@ -996,7 +1000,6 @@ document.addEventListener('DOMContentLoaded', function () {
         var hoverCls = isUnavailable ? '' : 'hover:border-primary-400 hover:shadow-md';
 
         return '<div'
-            + ' data-modal-id="tambah-product-modal-' + p.id + '"'
             + ' data-product-id="' + p.id + '"'
             + ' data-name="' + p.name.replace(/"/g, '&quot;') + '"'
             + ' data-price="' + p.price + '"'
