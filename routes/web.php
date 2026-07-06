@@ -446,6 +446,8 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddle
         Route::post('/kasir/hold', 'hold')->name('kasir.hold');
         Route::delete('/kasir/hold/{id}', 'deleteHold')->name('kasir.hold.delete');
         Route::get('/held-transactions', 'getHeldTransactions')->name('getHeldTransactions');
+        Route::get('/kasir/hold/datatable', 'holdItemsDatatable')->name('kasir.hold.datatable');
+        Route::get('/kasir/products-grid', 'productsGrid')->name('kasir.products.grid');
         Route::get('/kasir/print-nota/{transactionId}', 'printNota')->name('kasir.print-nota');
     });
 
