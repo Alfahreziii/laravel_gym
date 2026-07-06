@@ -1,5 +1,5 @@
 <aside class="sidebar">
-    <button type="button" class="sidebar-close-btn !mt-4">
+    <button type="button" class="sidebar-close-btn">
         <x-icon.close class="text-sm" />
     </button>
     <div>
@@ -42,19 +42,19 @@
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('kategori_paket_membership.*') ? 'active-page' : '' }}"
                                 href="{{ route('kategori_paket_membership.index') }}">
-                                <x-icon.dot class="text-primary-600" /> Kategori Paket
+                                Kategori Paket
                             </a>
                         </li>
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('paket_membership.*') ? 'active-page' : '' }}"
                                 href="{{ route('paket_membership.index') }}">
-                                <x-icon.dot class="text-warning-600" /> Paket Member
+                                Paket Member
                             </a>
                         </li>
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('anggota_membership.*') && !request()->routeIs('laporan.membership') ? 'active-page' : '' }}"
                                 href="{{ route('anggota_membership.index') }}">
-                                <x-icon.dot class="text-success-600" /> Anggota Member
+                                Anggota Member
                             </a>
                         </li>
                     </ul>
@@ -72,25 +72,25 @@
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('specialisasi.*') ? 'active-page' : '' }}"
                                 href="{{ route('specialisasi.index') }}">
-                                <x-icon.dot class="text-primary-600" /> Specialisasi
+                                Specialisasi
                             </a>
                         </li>
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('paket_personal_trainer.*') ? 'active-page' : '' }}"
                                 href="{{ route('paket_personal_trainer.index') }}">
-                                <x-icon.dot class="text-warning-600" /> Paket Trainer
+                                Paket Trainer
                             </a>
                         </li>
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('trainer.*') && !request()->routeIs('laporan.trainer') && !request()->routeIs('trainer.dashboard') && !request()->routeIs('trainer.waiting.approval') ? 'active-page' : '' }}"
                                 href="{{ route('trainer.index') }}">
-                                <x-icon.dot class="text-success-600" /> Trainers
+                                Trainers
                             </a>
                         </li>
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('membertrainer.*') && !request()->routeIs('laporan.membertrainer') ? 'active-page' : '' }}"
                                 href="{{ route('membertrainer.index') }}">
-                                <x-icon.dot class="text-danger-600" /> Member Trainer
+                                Member Trainer
                             </a>
                         </li>
                     </ul>
@@ -118,13 +118,13 @@
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('kehadiranmember.*') && !request()->routeIs('laporan.kehadiran') ? 'active-page' : '' }}"
                                 href="{{ route('kehadiranmember.index') }}">
-                                <x-icon.dot class="text-primary-600" /> Member
+                                Member
                             </a>
                         </li>
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('kehadirantrainer.*') ? 'active-page' : '' }}"
                                 href="{{ route('kehadirantrainer.index') }}">
-                                <x-icon.dot class="text-warning-600" /> Trainer
+                                Trainer
                             </a>
                         </li>
                     </ul>
@@ -142,13 +142,13 @@
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('pembayaran_membership.*') ? 'active-page' : '' }}"
                                 href="{{ route('pembayaran_membership.index') }}">
-                                <x-icon.dot class="text-primary-600" /> Membership
+                                Membership
                             </a>
                         </li>
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('pembayaran_trainer.*') ? 'active-page' : '' }}"
                                 href="{{ route('pembayaran_trainer.index') }}">
-                                <x-icon.dot class="text-warning-600" /> Trainer
+                                Trainer
                             </a>
                         </li>
                     </ul>
@@ -165,49 +165,49 @@
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('laporan.anggota') ? 'active-page' : '' }}"
                                 href="{{ route('laporan.anggota') }}">
-                                <x-icon.dot class="text-primary-600" /> Anggota GYM
+                                Anggota GYM
                             </a>
                         </li>
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('laporan.membership') ? 'active-page' : '' }}"
                                 href="{{ route('laporan.membership') }}">
-                                <x-icon.dot class="text-warning-600" /> Membership
+                                Membership
                             </a>
                         </li>
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('laporan.trainer') ? 'active-page' : '' }}"
                                 href="{{ route('laporan.trainer') }}">
-                                <x-icon.dot class="text-info-600" /> Trainer
+                                Trainer
                             </a>
                         </li>
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('laporan.membertrainer') ? 'active-page' : '' }}"
                                 href="{{ route('laporan.membertrainer') }}">
-                                <x-icon.dot class="text-danger-600" /> Member Trainer
+                                Member Trainer
                             </a>
                         </li>
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('laporan.alat_gym') ? 'active-page' : '' }}"
                                 href="{{ route('laporan.alat_gym') }}">
-                                <x-icon.dot class="text-success-600" /> Alat GYM
+                                Alat GYM
                             </a>
                         </li>
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('laporan.kehadiran') ? 'active-page' : '' }}"
                                 href="{{ route('laporan.kehadiran') }}">
-                                <x-icon.dot class="text-purple-600" /> Absensi
+                                Absensi
                             </a>
                         </li>
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('laporan.penjualan') ? 'active-page' : '' }}"
                                 href="{{ route('laporan.penjualan') }}">
-                                <x-icon.dot class="text-info-600" /> Penjualan Product
+                                Penjualan Product
                             </a>
                         </li>
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('laporan.products') ? 'active-page' : '' }}"
                                 href="{{ route('laporan.products') }}">
-                                <x-icon.dot class="text-danger-600" /> Product
+                                Product
                             </a>
                         </li>
                     </ul>
@@ -226,13 +226,13 @@
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('kasir.index') ? 'active-page' : '' }}"
                                 href="{{ route('kasir.index') }}">
-                                <x-icon.dot class="text-primary-600" /> POS
+                                POS
                             </a>
                         </li>
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('kasir.riwayat') && !request()->routeIs('laporan.penjualan') ? 'active-page' : '' }}"
                                 href="{{ route('kasir.riwayat') }}">
-                                <x-icon.dot class="text-warning-600" /> Penjualan
+                                Penjualan
                             </a>
                         </li>
                     </ul>
@@ -250,13 +250,13 @@
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('kategori_products.*') ? 'active-page' : '' }}"
                                 href="{{ route('kategori_products.index') }}">
-                                <x-icon.dot class="text-primary-600" /> Kategori
+                                Kategori
                             </a>
                         </li>
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('products.*') && !request()->routeIs('laporan.products') ? 'active-page' : '' }}"
                                 href="{{ route('products.index') }}">
-                                <x-icon.dot class="text-warning-600" /> Product
+                                Product
                             </a>
                         </li>
                     </ul>
@@ -275,7 +275,7 @@
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('usersList') ? 'active-page' : '' }}"
                                 href="{{ route('usersList') }}">
-                                <x-icon.dot class="text-primary-600" /> Users List
+                                Users List
                             </a>
                         </li>
                     </ul>
@@ -295,19 +295,19 @@
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('level_trainer') ? 'active-page' : '' }}"
                                 href="{{ route('level_trainer.index') }}">
-                                <x-icon.dot class="text-primary-600" /> Level Trainer
+                                Level Trainer
                             </a>
                         </li>
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('gaji_trainer') ? 'active-page' : '' }}"
                                 href="{{ route('gaji_trainer.index') }}">
-                                <x-icon.dot class="text-warning-600" /> Parameter Gaji
+                                Parameter Gaji
                             </a>
                         </li>
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('riwayat_gaji_trainer') ? 'active-page' : '' }}"
                                 href="{{ route('riwayat_gaji_trainer.index') }}">
-                                <x-icon.dot class="text-success-600" /> Riwayat Gaji
+                                Riwayat Gaji
                             </a>
                         </li>
                     </ul>
@@ -324,13 +324,13 @@
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('neraca.*') ? 'active-page' : '' }}"
                                 href="{{ route('neraca.index') }}">
-                                <x-icon.dot class="text-primary-600" /> Neraca
+                                Neraca
                             </a>
                         </li>
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('keuangan.transaksi.*') ? 'active-page' : '' }}"
                                 href="{{ route('keuangan.transaksi.index') }}">
-                                <x-icon.dot class="text-warning-600" /> Transaksi Keuangan
+                                Transaksi Keuangan
                             </a>
                         </li>
                     </ul>
@@ -364,7 +364,7 @@
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('trainerlistmember.*') ? 'active-page' : '' }}"
                                 href="{{ route('trainerlistmember.index') }}">
-                                <x-icon.dot class="text-primary-600" /> List Member
+                                List Member
                             </a>
                         </li>
                     </ul>
@@ -379,7 +379,7 @@
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('trainerplaylist.*') ? 'active-page' : '' }}"
                                 href="{{ route('trainerplaylist.index') }}">
-                                <x-icon.dot class="text-primary-600" /> Program Member
+                                Program Member
                             </a>
                         </li>
                     </ul>
