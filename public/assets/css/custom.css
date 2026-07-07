@@ -380,6 +380,38 @@ input[type="time"]::after {
     border-top: 1px solid #332D26;
 }
 
+/* ── Native form controls dark mode ─────────────────────────────────────── */
+/* Browser/OS (Windows) di dark mode nambah blue tint ke native select.
+   Override paksa + color-scheme: dark agar rendering native-nya ikut palette kita. */
+.dark select,
+.dark select.form-control {
+    background-color: #1F1B17 !important;
+    color: #F4F1EC !important;
+    border-color: #332D26 !important;
+    color-scheme: dark;
+}
+.dark option {
+    background-color: #1F1B17;
+    color: #F4F1EC;
+}
+/* Date/time input — bagian picker icon juga ikut dark */
+.dark input[type="date"],
+.dark input[type="time"],
+.dark input[type="datetime-local"],
+.dark input[type="month"],
+.dark input[type="week"] {
+    color-scheme: dark;
+    background-color: #1F1B17 !important;
+    color: #F4F1EC !important;
+    border-color: #332D26 !important;
+}
+/* Textarea */
+.dark textarea.form-control {
+    background-color: #1F1B17 !important;
+    color: #F4F1EC !important;
+    border-color: #332D26 !important;
+}
+
 /* ── editUserRoleModal body — dark mode ─────────────────────────────────── */
 .dark #editUserRoleModal .modal-info-box {
     background-color: #28231D;
