@@ -219,7 +219,7 @@ $subTitle = 'Detail Member Trainer';
             if (isAdmin) {
                 aksiHtml = '<td class="whitespace-nowrap">' +
                     '<button type="button" onclick="deletePembayaran(\'' + item.delete_url + '\')" ' +
-                    'class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center">' +
+                    'class="btn-action btn-action-del">' +
                     '<iconify-icon icon="mingcute:delete-2-line"></iconify-icon>' +
                     '</button></td>';
             }

@@ -42,7 +42,7 @@
                 @csrf
                 @method('PUT')
                 <div class="grid grid-cols-1 gap-6">
-                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <div class="modal-info-box bg-gray-50 p-4 rounded-lg border border-gray-200">
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="text-sm font-medium text-gray-500">Nama User:</label>
@@ -112,13 +112,13 @@
                             'data-role="' + (item.current_role || '') + '" ' +
                             'data-url="' + item.update_url + '" ' +
                             'onclick="openEditRoleModal(this)" ' +
-                            'class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">' +
+                            'class="btn-action">' +
                             '<iconify-icon icon="lucide:edit"></iconify-icon>' +
                             '</button>' +
                             '</td>';
                     } else {
                         actionHtml = '<td class="whitespace-nowrap">' +
-                            '<span class="w-8 h-8 bg-gray-100 text-gray-400 rounded-full inline-flex items-center justify-center cursor-not-allowed" title="Role ini tidak dapat diubah">' +
+                            '<span class="btn-action opacity-50 cursor-not-allowed" title="Role ini tidak dapat diubah">' +
                             '<iconify-icon icon="lucide:lock"></iconify-icon>' +
                             '</span>' +
                             '</td>';

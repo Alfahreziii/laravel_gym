@@ -17,16 +17,16 @@
     aria-hidden="true"
     class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
     <div class="{{ $maxWidth }} w-full mx-4 my-4">
-        <div class="rounded-2xl bg-white dark:bg-neutral-800 shadow-xl flex flex-col max-h-[90vh]">
+        <div class="rounded-2xl bg-white shadow-xl flex flex-col max-h-[90vh] hexa-modal-panel">
 
             {{-- Header --}}
-            <div class="py-4 px-6 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between flex-shrink-0">
-                <h2 id="{{ $id }}-title" class="text-xl font-semibold text-neutral-800 dark:text-neutral-100">
+            <div class="py-4 px-6 border-b border-neutral-200 dark:border-line-dark flex items-center justify-between flex-shrink-0">
+                <h2 id="{{ $id }}-title" class="text-xl font-semibold text-neutral-800 dark:text-ink-d">
                     {{ $title }}
                 </h2>
                 <button type="button" data-close-modal="{{ $id }}"
-                    class="text-neutral-400 bg-transparent hover:bg-neutral-100 dark:hover:bg-neutral-700
-                           hover:text-neutral-900 dark:hover:text-white rounded-lg text-sm w-8 h-8
+                    class="text-neutral-400 bg-transparent hover:bg-neutral-100 dark:hover:bg-surface-dark-raised
+                           hover:text-neutral-900 dark:hover:text-ink-d rounded-lg text-sm w-8 h-8
                            inline-flex justify-center items-center transition-colors">
                     <svg class="w-3 h-3" fill="none" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -43,7 +43,7 @@
 
             {{-- Footer (opsional) --}}
             @if(isset($footer) && $footer->isNotEmpty())
-            <div class="flex justify-end gap-3 px-6 pb-6 flex-shrink-0 border-t border-neutral-200 dark:border-neutral-700 pt-4">
+            <div class="flex justify-end gap-3 px-6 pb-6 flex-shrink-0 border-t border-neutral-200 dark:border-line-dark pt-4">
                 {{ $footer }}
             </div>
             @endif
@@ -84,7 +84,7 @@ window.HexaModal = (function () {
 
         var bd = document.createElement('div');
         bd.id = BD_ID;
-        bd.className = 'bg-gray-900/50 dark:bg-gray-900/80 fixed inset-0 z-40';
+        bd.className = 'hexa-modal-bd fixed inset-0 z-40';
         bd.addEventListener('click', function () { hide(id); });
         document.body.appendChild(bd);
     }

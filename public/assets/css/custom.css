@@ -20,6 +20,7 @@
     border-bottom: 1px solid #e5e7eb;
     white-space: nowrap;
     vertical-align: middle;
+    text-align: left;
 }
 
 /* Tbody td */
@@ -29,6 +30,7 @@
     color: #374151;
     vertical-align: middle;
     white-space: nowrap;
+    text-align: left;
 }
 
 /* Row border bawah */
@@ -39,6 +41,25 @@
 /* Row hover */
 .ajax-table tbody tr:hover {
     background-color: #f9fafb;
+}
+
+/* Dark mode overrides — must be after light rules to win specificity */
+.dark .ajax-table thead th {
+    background-color: #28231D;
+    color: #A8A29A;
+    border-bottom-color: #332D26;
+}
+:where(.dark) .ajax-table tbody td {
+    color: #F4F1EC;
+}
+.dark .ajax-table tbody tr {
+    border-bottom-color: #332D26;
+}
+.dark .ajax-table tbody tr:nth-child(even) {
+    background-color: #28231D;
+}
+.dark .ajax-table tbody tr:hover {
+    background-color: rgba(242, 98, 46, 0.08);
 }
 
 /* khusus swal button biar tidak transparan */
@@ -131,6 +152,11 @@ input[type="time"]::after {
   height: calc(100vh - 4.5rem);
   overflow-y: auto; /* scroll jika konten melebihi tinggi */
 }
+.dark .cart-produk {
+  background-color: #1F1B17;
+  border-left-color: #332D26;
+  border-top-color: #332D26;
+}
 
 .inner-diskon{
   margin-left: 5px;
@@ -140,12 +166,14 @@ input[type="time"]::after {
   border-bottom: 1px solid rgb(235, 236, 239);
   padding-bottom: 10px;
 }
+.dark .produk-header { border-bottom-color: #332D26; }
 
 .produk-body {
   border-bottom: 1px solid rgb(235, 236, 239);
   padding-bottom: 10px;
   padding-top: 10px;
 }
+.dark .produk-body { border-bottom-color: #332D26; }
 
 .product-placeholder {
   width: 70px;
@@ -169,6 +197,7 @@ input[type="time"]::after {
     border-top-style: dashed;
     border-bottom: 1px solid rgb(235, 236, 239);
 }
+.dark .total-tagihan { border-top-color: #332D26; border-bottom-color: #332D26; }
 
 .dropdown-more {
     right: 0;
@@ -244,4 +273,137 @@ input[type="time"]::after {
 
 .ml-2 {
     margin-left: 0.5rem !important;
+}
+
+/* ── Datatable action icon buttons ─────────────────────────────────────────
+   Usage: edit → class="btn-action"
+          delete → class="btn-action btn-action-del"
+   ────────────────────────────────────────────────────────────────────────── */
+.btn-action {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    color: #9ca3af;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .15s, color .15s, border-color .15s;
+    cursor: pointer;
+    text-decoration: none;
+    flex-shrink: 0;
+}
+.dark .btn-action {
+    border-color: #332D26;
+    background: #1F1B17;
+    color: #6E685F;
+}
+.btn-action:hover {
+    border-color: transparent;
+    background: #fff7ed;
+    color: #ea580c;
+}
+.dark .btn-action:hover {
+    background: rgba(242, 98, 46, .15);
+    color: #fb923c;
+}
+.btn-action-del:hover {
+    border-color: transparent;
+    background: #fef2f2;
+    color: #dc2626;
+}
+.dark .btn-action-del:hover {
+    background: rgba(220, 38, 38, .15);
+    color: #f87171;
+}
+.btn-action-warn:hover {
+    border-color: transparent;
+    background: #fffbeb;
+    color: #d97706;
+}
+.dark .btn-action-warn:hover {
+    background: rgba(217, 119, 6, .15);
+    color: #fbbf24;
+}
+
+/* ── Modal dark mode ────────────────────────────────────────────────────── */
+.dark .hexa-modal-panel {
+    background-color: #1F1B17;
+    border: 1px solid #332D26;
+}
+.hexa-modal-bd {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+.dark .hexa-modal-bd {
+    background-color: rgba(21, 18, 15, 0.85);
+}
+
+/* ── Stat cards (kehadiran) ──────────────────────────────────────────────── */
+.hexa-stat-card {
+    border: 1px solid #e5e7eb;
+}
+.dark .hexa-stat-card {
+    border-color: #332D26;
+}
+
+/* ── Scanner Drawer dark mode ────────────────────────────────────────────── */
+.dark .hexa-scanner-drawer {
+    background-color: #1F1B17 !important;
+    box-shadow: -8px 0 32px rgba(0, 0, 0, 0.4) !important;
+}
+.dark .hexa-scanner-drawer label {
+    color: #A8A29A;
+}
+.dark .hexa-scanner-cam-border {
+    border-color: #332D26 !important;
+}
+
+/* ── Profile dropdown dark mode ─────────────────────────────────────────── */
+.dark #dropdownProfile {
+    background-color: #1F1B17;
+    border: 1px solid #332D26;
+}
+.dark #dropdownProfile .bg-primary-50 {
+    background-color: rgba(242, 98, 46, 0.1);
+}
+.dark #dropdownProfile .text-neutral-900 {
+    color: #F4F1EC;
+}
+.dark #dropdownProfile .text-neutral-500 {
+    color: #6E685F;
+}
+.dark #dropdownProfile .text-black {
+    color: #F4F1EC;
+}
+.dark #dropdownProfile ul li + li {
+    border-top: 1px solid #332D26;
+}
+
+/* ── editUserRoleModal body — dark mode ─────────────────────────────────── */
+.dark #editUserRoleModal .modal-info-box {
+    background-color: #28231D;
+    border-color: #332D26;
+}
+.dark #editUserRoleModal .modal-info-box label {
+    color: #A8A29A;
+}
+.dark #editUserRoleModal .modal-info-box p {
+    color: #F4F1EC;
+}
+.dark #editUserRoleModal .text-gray-500 {
+    color: #6E685F;
+}
+.dark #editUserRoleModal .text-neutral-600 {
+    color: #A8A29A;
+}
+.dark #editUserRoleModal .border-gray-200,
+.dark #editUserRoleModal .border-gray-300 {
+    border-color: #332D26;
+}
+.dark #editUserRoleModal .text-gray-700 {
+    color: #A8A29A;
+}
+.dark #editUserRoleModal .hover\:bg-gray-100:hover {
+    background-color: #28231D;
 }

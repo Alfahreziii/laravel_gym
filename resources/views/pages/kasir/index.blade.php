@@ -19,11 +19,11 @@
             margin-top:-0.9375rem; margin-bottom:-0.9375rem;">
 
     {{-- ===== LEFT: Product Panel ===== --}}
-    <div class="bg-neutral-50 dark:bg-neutral-900"
+    <div class="bg-neutral-50 dark:bg-canvas-dark"
          style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
 
         {{-- Header: title + search --}}
-        <div class="bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-700"
+        <div class="bg-white dark:bg-surface-dark border-b border-neutral-200 dark:border-line-dark"
              style="display:flex; align-items:center; gap:12px; padding:12px 20px; flex-shrink:0;">
             <h6 class="font-display font-semibold text-base text-ink dark:text-ink-d m-0" style="flex:1;">Pilih Produk</h6>
             <div style="position:relative;">
@@ -34,7 +34,7 @@
         </div>
 
         {{-- Category filter pills --}}
-        <div class="bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-700"
+        <div class="bg-white dark:bg-surface-dark border-b border-neutral-200 dark:border-line-dark"
              style="padding:10px 20px; flex-shrink:0;">
             <div class="flex flex-wrap gap-2" id="category-pills">
                 <button type="button"
@@ -44,7 +44,7 @@
                 </button>
                 @foreach($kategoris as $kat)
                 <button type="button"
-                    class="category-pill px-3 py-1 rounded-full text-xs font-semibold bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 transition-colors"
+                    class="category-pill px-3 py-1 rounded-full text-xs font-semibold bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-surface-dark-raised dark:text-ink-d2 transition-colors"
                     data-category="{{ $kat->id }}">
                     {{ $kat->name }}
                 </button>
@@ -62,8 +62,9 @@
 
         {{-- Pagination grid produk --}}
         <div id="product-grid-pagination"
+             class="border-t border-neutral-200 dark:border-line-dark"
              style="flex-shrink:0; display:flex; justify-content:center; align-items:center;
-                    gap:4px; padding:8px 14px; border-top:1px solid #e5e7eb; flex-wrap:wrap; min-height:44px;">
+                    gap:4px; padding:8px 14px; flex-wrap:wrap; min-height:44px;">
         </div>
 
     </div>
@@ -75,7 +76,7 @@
                 <h6 class="font-display font-semibold text-base text-ink dark:text-ink-d m-0">Detail Items</h6>
             </div>
             <div class="mt-3 mb-3">
-                <label for="customer_name_cart" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
+                <label for="customer_name_cart" class="inline-block font-semibold text-neutral-600 dark:text-ink-d2 text-sm mb-2">
                     Nama Pelanggan
                 </label>
                 <input type="text" id="customer_name_cart" name="customer_name"
@@ -85,7 +86,7 @@
             <!-- tempat item cart muncul -->
             <div class="produk-body-container mt-3"></div>
 
-            <div class="flex py-2 border-t border-b border-neutral-200">
+            <div class="flex py-2 border-t border-b border-neutral-200 dark:border-line-dark">
                 <button type="button" onclick="HexaModal.show('diskon-modal')"
                  class="w-full py-2 text-xs bg-primary-600 text-white rounded-lg">
                  Tambahkan Diskon <i class="ri-money-dollar-box-fill"></i></button>
@@ -93,33 +94,33 @@
 
             <div class="produk-footer mt-4">
                 <div class="flex items-center justify-between mb-2">
-                    <span class="text-sm text-neutral-500">Total Items</span>
+                    <span class="text-sm text-neutral-500 dark:text-ink-d2">Total Items</span>
                     <span class="font-medium text-sm total-items">0 Items</span>
                 </div>
                 <div class="flex items-center justify-between mb-2">
-                    <span class="text-sm text-neutral-500">Total Harga</span>
+                    <span class="text-sm text-neutral-500 dark:text-ink-d2">Total Harga</span>
                     <span class="font-medium text-sm total-harga">Rp 0</span>
                 </div>
                 <div class="flex items-center justify-between mb-2">
-                    <span class="text-sm text-neutral-500">Diskon :</span>
+                    <span class="text-sm text-neutral-500 dark:text-ink-d2">Diskon :</span>
                     <span></span>
                 </div>
                 <div class="inner-diskon">
                     <div class="flex items-center justify-between mb-1">
-                        <span class="text-xs text-neutral-500">- Diskon</span>
+                        <span class="text-xs text-neutral-500 dark:text-ink-d2">- Diskon</span>
                         <span class="font-medium text-danger-600 text-xs diskon-input">-Rp 0</span>
                     </div>
                     <div class="flex items-center justify-between mb-1">
-                        <span class="text-xs text-neutral-500">- Diskon Barang</span>
+                        <span class="text-xs text-neutral-500 dark:text-ink-d2">- Diskon Barang</span>
                         <span class="font-medium text-danger-600 text-xs diskon-barang">-Rp 0</span>
                     </div>
                     <div class="flex items-center justify-between mb-1">
-                        <span class="text-xs text-neutral-500">- Total Diskon</span>
+                        <span class="text-xs text-neutral-500 dark:text-ink-d2">- Total Diskon</span>
                         <span class="font-medium text-danger-600 text-xs total-diskon">-Rp 0</span>
                     </div>
                 </div>
                 <div class="flex items-center justify-between  py-2">
-                    <span class="text-sm text-neutral-500">Total Tagihan</span>
+                    <span class="text-sm text-neutral-500 dark:text-ink-d2">Total Tagihan</span>
                     <span class="font-medium text-sm total-tagihan">Rp 0</span>
                 </div>
             </div>
@@ -135,10 +136,10 @@
                     <iconify-icon id="chevronMore" icon="mdi:chevron-down" class="text-lg transition-transform duration-200"></iconify-icon>
                 </button>
 
-                <div id="dropdownMore" class="hidden absolute mb-2 dropdown-more bg-white text-black rounded-lg shadow-lg w-48 z-50">
+                <div id="dropdownMore" class="hidden absolute mb-2 dropdown-more bg-white dark:bg-surface-dark border border-neutral-100 dark:border-line-dark text-black dark:text-ink-d rounded-lg shadow-lg w-48 z-50">
                     <ul class="p-2 text-sm">
-                        <li><button type="button" class="block px-3 py-2 hover:bg-neutral-100 rounded btn-hold">Hold</button></li>
-                        <li><button type="button" class="block px-3 py-2 hover:bg-neutral-100 rounded btn-hold-items">Hold Items</button></li>
+                        <li><button type="button" class="block px-3 py-2 hover:bg-neutral-100 dark:hover:bg-surface-dark-raised rounded btn-hold">Hold</button></li>
+                        <li><button type="button" class="block px-3 py-2 hover:bg-neutral-100 dark:hover:bg-surface-dark-raised rounded btn-hold-items">Hold Items</button></li>
                     </ul>
                 </div>
 
@@ -251,7 +252,7 @@
 
                 {{-- Checkbox Print Nota --}}
                 <div class="col-span-12">
-                    <div class="flex items-center gap-3 p-4 bg-neutral-50 rounded-lg border border-neutral-200">
+                    <div class="flex items-center gap-3 p-4 bg-neutral-50 dark:bg-surface-dark-raised rounded-lg border border-neutral-200 dark:border-line-dark">
                         <input type="checkbox" id="print_nota" name="print_nota"
                             class="w-5 h-5 text-primary-600 bg-white border-neutral-300 rounded focus:ring-primary-500 focus:ring-2"
                             checked>
@@ -369,7 +370,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 ? `
                     <div class="flex flex-col items-end text-right">
                         <span class="text-danger-600 text-sm font-semibold">Rp ${formatRp(itemSubtotal)}</span>
-                        <span class="text-neutral-400 text-xs line-through">Rp ${formatRp(itemTotal)}</span>
+                        <span class="text-neutral-400 dark:text-ink-d3 text-xs line-through">Rp ${formatRp(itemTotal)}</span>
                     </div>
                 `
                 : `
@@ -379,15 +380,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 `;
 
             const keteranganHTML = item.keterangan
-                ? `<p class="text-xs text-neutral-400 mt-1 italic">📝 ${item.keterangan}</p>`
+                ? `<p class="text-xs text-neutral-400 dark:text-ink-d3 mt-1 italic">📝 ${item.keterangan}</p>`
                 : '';
 
             cartContainer.innerHTML += `
-                <div class="produk-body flex gap-3 py-2 border-b border-neutral-200">
+                <div class="produk-body flex gap-3 py-2 border-b border-neutral-200 dark:border-line-dark">
                     <img src="${imgSrc}" alt="${item.name}" class="rounded w-12 h-12 object-cover">
                     <div class="w-full">
                         <h5 class="font-semibold text-sm">${item.name}</h5>
-                        <p class="text-xs text-neutral-500">${item.kategori?.name ?? ''}</p>
+                        <p class="text-xs text-neutral-500 dark:text-ink-d2">${item.kategori?.name ?? ''}</p>
                         ${keteranganHTML}
                         <div class="flex items-center justify-between gap-3 mt-2 w-full">
                             <div class="flex items-center gap-2">
@@ -753,13 +754,13 @@ document.addEventListener('DOMContentLoaded', function () {
             };
             return `<tr>
                 <td class="whitespace-nowrap">
-                    <button type="button" class="btn-view-detail w-8 h-8 bg-primary-50 text-primary-600 rounded-full inline-flex items-center justify-center" data-hold-id="${item.id}">
+                    <button type="button" class="btn-view-detail btn-action" data-hold-id="${item.id}">
                         <iconify-icon icon="iconamoon:eye-light"></iconify-icon>
                     </button>
-                    <button type="button" class="btn-load-cart w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center" data-hold-id="${item.id}">
+                    <button type="button" class="btn-load-cart btn-action" data-hold-id="${item.id}">
                         <i class="ri-shopping-bag-fill"></i>
                     </button>
-                    <button type="button" class="btn-delete-hold w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center" data-hold-id="${item.id}">
+                    <button type="button" class="btn-delete-hold btn-action btn-action-del" data-hold-id="${item.id}">
                         <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
                     </button>
                 </td>
@@ -995,7 +996,7 @@ document.addEventListener('DOMContentLoaded', function () {
               + '</p>'
             : '';
 
-        var outerStyle = 'display:flex;flex-direction:column;border-radius:16px;background:#fff;overflow:hidden;position:relative;min-height:196px;'
+        var outerStyle = 'display:flex;flex-direction:column;border-radius:16px;overflow:hidden;position:relative;min-height:196px;'
             + (isUnavailable ? 'opacity:0.6;' : '');
         var hoverCls = isUnavailable ? '' : 'hover:border-primary-400 hover:shadow-md';
 
@@ -1009,7 +1010,7 @@ document.addEventListener('DOMContentLoaded', function () {
             + ' data-category="' + (p.kategori_name || '').replace(/"/g, '&quot;') + '"'
             + ' data-category-id="' + (p.kategori_product_id || '') + '"'
             + ' data-unavailable="' + (isUnavailable ? '1' : '0') + '"'
-            + ' class="btn-open-product-modal group border border-neutral-200 dark:border-neutral-700 transition-all cursor-pointer ' + hoverCls + '"'
+            + ' class="btn-open-product-modal group border border-neutral-200 dark:border-line-dark bg-white dark:bg-surface-dark transition-all cursor-pointer ' + hoverCls + '"'
             + ' style="' + outerStyle + '">'
 
             + '<div style="position:relative;width:100%;height:96px;flex-shrink:0;">'
@@ -1017,7 +1018,7 @@ document.addEventListener('DOMContentLoaded', function () {
             + '</div>'
 
             + '<div style="display:flex;flex-direction:column;flex:1;padding:10px 10px 14px;">'
-            + '<p style="font-size:10px;color:#9ca3af;margin:0 0 2px;line-height:1.3;">' + (p.kategori_name || '-') + '</p>'
+            + '<p class="text-neutral-400 dark:text-ink-d3" style="font-size:10px;margin:0 0 2px;line-height:1.3;">' + (p.kategori_name || '-') + '</p>'
             + '<h6 class="font-semibold text-sm text-ink dark:text-ink-d" style="margin:0 0 auto;line-height:1.3;">' + p.name + '</h6>'
             + '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;gap:4px;">'
             + '<span class="text-primary-600 font-bold text-sm tabular-nums">Rp ' + fmtRp(p.price) + '</span>'
@@ -1034,9 +1035,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (lastPage <= 1) { el.innerHTML = ''; return; }
 
         var base = 'px-3 py-1 rounded border text-xs transition-colors duration-150';
-        var norm = base + ' border-neutral-200 text-neutral-600 hover:bg-neutral-100 cursor-pointer';
+        var norm = base + ' border-neutral-200 dark:border-line-dark text-neutral-600 dark:text-ink-d2 hover:bg-neutral-100 dark:hover:bg-surface-dark-raised cursor-pointer';
         var act  = base + ' bg-primary-500 border-primary-500 text-white font-semibold';
-        var dis  = base + ' border-neutral-200 text-neutral-300 opacity-40 cursor-not-allowed';
+        var dis  = base + ' border-neutral-200 dark:border-line-dark text-neutral-300 dark:text-ink-d3 opacity-40 cursor-not-allowed';
 
         var parts = [];
         parts.push('<button onclick="fetchProductGrid(' + (page - 1) + ')" '
@@ -1050,7 +1051,7 @@ document.addEventListener('DOMContentLoaded', function () {
             parts.push('<button onclick="fetchProductGrid(' + i + ')" class="' + (i === page ? act : norm) + '">' + i + '</button>');
         }
         if (end < lastPage) {
-            parts.push('<span class="px-2 text-xs text-neutral-400">...</span>');
+            parts.push('<span class="px-2 text-xs text-neutral-400 dark:text-ink-d3">...</span>');
             parts.push('<button onclick="fetchProductGrid(' + lastPage + ')" class="' + norm + '">' + lastPage + '</button>');
         }
         parts.push('<button onclick="fetchProductGrid(' + (page + 1) + ')" '
@@ -1095,10 +1096,10 @@ document.addEventListener('DOMContentLoaded', function () {
             pill.addEventListener('click', function () {
                 document.querySelectorAll('.category-pill').forEach(function (p) {
                     p.classList.remove('active', 'bg-primary-500', 'text-white');
-                    p.classList.add('bg-neutral-100', 'text-neutral-600');
+                    p.classList.add('bg-neutral-100', 'text-neutral-600', 'dark:bg-surface-dark-raised', 'dark:text-ink-d2');
                 });
                 this.classList.add('active', 'bg-primary-500', 'text-white');
-                this.classList.remove('bg-neutral-100', 'text-neutral-600');
+                this.classList.remove('bg-neutral-100', 'text-neutral-600', 'dark:bg-surface-dark-raised', 'dark:text-ink-d2');
                 _kat = this.dataset.category === 'all' ? '' : this.dataset.category;
                 _search = '';
                 var si = document.getElementById('product-search');

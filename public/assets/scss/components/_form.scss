@@ -1,7 +1,7 @@
 
 /*============================================= Form Css Start =============================================*/
 .form-check-input {
-    @apply border-neutral-400 rounded dark:bg-neutral-600;
+    @apply border-neutral-400 rounded dark:bg-surface-dark dark:border-line-dark;
     &:focus {
         border-color: #F2622E;
         box-shadow: 0 0 0 3px rgba(251, 120, 67, 0.25);

@@ -85,17 +85,17 @@
                 <thead>
                     <tr class="border-b border-line-light dark:border-line-dark">
                         <th class="px-4 md:px-6 py-3 text-xs font-semibold text-ink-3 dark:text-ink-d3 uppercase tracking-wider whitespace-nowrap">No</th>
+                        @if (!$isLaporanMode)
+                            @role('admin|spv')
+                                <th class="px-4 md:px-6 py-3 text-xs font-semibold text-ink-3 dark:text-ink-d3 uppercase tracking-wider whitespace-nowrap">Aksi</th>
+                            @endrole
+                        @endif
                         <th class="px-4 md:px-6 py-3 text-xs font-semibold text-ink-3 dark:text-ink-d3 uppercase tracking-wider whitespace-nowrap">Member</th>
                         <th class="px-4 md:px-6 py-3 text-xs font-semibold text-ink-3 dark:text-ink-d3 uppercase tracking-wider whitespace-nowrap">Kontak</th>
                         <th class="px-4 md:px-6 py-3 text-xs font-semibold text-ink-3 dark:text-ink-d3 uppercase tracking-wider whitespace-nowrap">Paket</th>
                         <th class="px-4 md:px-6 py-3 text-xs font-semibold text-ink-3 dark:text-ink-d3 uppercase tracking-wider whitespace-nowrap">Status</th>
                         <th class="px-4 md:px-6 py-3 text-xs font-semibold text-ink-3 dark:text-ink-d3 uppercase tracking-wider whitespace-nowrap">Bergabung</th>
                         <th class="px-4 md:px-6 py-3 text-xs font-semibold text-ink-3 dark:text-ink-d3 uppercase tracking-wider whitespace-nowrap">Berakhir</th>
-                        @if (!$isLaporanMode)
-                            @role('admin|spv')
-                                <th class="px-4 md:px-6 py-3 text-xs font-semibold text-ink-3 dark:text-ink-d3 uppercase tracking-wider whitespace-nowrap">Aksi</th>
-                            @endrole
-                        @endif
                     </tr>
                 </thead>
                 <tbody id="tbodyAnggota">
@@ -296,12 +296,11 @@
             const aksiCell = showAksi ? `
                 <td class="px-4 md:px-6 py-3 whitespace-nowrap">
                     <div class="flex items-center gap-1.5">
-                        <a href="${esc(item.edit_url)}" title="Edit"
-                            class="w-7 h-7 rounded-full flex items-center justify-center bg-success-100 text-success-600 hover:bg-success-200 transition">
+                        <a href="${esc(item.edit_url)}" title="Edit" class="btn-action">
                             <iconify-icon icon="lucide:edit" style="font-size:13px"></iconify-icon>
                         </a>
                         <button type="button" onclick="confirmDelete('${esc(item.delete_url)}')" title="Hapus"
-                            class="w-7 h-7 rounded-full flex items-center justify-center bg-danger-100 text-danger-600 hover:bg-danger-200 transition">
+                            class="btn-action btn-action-del">
                             <iconify-icon icon="mingcute:delete-2-line" style="font-size:13px"></iconify-icon>
                         </button>
                         ${fingerBtn}
@@ -310,13 +309,13 @@
 
             return `<tr class="border-b border-line-light dark:border-line-dark">
                 <td class="px-4 md:px-6 py-3 text-xs text-ink-3 dark:text-ink-d3 whitespace-nowrap">${item.no}</td>
+                ${aksiCell}
                 <td class="px-4 md:px-6 py-3">${memberCell}</td>
                 <td class="px-4 md:px-6 py-3 text-sm text-ink-2 dark:text-ink-d2 whitespace-nowrap">${esc(item.no_telp)}</td>
                 <td class="px-4 md:px-6 py-3 text-sm text-ink-2 dark:text-ink-d2 whitespace-nowrap max-w-[140px] truncate" title="${esc(item.paket)}">${esc(item.paket)}</td>
                 <td class="px-4 md:px-6 py-3 whitespace-nowrap">${statusBadge}</td>
                 <td class="px-4 md:px-6 py-3 text-sm text-ink-2 dark:text-ink-d2 whitespace-nowrap font-variant-numeric tabular-nums">${esc(item.bergabung)}</td>
                 <td class="px-4 md:px-6 py-3 text-sm text-ink-2 dark:text-ink-d2 whitespace-nowrap font-variant-numeric tabular-nums">${esc(item.berakhir)}</td>
-                ${aksiCell}
             </tr>`;
         }
 

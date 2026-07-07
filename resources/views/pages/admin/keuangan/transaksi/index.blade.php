@@ -189,12 +189,12 @@
             // Badge warna per kategori akun
             function kategoriBadge(nama) {
                 var map = {
-                    'Aset': 'bg-primary-100 text-primary-700',
-                    'Kewajiban': 'bg-warning-100 text-warning-700',
-                    'Modal': 'bg-success-100 text-success-700',
-                    'Beban': 'bg-danger-100 text-danger-700',
+                    'Aset':      'bg-primary-100 text-primary-700 dark:bg-primary-600/20 dark:text-primary-400',
+                    'Kewajiban': 'bg-warning-100 text-warning-700 dark:bg-warning-600/20 dark:text-warning-400',
+                    'Modal':     'bg-success-100 text-success-700 dark:bg-success-600/20 dark:text-success-400',
+                    'Beban':     'bg-danger-100 text-danger-700 dark:bg-danger-600/20 dark:text-danger-400',
                 };
-                var cls = map[nama] || 'bg-neutral-100 text-neutral-600';
+                var cls = map[nama] || 'bg-neutral-100 text-neutral-600 dark:bg-surface-dark-raised dark:text-ink-d2';
                 return '<span class="px-2 py-0.5 rounded-full text-xs font-medium ' + cls + '">' + nama + '</span>';
             }
 
@@ -217,7 +217,7 @@
                     var sumberBadge = '-';
                     if (item.referensi_tabel && item.referensi_tabel !== '-') {
                         var badge =
-                            '<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-neutral-100 text-neutral-600">' +
+                            '<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-neutral-100 text-neutral-600 dark:bg-surface-dark-raised dark:text-ink-d2">' +
                             sumberLabel + '</span>';
 
                         var kodeLink = '';
@@ -236,16 +236,16 @@
                     var debitCell = item.debit > 0 ?
                         '<span class="font-semibold text-success-600">' + Number(item.debit)
                         .toLocaleString('id-ID') + '</span>' :
-                        '<span class="text-neutral-300">-</span>';
+                        '<span class="text-neutral-300 dark:text-ink-d3">-</span>';
                     var kreditCell = item.kredit > 0 ?
                         '<span class="font-semibold text-danger-600">' + Number(item.kredit)
                         .toLocaleString('id-ID') + '</span>' :
-                        '<span class="text-neutral-300">-</span>';
+                        '<span class="text-neutral-300 dark:text-ink-d3">-</span>';
 
                     return '<tr>' +
                         '<td class="whitespace-nowrap text-center">' + item.no + '</td>' +
                         '<td class="whitespace-nowrap">' + item.tanggal + '</td>' +
-                        '<td class="whitespace-nowrap"><span class="font-mono text-xs bg-neutral-100 px-2 py-0.5 rounded">' +
+                        '<td class="whitespace-nowrap"><span class="font-mono text-xs bg-neutral-100 dark:bg-surface-dark-raised dark:text-ink-d px-2 py-0.5 rounded">' +
                         item.kode_akun + '</span></td>' +
                         '<td class="whitespace-nowrap">' + item.nama_akun + '</td>' +
                         '<td class="whitespace-nowrap">' + kategoriBadge(item.kategori_akun) + '</td>' +

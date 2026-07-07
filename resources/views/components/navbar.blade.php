@@ -37,9 +37,9 @@
             </button>
 
             <div id="dropdownNotification"
-                class="z-10 hidden bg-white dark:bg-neutral-700 rounded-2xl overflow-hidden shadow-lg max-w-[394px] w-full">
+                class="z-10 hidden bg-white dark:bg-surface-dark rounded-2xl overflow-hidden shadow-lg max-w-[394px] w-full border border-neutral-100 dark:border-line-dark">
 
-                <div class="px-4 py-3 border-b border-neutral-100 flex items-center justify-between">
+                <div class="px-4 py-3 border-b border-neutral-100 dark:border-neutral-700 flex items-center justify-between">
                     <span class="font-semibold text-sm">Notifikasi</span>
                     <span class="text-xs text-neutral-400">{{ $totalNotifications }} notifikasi</span>
                 </div>
@@ -51,27 +51,27 @@
                         {{-- SECTION: Stok Menipis --}}
                         <div class="notif-section">
                             <button type="button" onclick="toggleNotifSection(this)"
-                                class="notif-section-header w-full flex items-center justify-between px-4 py-2 bg-neutral-50 border-b border-neutral-100 hover:bg-neutral-100 transition-colors">
-                                <div class="flex items-center gap-2 text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+                                class="notif-section-header w-full flex items-center justify-between px-4 py-2 bg-neutral-50 dark:bg-neutral-900/50 border-b border-neutral-100 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">
+                                <div class="flex items-center gap-2 text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
                                     <iconify-icon icon="mdi:alert-outline" class="text-warning-500 text-base"></iconify-icon>
                                     Stok Menipis
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <span class="text-xs bg-neutral-200 text-neutral-600 rounded-full px-2 py-0.5">{{ $lowStockProducts->count() }}</span>
+                                    <span class="text-xs bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 rounded-full px-2 py-0.5">{{ $lowStockProducts->count() }}</span>
                                     <iconify-icon icon="mdi:chevron-down" class="notif-chevron text-neutral-400 transition-transform duration-200"></iconify-icon>
                                 </div>
                             </button>
                             <div class="notif-section-body overflow-y-auto" style="max-height: 200px;">
                                 @forelse($lowStockProducts as $product)
                                     <a href="{{ route('products.index') }}"
-                                        class="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-600 justify-between gap-1 border-b border-neutral-50">
+                                        class="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-neutral-700 justify-between gap-1 border-b border-neutral-100 dark:border-neutral-700">
                                         <div class="flex items-center gap-3">
                                             <div class="flex-shrink-0 w-11 h-11 bg-warning-100 text-warning-600 flex justify-center items-center rounded-full">
                                                 <iconify-icon icon="mdi:alert-outline" class="text-2xl"></iconify-icon>
                                             </div>
                                             <div>
-                                                <h6 class="text-sm font-semibold mb-1">{{ $product->name }}</h6>
-                                                <p class="mb-0 text-sm line-clamp-1">Stok: {{ $product->quantity }}
+                                                <h6 class="text-sm font-semibold mb-1 dark:text-neutral-100">{{ $product->name }}</h6>
+                                                <p class="mb-0 text-sm line-clamp-1 dark:text-neutral-400">Stok: {{ $product->quantity }}
                                                     &nbsp;|&nbsp; Reorder: {{ $product->reorder }}</p>
                                             </div>
                                         </div>
@@ -88,13 +88,13 @@
                         {{-- SECTION: Membership Hampir Habis --}}
                         <div class="notif-section">
                             <button type="button" onclick="toggleNotifSection(this)"
-                                class="notif-section-header w-full flex items-center justify-between px-4 py-2 bg-neutral-50 border-b border-neutral-100 hover:bg-neutral-100 transition-colors">
-                                <div class="flex items-center gap-2 text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+                                class="notif-section-header w-full flex items-center justify-between px-4 py-2 bg-neutral-50 dark:bg-neutral-900/50 border-b border-neutral-100 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">
+                                <div class="flex items-center gap-2 text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
                                     <iconify-icon icon="mdi:calendar-clock" class="text-danger-500 text-base"></iconify-icon>
                                     Membership Hampir Habis
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <span class="text-xs bg-neutral-200 text-neutral-600 rounded-full px-2 py-0.5">{{ $expiringMemberships->count() }}</span>
+                                    <span class="text-xs bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 rounded-full px-2 py-0.5">{{ $expiringMemberships->count() }}</span>
                                     <iconify-icon icon="mdi:chevron-down" class="notif-chevron text-neutral-400 transition-transform duration-200"></iconify-icon>
                                 </div>
                             </button>
@@ -102,14 +102,14 @@
                                 @forelse($expiringMemberships as $membership)
                                     @php $sisaHari = \Carbon\Carbon::today()->diffInDays($membership->tgl_selesai); @endphp
                                     <a href="{{ route('anggota_membership.edit', $membership->id) }}"
-                                        class="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-600 justify-between gap-1 border-b border-neutral-50">
+                                        class="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-neutral-700 justify-between gap-1 border-b border-neutral-100 dark:border-neutral-700">
                                         <div class="flex items-center gap-3">
                                             <div class="flex-shrink-0 w-11 h-11 bg-danger-100 text-danger-600 flex justify-center items-center rounded-full">
                                                 <iconify-icon icon="mdi:calendar-clock" class="text-2xl"></iconify-icon>
                                             </div>
                                             <div>
-                                                <h6 class="text-sm font-semibold mb-1">{{ $membership->anggota->name }}</h6>
-                                                <p class="mb-0 text-sm line-clamp-1">Berakhir:
+                                                <h6 class="text-sm font-semibold mb-1 dark:text-neutral-100">{{ $membership->anggota->name }}</h6>
+                                                <p class="mb-0 text-sm line-clamp-1 dark:text-neutral-400">Berakhir:
                                                     {{ $membership->tgl_selesai->format('d M Y') }}</p>
                                             </div>
                                         </div>
@@ -128,13 +128,13 @@
                         {{-- SECTION: Membership Tidak Aktif --}}
                         <div class="notif-section">
                             <button type="button" onclick="toggleNotifSection(this)"
-                                class="notif-section-header w-full flex items-center justify-between px-4 py-2 bg-neutral-50 border-b border-neutral-100 hover:bg-neutral-100 transition-colors">
-                                <div class="flex items-center gap-2 text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+                                class="notif-section-header w-full flex items-center justify-between px-4 py-2 bg-neutral-50 dark:bg-neutral-900/50 border-b border-neutral-100 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">
+                                <div class="flex items-center gap-2 text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
                                     <iconify-icon icon="mdi:account-off-outline" class="text-purple-500 text-base"></iconify-icon>
                                     Membership Tidak Aktif
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <span class="text-xs bg-neutral-200 text-neutral-600 rounded-full px-2 py-0.5">{{ $expiredMemberships->count() }}</span>
+                                    <span class="text-xs bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 rounded-full px-2 py-0.5">{{ $expiredMemberships->count() }}</span>
                                     <iconify-icon icon="mdi:chevron-down" class="notif-chevron text-neutral-400 transition-transform duration-200"></iconify-icon>
                                 </div>
                             </button>
@@ -142,14 +142,14 @@
                                 @forelse($expiredMemberships as $membership)
                                     @php $sudahHari = \Carbon\Carbon::today()->diffInDays($membership->tgl_selesai); @endphp
                                     <a href="{{ route('anggota_membership.edit', $membership->id) }}"
-                                        class="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-600 justify-between gap-1 border-b border-neutral-50">
+                                        class="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-neutral-700 justify-between gap-1 border-b border-neutral-100 dark:border-neutral-700">
                                         <div class="flex items-center gap-3">
                                             <div class="flex-shrink-0 w-11 h-11 bg-purple-100 text-purple-600 flex justify-center items-center rounded-full">
                                                 <iconify-icon icon="mdi:account-off-outline" class="text-2xl"></iconify-icon>
                                             </div>
                                             <div>
-                                                <h6 class="text-sm font-semibold mb-1">{{ $membership->anggota->name }}</h6>
-                                                <p class="mb-0 text-sm line-clamp-1">Berakhir:
+                                                <h6 class="text-sm font-semibold mb-1 dark:text-neutral-100">{{ $membership->anggota->name }}</h6>
+                                                <p class="mb-0 text-sm line-clamp-1 dark:text-neutral-400">Berakhir:
                                                     {{ $membership->tgl_selesai->format('d M Y') }}</p>
                                             </div>
                                         </div>
@@ -175,8 +175,8 @@
                                         <iconify-icon icon="{{ $notif['icon'] }}" class="text-2xl"></iconify-icon>
                                     </div>
                                     <div>
-                                        <h6 class="text-sm font-semibold mb-1">{{ $notif['title'] }}</h6>
-                                        <p class="mb-0 text-sm line-clamp-1">{{ $notif['message'] }}</p>
+                                        <h6 class="text-sm font-semibold mb-1 dark:text-neutral-100">{{ $notif['title'] }}</h6>
+                                        <p class="mb-0 text-sm line-clamp-1 dark:text-neutral-400">{{ $notif['message'] }}</p>
                                     </div>
                                 </div>
                             </a>
@@ -188,9 +188,10 @@
                 </div>
             </div>
 
-            {{-- Dark mode toggle (visual only — logic akan ditambahkan setelah semua halaman selesai) --}}
-            <button type="button" class="navbar-ctrl-btn" title="Ganti tema">
-                <x-icon.moon class="text-[19px]" />
+            {{-- Dark mode toggle --}}
+            <button type="button" id="theme-toggle" class="navbar-ctrl-btn" title="Ganti tema">
+                <x-icon.moon id="theme-toggle-dark-icon" class="text-[19px]" />
+                <iconify-icon id="theme-toggle-light-icon" icon="ph:sun-bold" class="text-[19px] hidden"></iconify-icon>
             </button>
 
             {{-- Profile pill --}}

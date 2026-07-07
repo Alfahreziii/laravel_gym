@@ -268,7 +268,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const isAdmin       = {{ $isAdmin ? 'true' : 'false' }};
     const isLaporanMode = {{ $isLaporanMode ? 'true' : 'false' }};
 
-    function confirmDelete(url) {
+    window.confirmDelete = function(url) {
         Swal.fire({
             title: 'Apakah kamu yakin?',
             text: "Data member trainer yang dihapus tidak bisa dikembalikan!",
@@ -298,11 +298,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 ? `<td class="whitespace-nowrap">
                        <div class="flex gap-2">
                            <a href="${item.edit_url}" title="Edit Item"
-                              class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
+                              class="btn-action">
                                <iconify-icon icon="lucide:edit"></iconify-icon>
                            </a>
                            <button onclick="confirmDelete('${item.delete_url}')" title="Hapus Item" type="button"
-                               class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center">
+                               class="btn-action btn-action-del">
                                <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
                            </button>
                        </div>

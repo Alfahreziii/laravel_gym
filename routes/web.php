@@ -162,6 +162,11 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     Route::get('/dashboard/kehadiran', [DashboardController::class, 'kehadiranDatatable'])->name('dashboard.kehadiran');
     Route::get('/dashboard/member-in-room', [DashboardController::class, 'memberInRoomDatatable'])->name('dashboard.memberInRoom');
 
+    // Scanner Absensi Trainer — AJAX endpoint untuk drawer di kehadiran-trainer
+    Route::post('/absensi/trainer', [NoRoleController::class, 'storetainerForLayout'])
+        ->middleware(RoleMiddleware::class . ':admin|spv')
+        ->name('absensi.trainer.store');
+
     Route::controller(DashboardController::class)->group(function () {
         Route::get('/', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('dashboard');
     });

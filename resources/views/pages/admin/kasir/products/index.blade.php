@@ -217,11 +217,11 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!isLaporanMode) {
                 var aksiHtml = '';
                 if (isAdmin) {
-                    aksiHtml += '<a href="' + htmlEsc(item.edit_url) + '" title="Edit Item" class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center"><iconify-icon icon="lucide:edit"></iconify-icon></a>';
+                    aksiHtml += '<a href="' + htmlEsc(item.edit_url) + '" title="Edit Item" class="btn-action"><iconify-icon icon="lucide:edit"></iconify-icon></a>';
                 }
-                aksiHtml += '<a href="' + htmlEsc(item.logs_url) + '" title="Riwayat Stok" class="w-8 h-8 bg-warning-100 text-warning-600 rounded-full inline-flex items-center justify-center"><i class="ri-calendar-schedule-line"></i></a>';
+                aksiHtml += '<a href="' + htmlEsc(item.logs_url) + '" title="Riwayat Stok" class="btn-action btn-action-warn"><i class="ri-calendar-schedule-line"></i></a>';
                 if (isAdmin) {
-                    aksiHtml += '<button type="button" class="delete-product-btn w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center" title="Hapus Item" data-action="' + htmlEsc(item.delete_url) + '"><iconify-icon icon="mingcute:delete-2-line"></iconify-icon></button>';
+                    aksiHtml += '<button type="button" class="delete-product-btn btn-action btn-action-del" title="Hapus Item" data-action="' + htmlEsc(item.delete_url) + '"><iconify-icon icon="mingcute:delete-2-line"></iconify-icon></button>';
                 }
                 aksiCol = '<td class="whitespace-nowrap"><div class="flex gap-2">' + aksiHtml + '</div></td>';
             }

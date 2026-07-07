@@ -287,7 +287,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 : AjaxTable.badge('success', '0 Sesi');
 
             var bayarBtn = '<button type="button"'
-                + ' class="open-bayar-gaji w-8 h-8 ' + (sesi > 0 ? 'bg-success-100 text-success-600' : 'bg-neutral-100 text-neutral-400 cursor-not-allowed') + ' rounded-full inline-flex items-center justify-center"'
+                + ' class="open-bayar-gaji btn-action' + (sesi <= 0 ? ' opacity-50 cursor-not-allowed pointer-events-none' : '') + '"'
                 + ' title="Bayar Gaji"'
                 + ' data-trainer-id="' + item.id + '"'
                 + ' data-base-rate="' + item.base_rate + '"'
@@ -297,7 +297,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 + '<iconify-icon icon="hugeicons:money-send-square"></iconify-icon></button>';
 
             var historyBtn = '<a href="' + htmlEsc(item.history_url) + '" title="Lihat History"'
-                + ' class="w-8 h-8 bg-info-100 text-info-600 rounded-full inline-flex items-center justify-center hover:bg-info-200 transition-colors">'
+                + ' class="btn-action">'
                 + '<iconify-icon icon="solar:clipboard-list-bold"></iconify-icon></a>';
 
             return '<tr>'

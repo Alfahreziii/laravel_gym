@@ -34,10 +34,10 @@
         <x-slot:header>
             <tr>
                 <th scope="col">No</th>
-                <th scope="col">Nama Specialisasi</th>
                 @if($isAdmin)
                 <th scope="col">Aksi</th>
                 @endif
+                <th scope="col">Nama Specialisasi</th>
             </tr>
         </x-slot:header>
     </x-data-table>
@@ -156,14 +156,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 actionCol = '<td class="whitespace-nowrap">'
                     + '<div class="flex gap-2">'
                     + '<button type="button"'
-                    + ' class="open-edit-modal w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center"'
+                    + ' class="open-edit-modal btn-action"'
                     + ' title="Edit Specialisasi"'
                     + ' data-nama-specialisasi="' + htmlEsc(item.nama_specialisasi) + '"'
                     + ' data-action="' + item.update_url + '">'
                     + '<iconify-icon icon="lucide:edit"></iconify-icon>'
                     + '</button>'
                     + '<button type="button"'
-                    + ' class="delete-btn w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center"'
+                    + ' class="delete-btn btn-action btn-action-del"'
                     + ' title="Hapus Specialisasi"'
                     + ' data-action="' + item.delete_url + '">'
                     + '<iconify-icon icon="mingcute:delete-2-line"></iconify-icon>'
@@ -174,8 +174,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             return '<tr>'
                 + '<td class="whitespace-nowrap">' + item.no + '</td>'
-                + '<td>' + item.nama_specialisasi + '</td>'
                 + actionCol
+                + '<td>' + item.nama_specialisasi + '</td>'
                 + '</tr>';
         }
     });

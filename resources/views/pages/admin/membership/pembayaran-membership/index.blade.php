@@ -226,9 +226,9 @@ document.addEventListener('DOMContentLoaded', function () {
         renderRow: function (item) {
             var aksi = '';
             if (item.is_lunas) {
-                aksi = '<a href="' + htmlEsc(item.nota_url) + '" class="w-8 h-8 bg-warning-100 text-warning-600 rounded-full inline-flex items-center justify-center" title="Download Nota PDF"><iconify-icon icon="hugeicons:money-send-square"></iconify-icon></a>';
+                aksi = '<a href="' + htmlEsc(item.nota_url) + '" class="btn-action btn-action-warn" title="Download Nota PDF"><iconify-icon icon="hugeicons:money-send-square"></iconify-icon></a>';
             } else if (isAdmin) {
-                aksi = '<button type="button" class="open-bayar-modal w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center" title="Bayar"'
+                aksi = '<button type="button" class="open-bayar-modal btn-action" title="Bayar"'
                     + ' data-action="' + htmlEsc(item.bayar_url) + '"'
                     + ' data-kode="' + htmlEsc(item.kode_transaksi) + '"'
                     + ' data-total="' + item.total_biaya + '"'

@@ -133,31 +133,28 @@
                     onclick="showPhoto('${item.foto}', 'Foto Trainer')"
                     loading="lazy">` :
                         `<span class="text-gray-400 italic text-xs">No photo</span>`;
-                    const fingerBadge = item.status_finger == 0 ?
-                        `<span class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm flex items-center gap-1 w-fit">
-            <iconify-icon icon="lucide:scan-line"></iconify-icon> Enroll
-       </span>` :
-                        item.status_finger == 1 ?
-                        `<span class="bg-danger-100 text-danger-600 px-4 py-1.5 rounded-full font-medium text-sm flex items-center gap-1 w-fit">
-            <iconify-icon icon="lucide:trash-2"></iconify-icon> Delete
-       </span>` :
-                        `<span class="bg-neutral-100 text-neutral-500 px-4 py-1.5 rounded-full font-medium text-sm flex items-center gap-1 w-fit">
-            <iconify-icon icon="lucide:minus-circle"></iconify-icon> Default
-       </span>`;
+                    const fingerBadge = item.status_finger == 0
+                        ? AjaxTable.badge('success', 'Enroll')
+                        : item.status_finger == 1
+                        ? AjaxTable.badge('danger', 'Delete')
+                        : AjaxTable.badge('neutral', 'Default');
+                    const statusTypeMap = { 'aktif': 'success', 'nonaktif': 'danger', 'pending': 'warning' };
+                    const statusBadge = AjaxTable.badge(statusTypeMap[item.status] || 'neutral', item.status_label.text);
+
                     const aksiCol = !isLaporan ? `
                 <td class="whitespace-nowrap">
                     ${(isAdmin || isSpv) ? `
                                                     <a href="${item.show_url}" title="Lihat detail"
-                                                        class="w-8 h-8 bg-primary-50 text-primary-600 rounded-full inline-flex items-center justify-center">
+                                                        class="btn-action">
                                                         <iconify-icon icon="iconamoon:eye-light"></iconify-icon>
                                                     </a>` : ''}
                     ${isAdmin ? `
                                                     <a href="${item.edit_url}" title="Edit Item"
-                                                        class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
+                                                        class="btn-action">
                                                         <iconify-icon icon="lucide:edit"></iconify-icon>
                                                     </a>
                                                     <button onclick="confirmDeleteTrainer('${item.delete_url}')" title="Hapus Item"
-                                                        class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center">
+                                                        class="btn-action btn-action-del">
                                                         <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
                                                     </button>` : ''}
                 </td>` : '';
@@ -167,13 +164,17 @@
                     ${(isAdmin || isSpv) ? (
                         item.status !== 'aktif'
                             ? `<button onclick="updateStatus('${item.update_status_url}', 'aktif')"
-                                                            class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm">
-                                                            Izinkan Akses
-                                                           </button>`
+                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold
+                                       bg-success-50 text-success-700 dark:bg-success-600/20 dark:text-success-400
+                                       hover:opacity-80 transition-opacity cursor-pointer">
+                                <span class="w-1.5 h-1.5 rounded-full bg-success-500 flex-shrink-0"></span>Izinkan Akses
+                               </button>`
                             : `<button onclick="updateStatus('${item.update_status_url}', 'nonaktif')"
-                                                            class="bg-danger-100 text-danger-600 px-4 py-1.5 rounded-full font-medium text-sm">
-                                                            Batasi Akses
-                                                           </button>`
+                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold
+                                       bg-danger-50 text-danger-700 dark:bg-danger-600/20 dark:text-danger-400
+                                       hover:opacity-80 transition-opacity cursor-pointer">
+                                <span class="w-1.5 h-1.5 rounded-full bg-danger-500 flex-shrink-0"></span>Batasi Akses
+                               </button>`
                     ) : ''}
                 </td>` : '';
 
@@ -190,9 +191,7 @@
                     <td class="whitespace-nowrap">${item.sesi_sudah_dijalani}</td>
                     <td class="whitespace-nowrap">${item.experience}</td>
                     <td class="whitespace-nowrap">${item.tgl_gabung}</td>
-                    <td class="whitespace-nowrap">
-                        <span class="${item.status_label.class}">${item.status_label.text}</span>
-                    </td>
+                    <td class="whitespace-nowrap">${statusBadge}</td>
                     <td class="whitespace-nowrap">${fingerBadge}</td>
                     ${updateStatusCol}
                 </tr>
