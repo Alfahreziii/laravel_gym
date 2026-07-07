@@ -380,6 +380,43 @@ input[type="time"]::after {
     border-top: 1px solid #332D26;
 }
 
+/* ── Global Tailwind light-mode class overrides untuk dark mode ──────────── */
+/* Kelas-kelas ini tidak punya dark: variant di built CSS karena tidak
+   di-scan Tailwind. Override di sini berlaku untuk seluruh aplikasi. */
+
+/* Primary tint backgrounds & borders */
+.dark .bg-primary-50    { background-color: rgba(242, 98, 46, 0.10) !important; }
+.dark .border-primary-200 { border-color:   rgba(242, 98, 46, 0.25) !important; }
+
+/* Success tint */
+.dark .bg-success-50    { background-color: rgba(22, 163, 74, 0.10) !important; }
+.dark .bg-success-100   { background-color: rgba(22, 163, 74, 0.15) !important; }
+.dark .border-success-200 { border-color:   rgba(22, 163, 74, 0.25) !important; }
+.dark .border-success-400 { border-color:   rgba(22, 163, 74, 0.50) !important; }
+.dark .text-success-700 { color: #4ade80 !important; }
+
+/* Warning tint */
+.dark .bg-warning-50    { background-color: rgba(234, 179, 8, 0.10) !important; }
+.dark .bg-warning-100   { background-color: rgba(234, 179, 8, 0.15) !important; }
+.dark .border-warning-200 { border-color:   rgba(234, 179, 8, 0.25) !important; }
+.dark .text-warning-700 { color: #facc15 !important; }
+
+/* Danger tint */
+.dark .bg-danger-100    { background-color: rgba(220, 38, 38, 0.15) !important; }
+
+/* Neutral borders → warm dark */
+.dark .border-neutral-200 { border-color: #332D26 !important; }
+.dark .border-neutral-300 { border-color: #332D26 !important; }
+
+/* Neutral text → warm palette */
+.dark .text-neutral-900   { color: #F4F1EC !important; }
+.dark .text-neutral-700   { color: #A8A29A !important; }
+
+/* Gray (Tailwind default) */
+.dark .bg-gray-100        { background-color: #28231D !important; }
+.dark .border-gray-300    { border-color: #332D26 !important; }
+.dark .text-gray-600      { color: #A8A29A !important; }
+
 /* ── Readonly / system-filled fields ─────────────────────────────────────── */
 /* Light: grayish neutral, text muted, kursor not-allowed */
 .form-control[readonly],
