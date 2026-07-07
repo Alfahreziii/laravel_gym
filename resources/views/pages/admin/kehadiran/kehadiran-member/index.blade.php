@@ -381,7 +381,7 @@
 
                 function doPost(fotoBlob) {
                     const fd = new FormData(scanForm);
-                    if (fotoBlob) fd.set('foto', new File([fotoBlob], `absen_${Date.now()}.png`, { type: 'image/png' }));
+                    if (fotoBlob) fd.set('foto', new File([fotoBlob], `absen_${Date.now()}.jpg`, { type: 'image/jpeg' }));
 
                     fetch(scanForm.action, {
                         method: 'POST',
@@ -410,12 +410,16 @@
                     });
                 }
 
-                canvas.width  = video.videoWidth  || 640;
-                canvas.height = video.videoHeight || 480;
+                const MAX_W = 640;
+                const srcW  = video.videoWidth  || 640;
+                const srcH  = video.videoHeight || 480;
+                const scale = Math.min(1, MAX_W / srcW);
+                canvas.width  = Math.round(srcW * scale);
+                canvas.height = Math.round(srcH * scale);
 
                 if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0) {
                     canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-                    canvas.toBlob(blob => doPost(blob), 'image/png');
+                    canvas.toBlob(blob => doPost(blob), 'image/jpeg', 0.65);
                 } else {
                     doPost(null);
                 }
