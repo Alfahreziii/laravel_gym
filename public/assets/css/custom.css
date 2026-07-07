@@ -430,6 +430,49 @@ input[type="time"]::after {
     border-color: #332D26 !important;
 }
 
+/* ── View Profile page dark mode ────────────────────────────────────────── */
+/* Left card: bg-white hardcoded */
+.dark .user-grid-card {
+    background-color: #1F1B17;
+    border-color: #332D26 !important;
+}
+.dark .user-grid-card .border-b,
+.dark .user-grid-card .border-neutral-200 {
+    border-color: #332D26 !important;
+}
+.dark .user-grid-card h6,
+.dark .user-grid-card .text-neutral-600 {
+    color: #F4F1EC;
+}
+.dark .user-grid-card .text-secondary-light {
+    color: #A8A29A;
+}
+/* Role/status badge di info panel */
+.dark .user-grid-card .bg-primary-100 {
+    background-color: rgba(242, 98, 46, 0.15);
+}
+.dark .user-grid-card .bg-success-100 {
+    background-color: rgba(22, 163, 74, 0.15);
+}
+.dark .user-grid-card .bg-warning-100 {
+    background-color: rgba(234, 179, 8, 0.15);
+}
+/* Right card — form labels dan section divider */
+.dark .card-body .text-neutral-600 {
+    color: #A8A29A;
+}
+.dark .card-body .border-b {
+    border-color: #332D26;
+}
+/* Tab buttons */
+.dark .tab-style-gradient button {
+    color: #A8A29A;
+}
+.dark .tab-style-gradient button:hover {
+    color: #F4F1EC;
+    border-color: #332D26;
+}
+
 /* ── editUserRoleModal body — dark mode ─────────────────────────────────── */
 .dark #editUserRoleModal .modal-info-box {
     background-color: #28231D;
