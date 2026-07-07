@@ -380,6 +380,24 @@ input[type="time"]::after {
     border-top: 1px solid #332D26;
 }
 
+/* ── Readonly / system-filled fields ─────────────────────────────────────── */
+/* Light: grayish neutral, text muted, kursor not-allowed */
+.form-control[readonly],
+.form-control:disabled {
+    background-color: #f3f4f6 !important;
+    color: #9ca3af !important;
+    cursor: not-allowed;
+}
+/* Dark: surface-dark-raised (#28231D) lebih terang dari editable (#15120F),
+   text ink-d3 (#6E685F) supaya jelas "bukan field yang bisa diisi" */
+.dark .form-control[readonly],
+.dark .form-control:disabled {
+    background-color: #28231D !important;
+    border-color: #332D26 !important;
+    color: #6E685F !important;
+    cursor: not-allowed;
+}
+
 /* ── Native form controls dark mode ─────────────────────────────────────── */
 /* Browser/OS (Windows) di dark mode nambah blue tint ke native select.
    Override paksa + color-scheme: dark agar rendering native-nya ikut palette kita. */
