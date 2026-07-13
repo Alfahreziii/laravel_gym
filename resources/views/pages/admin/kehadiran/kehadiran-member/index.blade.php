@@ -157,7 +157,7 @@
            transform:translateX(100%); transition:transform .3s cubic-bezier(.4,0,.2,1);">
 
     {{-- Header --}}
-    <div style="background: linear-gradient(135deg, #ea580c, #c2410c); color:#fff; padding:1rem 1.25rem; display:flex; align-items:center; justify-content:space-between; flex-shrink:0;">
+    <div style="background:linear-gradient(135deg,#ea580c,#c2410c); color:#fff; padding:1rem 1.25rem; display:flex; align-items:center; justify-content:space-between; flex-shrink:0;">
         <div style="display:flex; align-items:center; gap:.6rem;">
             <iconify-icon icon="solar:qr-code-linear" style="font-size:1.5rem;"></iconify-icon>
             <span style="font-weight:700; font-size:1rem;">Scanner Absensi Member</span>
@@ -170,23 +170,39 @@
         </button>
     </div>
 
+    {{-- Mode Switcher --}}
+    <div style="padding:.75rem 1.25rem .25rem; flex-shrink:0;">
+        <div style="display:flex; background:#f3f4f6; border-radius:.75rem; padding:3px; gap:3px;">
+            <button id="mode-btn-photo" onclick="setMode('photo')"
+                style="flex:1; padding:.5rem .5rem; font-size:.8rem; font-weight:600; border:none; border-radius:.6rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:.35rem; transition:all .2s; background:#F2622E; color:#fff;">
+                <iconify-icon icon="solar:camera-bold" style="font-size:1rem;"></iconify-icon>
+                Foto + ID
+            </button>
+            <button id="mode-btn-qr" onclick="setMode('qr')"
+                style="flex:1; padding:.5rem .5rem; font-size:.8rem; font-weight:600; border:none; border-radius:.6rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:.35rem; transition:all .2s; background:transparent; color:#6b7280;">
+                <iconify-icon icon="solar:qr-code-bold" style="font-size:1rem;"></iconify-icon>
+                Scan QR Kamera
+            </button>
+        </div>
+    </div>
+
     {{-- Body --}}
-    <div style="flex:1; overflow-y:auto; padding:1.25rem;">
+    <div style="flex:1; overflow-y:auto; padding:1rem 1.25rem 1.25rem;">
 
         {{-- Toast result --}}
-        <div id="scanner-toast" style="display:none; margin-bottom:1rem; border-radius:.75rem; padding:.75rem 1rem; font-size:.875rem; font-weight:600; display:none; align-items:center; gap:.5rem;"></div>
+        <div id="scanner-toast" style="display:none; margin-bottom:1rem; border-radius:.75rem; padding:.75rem 1rem; font-size:.875rem; font-weight:600; align-items:center; gap:.5rem;"></div>
 
         <form id="scanner-form" action="{{ route('absen.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
-            {{-- RFID --}}
-            <div style="margin-bottom:1.25rem;">
+            {{-- RFID input — hanya tampil di mode foto --}}
+            <div id="rfid-section" style="margin-bottom:1.25rem;">
                 <label style="display:block; font-size:.8125rem; font-weight:600; margin-bottom:.5rem;">ID Kartu / RFID</label>
                 <input type="text" id="scanner-rfid" name="rfid"
                     class="form-control"
                     style="text-align:center; font-size:1.1rem; font-weight:700; letter-spacing:.1em; padding:.75rem 1rem; border-radius:.75rem;"
                     placeholder="Scan kartu di sini..."
-                    autocomplete="off" required>
+                    autocomplete="off">
                 <p style="font-size:.75rem; color:#9ca3af; text-align:center; margin-top:.375rem;">
                     Arahkan barcode scanner ke kartu member
                 </p>
@@ -195,17 +211,33 @@
             {{-- Webcam --}}
             <div style="margin-bottom:1.25rem;">
                 <label style="display:block; font-size:.8125rem; font-weight:600; margin-bottom:.5rem;">Kamera</label>
-                <div style="border-radius:.75rem; overflow:hidden; background:#111827; border:1px solid #e5e7eb;" class="hexa-scanner-cam-border">
+                <div style="position:relative; border-radius:.75rem; overflow:hidden; background:#111827; border:1px solid #e5e7eb;" class="hexa-scanner-cam-border">
                     <video id="scanner-webcam" style="width:100%; display:block;" autoplay playsinline></video>
+                    {{-- Overlay frame untuk QR scan mode --}}
+                    <div id="qr-scan-frame" style="display:none; position:absolute; inset:0; pointer-events:none; display:flex; align-items:center; justify-content:center;">
+                        <div style="width:190px; height:190px; position:relative;">
+                            <div style="position:absolute; top:0; left:0; width:28px; height:28px; border-top:3px solid #F2622E; border-left:3px solid #F2622E; border-radius:4px 0 0 0;"></div>
+                            <div style="position:absolute; top:0; right:0; width:28px; height:28px; border-top:3px solid #F2622E; border-right:3px solid #F2622E; border-radius:0 4px 0 0;"></div>
+                            <div style="position:absolute; bottom:0; left:0; width:28px; height:28px; border-bottom:3px solid #F2622E; border-left:3px solid #F2622E; border-radius:0 0 0 4px;"></div>
+                            <div style="position:absolute; bottom:0; right:0; width:28px; height:28px; border-bottom:3px solid #F2622E; border-right:3px solid #F2622E; border-radius:0 0 4px 0;"></div>
+                            <div id="qr-scan-line" style="position:absolute; top:0; left:4px; right:4px; height:2px; background:linear-gradient(to right,transparent,#F2622E,transparent); animation:qrScanLine 1.8s ease-in-out infinite;"></div>
+                        </div>
+                    </div>
                 </div>
                 <canvas id="scanner-canvas" style="display:none;"></canvas>
-                <p style="font-size:.75rem; color:#9ca3af; text-align:center; margin-top:.375rem;">
+                <p id="cam-hint" style="font-size:.75rem; color:#9ca3af; text-align:center; margin-top:.375rem;">
                     Foto diambil otomatis saat scan
                 </p>
             </div>
 
-            {{-- Submit --}}
-            <button type="submit"
+            {{-- QR status info --}}
+            <div id="qr-status" style="display:none; margin-bottom:1.25rem; background:#fff7ed; border:1px solid #fed7aa; border-radius:.75rem; padding:.75rem 1rem; font-size:.8125rem; color:#9a3412; display:none; align-items:center; gap:.5rem; text-align:center; justify-content:center;">
+                <iconify-icon icon="solar:camera-scan-bold" style="font-size:1.25rem;"></iconify-icon>
+                <span id="qr-status-text">Arahkan kamera ke QR code kartu member…</span>
+            </div>
+
+            {{-- Submit — hanya di mode foto --}}
+            <button id="submit-btn" type="submit"
                 class="btn btn-primary"
                 style="width:100%; display:flex; align-items:center; justify-content:center; gap:.5rem; padding:.75rem 1rem; border-radius:.75rem; font-size:1rem; font-weight:600;">
                 <iconify-icon icon="solar:check-circle-linear" style="font-size:1.25rem;"></iconify-icon>
@@ -214,6 +246,14 @@
         </form>
     </div>
 </div>
+
+<style>
+@keyframes qrScanLine {
+    0%   { top: 0; opacity: 1; }
+    50%  { top: calc(100% - 2px); opacity: 1; }
+    100% { top: 0; opacity: 1; }
+}
+</style>
 
 @endsection
 
@@ -328,42 +368,108 @@
             });
 
             // ── Scanner Drawer ────────────────────────────────────────────────
-            const drawer     = document.getElementById('scanner-drawer');
-            const overlay    = document.getElementById('scanner-overlay');
-            const video      = document.getElementById('scanner-webcam');
-            const canvas     = document.getElementById('scanner-canvas');
-            const rfidInput  = document.getElementById('scanner-rfid');
-            const scanForm   = document.getElementById('scanner-form');
-            const toast      = document.getElementById('scanner-toast');
-            let camStream    = null;
-            let isProcessing = false;
-            let focusTick    = null;
+            const drawer      = document.getElementById('scanner-drawer');
+            const overlay     = document.getElementById('scanner-overlay');
+            const video       = document.getElementById('scanner-webcam');
+            const canvas      = document.getElementById('scanner-canvas');
+            const rfidInput   = document.getElementById('scanner-rfid');
+            const scanForm    = document.getElementById('scanner-form');
+            const toast       = document.getElementById('scanner-toast');
+            const rfidSection = document.getElementById('rfid-section');
+            const submitBtn   = document.getElementById('submit-btn');
+            const qrFrame     = document.getElementById('qr-scan-frame');
+            const qrStatus    = document.getElementById('qr-status');
+            const qrStatusTxt = document.getElementById('qr-status-text');
+            const camHint     = document.getElementById('cam-hint');
+            const modeBtnPhoto= document.getElementById('mode-btn-photo');
+            const modeBtnQR   = document.getElementById('mode-btn-qr');
 
+            let camStream     = null;
+            let isProcessing  = false;
+            let focusTick     = null;
+            let currentMode   = 'photo'; // 'photo' | 'qr'
+            let qrLoopId      = null;
+            let lastScanTs    = 0;
+            const QR_DEBOUNCE = 2500; // ms antara scan berhasil
+
+            // ── Mode switcher ──────────────────────────────────────────────
+            window.setMode = function(mode) {
+                currentMode = mode;
+                stopQRLoop();
+
+                if (mode === 'photo') {
+                    // Tampilkan elemen mode foto
+                    rfidSection.style.display = 'block';
+                    submitBtn.style.display   = 'flex';
+                    qrFrame.style.display     = 'none';
+                    qrStatus.style.display    = 'none';
+                    camHint.textContent       = 'Foto diambil otomatis saat scan';
+                    rfidInput.required        = true;
+                    // Style tombol
+                    modeBtnPhoto.style.background = '#F2622E';
+                    modeBtnPhoto.style.color      = '#fff';
+                    modeBtnQR.style.background    = 'transparent';
+                    modeBtnQR.style.color         = '#6b7280';
+                    // Fokus ke input
+                    setTimeout(() => rfidInput.focus(), 100);
+                } else {
+                    // Mode QR scan
+                    rfidSection.style.display = 'none';
+                    submitBtn.style.display   = 'none';
+                    qrFrame.style.display     = 'flex';
+                    qrStatus.style.display    = 'flex';
+                    camHint.textContent       = 'Kamera digunakan untuk baca QR, foto tidak disimpan';
+                    rfidInput.required        = false;
+                    rfidInput.value           = '';
+                    // Style tombol
+                    modeBtnQR.style.background    = '#F2622E';
+                    modeBtnQR.style.color         = '#fff';
+                    modeBtnPhoto.style.background = 'transparent';
+                    modeBtnPhoto.style.color      = '#6b7280';
+                    // Mulai scan loop
+                    setQRStatus('scanning', 'Arahkan kamera ke QR code kartu member…');
+                    if (camStream) startQRLoop();
+                }
+            };
+
+            // ── Open / Close ───────────────────────────────────────────────
             window.openScanner = function() {
-                drawer.style.transform  = 'translateX(0)';
-                overlay.style.display   = 'block';
+                drawer.style.transform       = 'translateX(0)';
+                overlay.style.display        = 'block';
                 document.body.style.overflow = 'hidden';
                 startCam();
+                // Reset ke mode foto saat buka
+                setMode('photo');
                 setTimeout(() => rfidInput.focus(), 350);
                 focusTick = setInterval(() => {
-                    if (document.activeElement !== rfidInput && !isProcessing) rfidInput.focus();
+                    if (currentMode === 'photo' && document.activeElement !== rfidInput && !isProcessing)
+                        rfidInput.focus();
                 }, 2000);
             };
 
             window.closeScanner = function() {
-                drawer.style.transform  = 'translateX(100%)';
-                overlay.style.display   = 'none';
+                drawer.style.transform       = 'translateX(100%)';
+                overlay.style.display        = 'none';
                 document.body.style.overflow = '';
                 stopCam();
+                stopQRLoop();
                 clearInterval(focusTick);
-                rfidInput.value = '';
+                rfidInput.value     = '';
                 toast.style.display = 'none';
             };
 
+            // ── Camera helpers ──────────────────────────────────────────────
             function startCam() {
                 if (camStream) return;
-                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
-                    .then(s => { camStream = s; video.srcObject = s; })
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                    .catch(() => navigator.mediaDevices.getUserMedia({ video: true }))
+                    .then(s => {
+                        camStream = s;
+                        video.srcObject = s;
+                        video.onloadedmetadata = () => {
+                            if (currentMode === 'qr') startQRLoop();
+                        };
+                    })
                     .catch(() => {});
             }
 
@@ -374,42 +480,86 @@
                 video.srcObject = null;
             }
 
+            // ── QR scan loop ───────────────────────────────────────────────
+            function startQRLoop() {
+                stopQRLoop();
+                qrLoopId = requestAnimationFrame(qrScanTick);
+            }
+
+            function stopQRLoop() {
+                if (qrLoopId) { cancelAnimationFrame(qrLoopId); qrLoopId = null; }
+            }
+
+            function qrScanTick() {
+                if (currentMode !== 'qr' || !camStream || isProcessing) {
+                    qrLoopId = null; return;
+                }
+                if (video.readyState >= 2 && video.videoWidth > 0) {
+                    // Gunakan BarcodeDetector jika ada, fallback ke jsQR
+                    if (window._barcodeDetector) {
+                        window._barcodeDetector.detect(video).then(codes => {
+                            if (codes.length && !isProcessing) {
+                                const now = Date.now();
+                                if (now - lastScanTs > QR_DEBOUNCE) {
+                                    lastScanTs = now;
+                                    onQRDetected(codes[0].rawValue);
+                                }
+                            }
+                        }).catch(() => {});
+                    } else if (window.jsQR) {
+                        canvas.width  = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        canvas.getContext('2d').drawImage(video, 0, 0);
+                        const imgData = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+                        const code    = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'dontInvert' });
+                        if (code && !isProcessing) {
+                            const now = Date.now();
+                            if (now - lastScanTs > QR_DEBOUNCE) {
+                                lastScanTs = now;
+                                onQRDetected(code.data);
+                            }
+                        }
+                    }
+                }
+                qrLoopId = requestAnimationFrame(qrScanTick);
+            }
+
+            function onQRDetected(value) {
+                if (isProcessing) return;
+                rfidInput.value = value;
+                setQRStatus('found', `QR terdeteksi: ${value}`);
+                // Trigger submit tanpa foto
+                submitAbsensi(null);
+            }
+
+            function setQRStatus(state, msg) {
+                qrStatusTxt.textContent = msg;
+                if (state === 'found') {
+                    qrStatus.style.background   = '#f0fdf4';
+                    qrStatus.style.borderColor  = '#86efac';
+                    qrStatus.style.color        = '#15803d';
+                    qrStatus.querySelector('iconify-icon').setAttribute('icon', 'solar:check-circle-bold');
+                } else if (state === 'error') {
+                    qrStatus.style.background   = '#fef2f2';
+                    qrStatus.style.borderColor  = '#fca5a5';
+                    qrStatus.style.color        = '#dc2626';
+                    qrStatus.querySelector('iconify-icon').setAttribute('icon', 'solar:close-circle-bold');
+                } else {
+                    qrStatus.style.background   = '#fff7ed';
+                    qrStatus.style.borderColor  = '#fed7aa';
+                    qrStatus.style.color        = '#9a3412';
+                    qrStatus.querySelector('iconify-icon').setAttribute('icon', 'solar:camera-scan-bold');
+                }
+            }
+
+            // ── Submit handler (form manual) ────────────────────────────────
             scanForm.addEventListener('submit', e => {
                 e.preventDefault();
+                if (currentMode === 'qr') return; // QR mode auto-handle
                 if (isProcessing || !rfidInput.value.trim()) return;
                 isProcessing = true;
 
-                function doPost(fotoBlob) {
-                    const fd = new FormData(scanForm);
-                    if (fotoBlob) fd.set('foto', new File([fotoBlob], `absen_${Date.now()}.jpg`, { type: 'image/jpeg' }));
-
-                    fetch(scanForm.action, {
-                        method: 'POST',
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                        body: fd
-                    })
-                    .then(async r => {
-                        let res;
-                        try { res = await r.json(); } catch { res = { success: false, message: 'Server error' }; }
-
-                        rfidInput.value = '';
-                        rfidInput.focus();
-                        isProcessing = false;
-
-                        showScanToast(res.success ? 'success' : 'danger', res.message || 'Terjadi kesalahan.');
-
-                        if (res.success && window._ajaxTables && window._ajaxTables['tbodyKehadiranMember']) {
-                            window._ajaxTables['tbodyKehadiranMember'].refresh();
-                        }
-                    })
-                    .catch(() => {
-                        isProcessing = false;
-                        rfidInput.value = '';
-                        rfidInput.focus();
-                        showScanToast('danger', 'Gagal menghubungi server.');
-                    });
-                }
-
+                // Mode foto: capture dari webcam
                 const MAX_W = 640;
                 const srcW  = video.videoWidth  || 640;
                 const srcH  = video.videoHeight || 480;
@@ -419,18 +569,93 @@
 
                 if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0) {
                     canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-                    canvas.toBlob(blob => doPost(blob), 'image/jpeg', 0.65);
+                    canvas.toBlob(blob => submitAbsensi(blob), 'image/jpeg', 0.65);
                 } else {
-                    doPost(null);
+                    submitAbsensi(null);
                 }
             });
+
+            // ── Core submit function ────────────────────────────────────────
+            function submitAbsensi(fotoBlob) {
+                isProcessing = true;
+                const fd = new FormData(scanForm);
+                if (fotoBlob) {
+                    fd.set('foto', new File([fotoBlob], `absen_${Date.now()}.jpg`, { type: 'image/jpeg' }));
+                } else {
+                    fd.delete('foto');
+                }
+
+                fetch(scanForm.action, {
+                    method : 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body   : fd,
+                })
+                .then(async r => {
+                    let res;
+                    try { res = await r.json(); } catch { res = { success: false, message: 'Server error' }; }
+
+                    rfidInput.value = '';
+                    isProcessing    = false;
+
+                    if (currentMode === 'photo') rfidInput.focus();
+
+                    showScanToast(res.success ? 'success' : 'danger', res.message || 'Terjadi kesalahan.');
+
+                    if (currentMode === 'qr') {
+                        if (res.success) {
+                            setQRStatus('found', res.message || 'Absensi berhasil dicatat!');
+                        } else {
+                            setQRStatus('error', res.message || 'Gagal menyimpan absensi.');
+                        }
+                        // Kembali ke scanning setelah delay
+                        setTimeout(() => {
+                            if (currentMode === 'qr') {
+                                setQRStatus('scanning', 'Arahkan kamera ke QR code kartu member…');
+                                startQRLoop();
+                            }
+                        }, QR_DEBOUNCE);
+                    }
+
+                    if (res.success && window._ajaxTables && window._ajaxTables['tbodyKehadiranMember']) {
+                        window._ajaxTables['tbodyKehadiranMember'].refresh();
+                    }
+                })
+                .catch(() => {
+                    isProcessing    = false;
+                    rfidInput.value = '';
+                    if (currentMode === 'photo') rfidInput.focus();
+                    showScanToast('danger', 'Gagal menghubungi server.');
+                    if (currentMode === 'qr') {
+                        setQRStatus('error', 'Gagal menghubungi server.');
+                        setTimeout(() => {
+                            if (currentMode === 'qr') {
+                                setQRStatus('scanning', 'Arahkan kamera ke QR code kartu member…');
+                                startQRLoop();
+                            }
+                        }, QR_DEBOUNCE);
+                    }
+                });
+            }
 
             function showScanToast(type, msg) {
                 const ok = type === 'success';
                 toast.style.cssText = `display:flex; align-items:center; gap:.5rem; padding:.75rem 1rem; border-radius:.75rem; font-size:.875rem; font-weight:600; margin-bottom:1rem; border:1px solid; ${ok ? 'background:#f0fdf4; color:#15803d; border-color:#bbf7d0;' : 'background:#fef2f2; color:#dc2626; border-color:#fecaca;'}`;
                 toast.innerHTML = `<iconify-icon icon="${ok ? 'solar:check-circle-bold' : 'solar:close-circle-bold'}" style="font-size:1.25rem; flex-shrink:0;"></iconify-icon><span>${msg}</span>`;
                 clearTimeout(toast._to);
-                toast._to = setTimeout(() => { toast.style.display = 'none'; }, 5000);
+                toast._to = setTimeout(() => { toast.style.display = 'none'; }, 4000);
+            }
+
+            // ── Init BarcodeDetector / jsQR ─────────────────────────────────
+            if ('BarcodeDetector' in window) {
+                BarcodeDetector.getSupportedFormats().then(formats => {
+                    window._barcodeDetector = new BarcodeDetector({ formats });
+                }).catch(() => {});
+            }
+            // Load jsQR sebagai fallback (jika BarcodeDetector tidak tersedia)
+            if (!('BarcodeDetector' in window) && !window.jsQR) {
+                const s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
+                document.head.appendChild(s);
             }
         });
     </script>

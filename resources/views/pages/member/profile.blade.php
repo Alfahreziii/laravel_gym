@@ -2,309 +2,732 @@
 @php
     $title = 'Profile Saya';
     $subTitle = 'Profile Member';
+
+    // Avatar initials
+    $nameParts = explode(' ', trim($anggota->name));
+    $initials = strtoupper(substr($nameParts[0], 0, 1));
+    if (count($nameParts) > 1) $initials .= strtoupper(substr(end($nameParts), 0, 1));
+
+    // Package duration badge & progress
+    $packageBadge  = '';
+    $daysRemaining = 0;
+    $daysTotal     = 1;
+    $progressPct   = 0;
+    if ($anggota->active_membership) {
+        $dur = $anggota->active_membership->tgl_mulai->diffInDays($anggota->active_membership->tgl_selesai);
+        if ($dur >= 330)     $packageBadge = 'TAHUNAN';
+        elseif ($dur >= 25)  $packageBadge = 'BULANAN';
+        elseif ($dur >= 7)   $packageBadge = 'MINGGUAN';
+        else                 $packageBadge = 'HARIAN';
+        $daysRemaining = max(0, now()->startOfDay()->diffInDays($anggota->active_membership->tgl_selesai, false));
+        $daysTotal     = max(1, $anggota->active_membership->tgl_mulai->diffInDays($anggota->active_membership->tgl_selesai));
+        $progressPct   = min(100, (int) round(($anggota->active_membership->tgl_mulai->diffInDays(now()) / $daysTotal) * 100));
+    }
+
+    // BMI
+    $bmiValue    = $anggota->bmi;
+    $bmiCategory = null;
+    $bmiClass    = 'mp-bmi-success';
+    $bmiPosition = 50;
+    if ($bmiValue) {
+        if ($bmiValue < 18.5)   { $bmiCategory = 'Kurus';    $bmiClass = 'mp-bmi-info'; }
+        elseif ($bmiValue < 25) { $bmiCategory = 'Normal';   $bmiClass = 'mp-bmi-success'; }
+        elseif ($bmiValue < 30) { $bmiCategory = 'Gemuk';    $bmiClass = 'mp-bmi-warning'; }
+        else                    { $bmiCategory = 'Obesitas';  $bmiClass = 'mp-bmi-danger'; }
+        $bmiPosition = min(98, max(2, (int) round((($bmiValue - 10) / 30) * 100)));
+    }
+
+    $hariId  = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+    $bulanId = ['','Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 @endphp
 
 @section('content')
+<style>
+/* ============================================================
+   Member Profile – CSS variables (scoped)
+   ============================================================ */
+.mp {
+    --s : #FAFAF9;   /* surface */
+    --s2: #F1F0ED;   /* surface-2 */
+    --bd: #E2E0DB;   /* border */
+    --t1: #1A1A18;   /* text */
+    --t2: #6E6A63;   /* text-2 */
+    --t3: #9C978E;   /* text-3 */
+    --ac: #F2622E;   /* accent */
+    --at: #BC3E14;   /* accent-text */
+    --as: #FFE2D3;   /* accent-soft */
+    --bi: #DCDAD4;   /* bar-idle */
+    --sh: 0 1px 3px rgba(26,22,18,.07), 0 3px 8px rgba(26,22,18,.08);
+    --r : 16px;
+    --cs: #15803D;   /* color success */
+    --cw: #B45309;   /* color warning */
+    --cd: #B91C1C;   /* color danger */
+    --ci: #1D4ED8;   /* color info */
+    --ab: #fff;      /* avatar border */
+}
+.dark .mp {
+    --s : #1F1B17;
+    --s2: #28231D;
+    --bd: #332D26;
+    --t1: #F4F1EC;
+    --t2: #A8A29A;
+    --t3: #6E685F;
+    --at: #FB7843;
+    --as: rgba(242,98,46,.16);
+    --bi: #332D26;
+    --sh: none;
+    --cs: #4ADE80;
+    --cw: #FBBF24;
+    --cd: #F87171;
+    --ci: #60A5FA;
+    --ab: #28231D;
+}
 
-    @if (session('success'))
-        <div
-            class="alert alert-success bg-success-50 text-success-600 px-6 py-3 mb-4 rounded-lg flex items-center justify-between">
-            {{ session('success') }}
-            <button class="remove-button text-success-600 text-2xl">
-                <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
-            </button>
-        </div>
-    @endif
+/* ---- Card ---- */
+.mp-card {
+    background   : var(--s);
+    border       : 1px solid var(--bd);
+    border-radius: var(--r);
+    box-shadow   : var(--sh);
+    overflow     : hidden;
+}
+.mp-ch {
+    display        : flex;
+    align-items    : center;
+    justify-content: space-between;
+    padding        : 16px 20px;
+    border-bottom  : 1px solid var(--bd);
+}
+.mp-ch h3 {
+    margin       : 0;
+    font-family  : 'Barlow Condensed', Oswald, sans-serif;
+    font-size    : 20px;
+    font-weight  : 600;
+    color        : var(--t1);
+    letter-spacing: .01em;
+}
+.mp-ch-sub { font-size: 12px; color: var(--t2); margin-top: 1px; }
 
-    @if (session('error'))
-        <div
-            class="alert alert-danger bg-danger-100 text-danger-600 px-6 py-3 mb-4 rounded-lg flex items-center justify-between">
-            {{ session('error') }}
-            <button class="remove-button text-danger-600 text-2xl">
-                <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
-            </button>
-        </div>
-    @endif
+/* ---- Banner & avatar ---- */
+.mp-banner {
+    height    : 76px;
+    background: linear-gradient(120deg,#BC3E14,#F2622E 72%,#FB7843);
+}
+.mp-avatar-row {
+    display        : flex;
+    justify-content: center;
+    margin-top     : -40px;
+    padding        : 0 20px;
+    position       : relative;
+}
+.mp-av, .mp-av-init {
+    width        : 80px;
+    height       : 80px;
+    border-radius: 50%;
+    border       : 4px solid var(--ab);
+    box-shadow   : 0 2px 8px rgba(0,0,0,.15);
+    flex         : none;
+}
+.mp-av       { object-fit: cover; }
+.mp-av-init  {
+    background: #0F766E;
+    display   : flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size  : 26px;
+    font-weight: 700;
+    color      : #fff;
+}
 
-    <div class="grid grid-cols-12 gap-5">
-        <!-- Kolom Kiri: Info Profile & Barcode -->
-        <div class="col-span-12 lg:col-span-4">
-            <!-- Card Profile -->
-            <div class="card border-0 mb-5">
-                <div class="card-body text-center">
-                    <!-- Foto Profile -->
-                    <div class="mb-4">
-                        @if ($anggota->user && $anggota->user->photo)
-                            <img src="{{ asset('storage/' . $anggota->user->photo) }}" alt="Photo {{ $anggota->name }}"
-                                class="w-32 h-32 rounded-full object-cover mx-auto border-4 border-primary-200 shadow-lg">
-                        @else
-                            <div
-                                class="w-32 h-32 rounded-full bg-primary-100 flex items-center justify-center mx-auto border-4 border-primary-200">
-                                <iconify-icon icon="mdi:account" class="text-6xl text-primary-600"></iconify-icon>
-                            </div>
-                        @endif
-                    </div>
+/* ---- Profile body ---- */
+.mp-pinfo { padding: 10px 20px 20px; text-align: center; }
+.mp-pname {
+    margin    : 0 0 3px;
+    font-family: 'Barlow Condensed', Oswald, sans-serif;
+    font-size : 24px;
+    font-weight: 700;
+    color     : var(--t1);
+    line-height: 1.1;
+}
+.mp-pemail { font-size: 13px; color: var(--t2); margin-bottom: 12px; }
 
-                    <!-- Nama & Status -->
-                    <h4 class="text-2xl font-bold text-neutral-800 mb-2">{{ $anggota->name }}</h4>
-                    <p class="text-neutral-600 mb-3">{{ $anggota->user ? $anggota->user->email : '-' }}</p>
+/* ---- Status badges ---- */
+.mp-badge {
+    display     : inline-flex;
+    align-items : center;
+    gap         : 5px;
+    font-size   : 12px;
+    font-weight : 600;
+    padding     : 5px 14px;
+    border-radius: 999px;
+    margin-bottom: 14px;
+}
+.mp-badge-ok  { color: var(--cs); background: rgba(21,128,61,.10); border: 1px solid rgba(21,128,61,.22); }
+.dark .mp-badge-ok { background: rgba(74,222,128,.10); border-color: rgba(74,222,128,.22); }
+.mp-badge-off { color: var(--cw); background: rgba(180,83,9,.10);  border: 1px solid rgba(180,83,9,.22); }
+.dark .mp-badge-off { background: rgba(251,191,36,.10); border-color: rgba(251,191,36,.22); }
 
-                    <!-- Status Membership -->
-                    @if ($anggota->status_keanggotaan)
-                        <span
-                            class="bg-success-100 text-success-600 px-6 py-2 rounded-full font-semibold text-sm inline-block mb-4">
-                            ✓ Member Aktif
-                        </span>
-                    @else
-                        <span
-                            class="bg-warning-100 text-warning-600 px-6 py-2 rounded-full font-semibold text-sm inline-block mb-4">
-                            ⚠ Membership Tidak Aktif
-                        </span>
-                    @endif
+/* ---- Package box ---- */
+.mp-pkg {
+    background   : var(--as);
+    border-radius: 12px;
+    padding      : 14px 16px;
+    text-align   : left;
+    margin-bottom: 14px;
+}
+.mp-pkg-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; }
+.mp-pkg-lbl { font-size: 12px; color: var(--t2); }
+.mp-pkg-dur { font-size: 10.5px; font-weight: 700; letter-spacing: .05em; color: var(--at); }
+.mp-pkg-name {
+    font-family: 'Barlow Condensed', Oswald, sans-serif;
+    font-size  : 20px;
+    font-weight: 700;
+    color      : var(--at);
+    line-height: 1.1;
+    margin-bottom: 10px;
+}
+.mp-pkg-dates { display: flex; justify-content: space-between; font-size: 11px; color: var(--t2); margin-bottom: 5px; }
+.mp-pkg-days  { font-weight: 600; color: var(--t1); }
+.mp-pkgbar    { height: 5px; background: var(--bi); border-radius: 999px; overflow: hidden; }
+.mp-pkgbar-f  { height: 100%; background: var(--ac); border-radius: 999px; }
 
-                    <!-- Info Membership -->
-                    @if ($anggota->active_membership)
-                        <div class="bg-primary-50 rounded-lg p-4 mb-4">
-                            <div class="text-sm text-neutral-600 mb-1">Paket Aktif</div>
-                            <div class="font-bold text-primary-600 text-lg">
-                                {{ $anggota->active_membership->paketMembership->nama_paket }}</div>
-                            <div class="text-xs text-neutral-500 mt-2">
-                                Berlaku s/d: {{ $anggota->active_membership->tgl_selesai->format('d M Y') }}
-                            </div>
-                        </div>
-                    @endif
+/* ---- Stats ---- */
+.mp-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mp-stat  {
+    background   : var(--s2);
+    border       : 1px solid var(--bd);
+    border-radius: 12px;
+    padding      : 12px;
+    text-align   : center;
+}
+.mp-stat-v { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 700; color: var(--t1); line-height: 1; }
+.mp-stat-l { font-size: 11px; color: var(--t2); margin-top: 4px; }
 
-                    <!-- Statistik Singkat -->
-                    <div class="grid grid-cols-2 gap-3 mb-4">
-                        <div class="bg-info-50 rounded-lg p-3">
-                            <div class="text-2xl font-bold text-info-600">{{ $totalKehadiran }}</div>
-                            <div class="text-xs text-neutral-600">Total Kunjungan</div>
-                        </div>
-                        <div class="bg-success-50 rounded-lg p-3">
-                            <div class="text-2xl font-bold text-success-600">{{ $kehadiranBulanIni }}</div>
-                            <div class="text-xs text-neutral-600">Bulan Ini</div>
-                        </div>
-                    </div>
+/* ---- Digital card ---- */
+.mp-dc {
+    background   : linear-gradient(135deg,#1a1512,#2d1b0e);
+    border-radius: var(--r);
+    padding      : 18px;
+    position     : relative;
+    overflow     : hidden;
+}
+.mp-dc::before {
+    content : '';
+    position: absolute;
+    inset   : 0;
+    background: radial-gradient(ellipse at top right, rgba(242,98,46,.18), transparent 60%);
+    pointer-events: none;
+}
+.mp-dc-hdr {
+    display        : flex;
+    align-items    : center;
+    justify-content: space-between;
+    position       : relative;
+    margin-bottom  : 16px;
+}
+.mp-dc-lbl { font-size: 11px; font-weight: 700; letter-spacing: .14em; color: rgba(255,255,255,.55); }
+.mp-dc-body { display: flex; align-items: center; gap: 14px; position: relative; margin-bottom: 16px; }
+.mp-dc-qr   { background: #fff; border-radius: 12px; padding: 8px; flex: none; line-height: 0; }
+.mp-dc-info { min-width: 0; }
+.mp-dc-name {
+    font-family  : 'Barlow Condensed', Oswald, sans-serif;
+    font-size    : 22px;
+    font-weight  : 700;
+    line-height  : 1.05;
+    color        : #fff;
+    overflow     : hidden;
+    text-overflow: ellipsis;
+    white-space  : nowrap;
+}
+.mp-dc-id {
+    font-size     : 12px;
+    color         : rgba(255,255,255,.5);
+    font-family   : 'JetBrains Mono', ui-monospace, monospace;
+    letter-spacing: .03em;
+    margin-top    : 2px;
+}
+.mp-dc-status {
+    display     : inline-flex;
+    align-items : center;
+    gap         : 4px;
+    margin-top  : 6px;
+    font-size   : 11px;
+    font-weight : 700;
+    color       : #4ade80;
+    background  : rgba(74,222,128,.10);
+    border      : 1px solid rgba(74,222,128,.28);
+    padding     : 3px 10px;
+    border-radius: 999px;
+}
+.mp-dc-btns { display: flex; gap: 8px; position: relative; }
+.mp-dc-btn {
+    flex           : 1;
+    display        : inline-flex;
+    align-items    : center;
+    justify-content: center;
+    gap            : 6px;
+    font-size      : 12px;
+    font-weight    : 600;
+    padding        : 8px 12px;
+    border-radius  : 10px;
+    cursor         : pointer;
+    text-decoration: none;
+    border         : none;
+    transition     : opacity .15s;
+}
+.mp-dc-btn:hover { opacity: .85; }
+.mp-dc-ghost   { background: rgba(255,255,255,.12); color: #fff !important; border: 1px solid rgba(255,255,255,.2); }
+.mp-dc-primary { background: #F2622E; color: #fff !important; }
 
-                    <!-- Action Buttons -->
-                    <div class="flex flex-col gap-2">
-                        <button type="button" onclick="HexaModal.show('barcode-modal')"
-                            class="btn bg-primary-600 text-white hover:bg-primary-700 w-full">
-                            <iconify-icon icon="mdi:barcode-scan" class="text-xl"></iconify-icon>
-                            <span class="ml-2">Lihat Barcode Saya</span>
-                        </button>
-                        {{-- <a href="{{ route('member.download-card') }}"
-                            class="btn bg-success-600 text-white hover:bg-success-700 w-full">
-                            <iconify-icon icon="mdi:card-account-details" class="text-xl"></iconify-icon>
-                            <span class="ml-2">Download Kartu Member</span>
-                        </a> --}}
-                    </div>
-                </div>
-            </div>
-        </div>
+/* ---- Data fields (flex rows, no misalignment) ---- */
+.mp-fields { padding: 0 20px 4px; }
+.mp-row {
+    display      : flex;
+    gap          : 24px;
+    border-bottom: 1px solid var(--bd);
+    align-items  : stretch;
+}
+.mp-row:last-child { border-bottom: none; }
+.mp-field     { flex: 1; padding: 12px 0; min-width: 0; }
+.mp-field-lbl {
+    font-size     : 11px;
+    font-weight   : 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color         : var(--t3);
+    margin-bottom : 3px;
+}
+.mp-field-val { font-weight: 600; color: var(--t1); word-break: break-word; }
+.mp-field-val.mono { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; }
 
-        <!-- Kolom Kanan: Detail Info & Riwayat -->
-        <div class="col-span-12 lg:col-span-8">
-            <!-- Card Data Pribadi -->
-            <div class="card border-0 mb-5">
-                <div class="card-header bg-primary-600 text-white">
-                    <h6 class="text-lg font-semibold mb-0">📋 Data Pribadi</h6>
-                </div>
-                <div class="card-body">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="border-b border-neutral-200 pb-3">
-                            <div class="text-sm text-neutral-500 mb-1">ID Kartu</div>
-                            <div class="font-semibold text-neutral-800 text-lg">{{ $anggota->id_kartu }}</div>
-                        </div>
-                        <div class="border-b border-neutral-200 pb-3">
-                            <div class="text-sm text-neutral-500 mb-1">No. Telepon</div>
-                            <div class="font-semibold text-neutral-800">{{ $anggota->no_telp }}</div>
-                        </div>
-                        <div class="border-b border-neutral-200 pb-3">
-                            <div class="text-sm text-neutral-500 mb-1">Jenis Kelamin</div>
-                            <div class="font-semibold text-neutral-800">{{ $anggota->jenis_kelamin }}</div>
-                        </div>
-                        <div class="border-b border-neutral-200 pb-3">
-                            <div class="text-sm text-neutral-500 mb-1">Tanggal Lahir</div>
-                            <div class="font-semibold text-neutral-800">
-                                {{ $anggota->tgl_lahir->format('d M Y') }} ({{ $anggota->age }} tahun)
-                            </div>
-                        </div>
-                        <div class="border-b border-neutral-200 pb-3">
-                            <div class="text-sm text-neutral-500 mb-1">Tempat Lahir</div>
-                            <div class="font-semibold text-neutral-800">{{ $anggota->tempat_lahir }}</div>
-                        </div>
-                        <div class="border-b border-neutral-200 pb-3">
-                            <div class="text-sm text-neutral-500 mb-1">Golongan Darah</div>
-                            <div class="font-semibold text-neutral-800">{{ $anggota->gol_darah }}</div>
-                        </div>
-                        <div class="border-b border-neutral-200 pb-3">
-                            <div class="text-sm text-neutral-500 mb-1">Tinggi Badan</div>
-                            <div class="font-semibold text-neutral-800">{{ $anggota->tinggi }} cm</div>
-                        </div>
-                        <div class="border-b border-neutral-200 pb-3">
-                            <div class="text-sm text-neutral-500 mb-1">Berat Badan</div>
-                            <div class="font-semibold text-neutral-800">{{ $anggota->berat }} kg</div>
-                        </div>
-                        <div class="col-span-1 md:col-span-2 border-b border-neutral-200 pb-3">
-                            <div class="text-sm text-neutral-500 mb-1">Alamat</div>
-                            <div class="font-semibold text-neutral-800">{{ $anggota->alamat }}</div>
-                        </div>
-                        <div class="col-span-1 md:col-span-2 border-b border-neutral-200 pb-3">
-                            <div class="text-sm text-neutral-500 mb-1">Tanggal Daftar</div>
-                            <div class="font-semibold text-neutral-800">{{ $anggota->tgl_daftar->format('d M Y') }}</div>
-                        </div>
-                        @if ($anggota->riwayat_kesehatan)
-                            <div class="col-span-1 md:col-span-2">
-                                <div class="text-sm text-neutral-500 mb-1">Riwayat Kesehatan</div>
-                                <div class="font-semibold text-neutral-800">{{ $anggota->riwayat_kesehatan }}</div>
-                            </div>
-                        @endif
-                    </div>
+/* ---- BMI ---- */
+.mp-bmi {
+    display    : flex;
+    align-items: center;
+    gap        : 16px;
+    padding    : 14px 20px 18px;
+    border-top : 1px solid var(--bd);
+}
+.mp-bmi-lbl-txt {
+    font-size     : 11px;
+    font-weight   : 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color         : var(--t2);
+    margin-bottom : 4px;
+}
+.mp-bmi-num {
+    font-family : 'Barlow Condensed', Oswald, sans-serif;
+    font-size   : 38px;
+    font-weight : 700;
+    line-height : 1;
+}
+.mp-bmi-success { color: var(--cs); }
+.mp-bmi-warning { color: var(--cw); }
+.mp-bmi-danger  { color: var(--cd); }
+.mp-bmi-info    { color: var(--ci); }
+.mp-bmi-bar-wrap { flex: 1; }
+.mp-bmi-track {
+    height       : 8px;
+    border-radius: 999px;
+    background   : linear-gradient(to right,#93c5fd 0%,#86efac 28%,#fcd34d 55%,#f87171 75%);
+    position     : relative;
+}
+.mp-bmi-thumb {
+    position     : absolute;
+    top          : 50%;
+    transform    : translate(-50%,-50%);
+    width        : 16px;
+    height       : 16px;
+    border-radius: 50%;
+    border       : 3px solid var(--s);
+    box-shadow   : 0 1px 4px rgba(0,0,0,.25);
+}
+.mp-bmi-cats {
+    display        : flex;
+    justify-content: space-between;
+    font-size      : 10px;
+    color          : var(--t3);
+    margin-top     : 6px;
+}
+.mp-bmi-cat { text-align: right; flex: none; }
+.mp-bmi-cat-l { font-size: 11px; color: var(--t3); }
+.mp-bmi-cat-v { font-size: 14px; font-weight: 700; margin-top: 2px; }
 
-                    @if ($anggota->bmi)
-                        <div class="mt-4 bg-info-50 rounded-lg p-4">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <div class="text-sm text-neutral-600 mb-1">Body Mass Index (BMI)</div>
-                                    <div class="text-2xl font-bold text-info-600">{{ $anggota->bmi }}</div>
-                                </div>
-                                <div class="text-right">
-                                    <div class="text-xs text-neutral-500">Kategori</div>
-                                    <div class="font-semibold text-neutral-700">
-                                        @if ($anggota->bmi < 18.5)
-                                            Kurus
-                                        @elseif($anggota->bmi < 25)
-                                            Normal
-                                        @elseif($anggota->bmi < 30)
-                                            Gemuk
-                                        @else
-                                            Obesitas
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
-                </div>
-            </div>
+/* ---- Kehadiran list ---- */
+.mp-klist { padding: 8px 12px; }
+.mp-kitem {
+    display      : flex;
+    align-items  : center;
+    gap          : 13px;
+    padding      : 10px 10px;
+    border-radius: 12px;
+    transition   : background .12s;
+}
+.mp-kitem:hover { background: var(--s2); }
+.mp-kicon {
+    width          : 36px;
+    height         : 36px;
+    border-radius  : 50%;
+    display        : flex;
+    align-items    : center;
+    justify-content: center;
+    flex           : none;
+}
+.mp-kicon-in  { background: rgba(21,128,61,.10); }
+.dark .mp-kicon-in  { background: rgba(74,222,128,.10); }
+.mp-kicon-out { background: rgba(180,83,9,.10); }
+.dark .mp-kicon-out { background: rgba(251,191,36,.10); }
+.mp-kicon-in  svg { stroke: var(--cs); width:18px; height:18px; }
+.mp-kicon-out svg { stroke: var(--cw); width:18px; height:18px; }
+.mp-kinfo     { flex: 1; min-width: 0; }
+.mp-kdate     { font-weight: 600; font-size: 13.5px; color: var(--t1); }
+.mp-ktime     { font-size: 12px; color: var(--t3); font-variant-numeric: tabular-nums; margin-top: 1px; }
+.mp-kpill {
+    font-size    : 11px;
+    font-weight  : 700;
+    padding      : 4px 12px;
+    border-radius: 999px;
+    flex         : none;
+}
+.mp-kpill-in  { color: var(--cs); background: rgba(21,128,61,.10); }
+.dark .mp-kpill-in  { background: rgba(74,222,128,.10); }
+.mp-kpill-out { color: var(--cw); background: rgba(180,83,9,.10); }
+.dark .mp-kpill-out { background: rgba(251,191,36,.10); }
 
-            <!-- Card Riwayat Kehadiran -->
-            <div class="card border-0">
-                <div class="card-header bg-success-600 text-white">
-                    <h6 class="text-lg font-semibold mb-0">📊 Riwayat Kehadiran Terakhir</h6>
-                </div>
-                <div class="card-body">
-                    @if ($anggota->kehadirans->count() > 0)
-                        <div class="space-y-3">
-                            @foreach ($anggota->kehadirans->take(10) as $kehadiran)
-                                <div
-                                    class="flex items-center justify-between bg-gray-50 p-3 rounded-lg hover:bg-gray-100 transition">
-                                    <div class="flex items-center gap-3">
-                                        @if ($kehadiran->foto)
-                                            <img src="{{ asset('storage/' . $kehadiran->foto) }}" alt="Foto Absensi"
-                                                class="w-12 h-12 rounded-lg object-cover">
-                                        @else
-                                            <div class="w-12 h-12 rounded-lg bg-gray-300 flex items-center justify-center">
-                                                <iconify-icon icon="mdi:account" class="text-gray-600"></iconify-icon>
-                                            </div>
-                                        @endif
-                                        <div>
-                                            <div class="font-semibold text-neutral-800">
-                                                {{ $kehadiran->created_at->format('d M Y') }}
-                                            </div>
-                                            <div class="text-sm text-neutral-500">
-                                                {{ $kehadiran->created_at->format('H:i:s') }}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        @if ($kehadiran->status === 'in')
-                                            <span
-                                                class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full text-sm font-semibold">
-                                                CHECK IN
-                                            </span>
-                                        @else
-                                            <span
-                                                class="bg-warning-100 text-warning-600 px-4 py-1.5 rounded-full text-sm font-semibold">
-                                                CHECK OUT
-                                            </span>
-                                        @endif
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="text-center py-8 text-neutral-500">
-                            <iconify-icon icon="mdi:calendar-remove" class="text-6xl mb-3"></iconify-icon>
-                            <p>Belum ada riwayat kehadiran</p>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
+/* ---- Modal ---- */
+.mp-qrborder {
+    border       : 3px solid #F2622E;
+    border-radius: 16px;
+    padding      : 20px;
+    display      : inline-block;
+    background   : #fff;
+    line-height  : 0;
+}
+.mp-instr {
+    background   : var(--s2);
+    border-radius: 12px;
+    padding      : 14px 16px;
+    margin-top   : 16px;
+    text-align   : left;
+    border       : 1px solid var(--bd);
+}
+.mp-instr-ttl { font-size: 13px; font-weight: 600; color: var(--ci); margin-bottom: 8px; }
+.mp-instr ol  { margin: 0; padding-left: 18px; font-size: 13px; color: var(--t2); line-height: 1.7; }
+</style>
+
+@if (session('success'))
+    <div class="alert alert-success bg-success-50 text-success-600 px-6 py-3 mb-4 rounded-lg flex items-center justify-between">
+        {{ session('success') }}
+        <button class="remove-button text-success-600 text-2xl"><iconify-icon icon="iconamoon:sign-times-light"></iconify-icon></button>
     </div>
+@endif
+@if (session('error'))
+    <div class="alert alert-danger bg-danger-100 text-danger-600 px-6 py-3 mb-4 rounded-lg flex items-center justify-between">
+        {{ session('error') }}
+        <button class="remove-button text-danger-600 text-2xl"><iconify-icon icon="iconamoon:sign-times-light"></iconify-icon></button>
+    </div>
+@endif
 
-    <x-modal id="barcode-modal" title="Barcode Kartu Member Saya" maxWidth="max-w-[600px]">
-        <x-slot:body>
-            <div class="text-center">
-                <!-- Info Member -->
-                <div class="mb-6">
-                    <h3 class="text-2xl font-bold text-neutral-800 mb-2">{{ $anggota->name }}</h3>
-                    <p class="text-neutral-600 font-semibold text-lg">ID: {{ $anggota->id_kartu }}</p>
-                </div>
+<div class="mp">
+<div class="grid grid-cols-12 gap-5">
 
-                <!-- Barcode Display -->
-                <div class="bg-white border-4 border-primary-200 rounded-lg p-6 mb-4 inline-block">
-                    {!! DNS2D::getBarcodeHTML($anggota->id_kartu, 'QRCODE', 8, 8) !!}
-                    <div class="text-center font-mono font-bold text-xl mt-3 tracking-widest">
-                        {{ $anggota->id_kartu }}
+    {{-- ============================================================
+         LEFT COLUMN (col-4)
+    ============================================================ --}}
+    <div class="col-span-12 lg:col-span-4 flex flex-col gap-5">
+
+        {{-- PROFILE CARD --}}
+        <div class="mp-card">
+            <div class="mp-banner"></div>
+            <div class="mp-avatar-row">
+                @if ($anggota->user && $anggota->user->photo)
+                    <img src="{{ asset('storage/' . $anggota->user->photo) }}"
+                         alt="{{ $anggota->name }}" class="mp-av">
+                @else
+                    <div class="mp-av-init">{{ $initials }}</div>
+                @endif
+            </div>
+            <div class="mp-pinfo">
+                <h2 class="mp-pname">{{ $anggota->name }}</h2>
+                <div class="mp-pemail">{{ $anggota->user ? $anggota->user->email : '-' }}</div>
+
+                @if ($anggota->status_keanggotaan)
+                    <div class="mp-badge mp-badge-ok">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" style="width:13px;height:13px;flex:none"><path d="M20 6 9 17l-5-5"/></svg>
+                        Member Aktif
+                    </div>
+                @else
+                    <div class="mp-badge mp-badge-off">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" style="width:13px;height:13px;flex:none"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
+                        Membership Tidak Aktif
+                    </div>
+                @endif
+
+                @if ($anggota->active_membership)
+                    <div class="mp-pkg">
+                        <div class="mp-pkg-top">
+                            <span class="mp-pkg-lbl">Paket aktif</span>
+                            <span class="mp-pkg-dur">{{ $packageBadge }}</span>
+                        </div>
+                        <div class="mp-pkg-name">
+                            {{ optional($anggota->active_membership->paketMembership)->nama_paket ?? $anggota->active_membership->nama_paket }}
+                        </div>
+                        <div class="mp-pkg-dates">
+                            <span>Berlaku s/d {{ $anggota->active_membership->tgl_selesai->format('d M Y') }}</span>
+                            <span class="mp-pkg-days">{{ $daysRemaining }} hari</span>
+                        </div>
+                        <div class="mp-pkgbar"><div class="mp-pkgbar-f" style="width:{{ $progressPct }}%"></div></div>
+                    </div>
+                @endif
+
+                <div class="mp-stats">
+                    <div class="mp-stat">
+                        <div class="mp-stat-v">{{ $totalKehadiran }}</div>
+                        <div class="mp-stat-l">Total kunjungan</div>
+                    </div>
+                    <div class="mp-stat">
+                        <div class="mp-stat-v">{{ $kehadiranBulanIni }}</div>
+                        <div class="mp-stat-l">Kunjungan bln ini</div>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <!-- Instruksi -->
-                <div class="bg-info-50 rounded-lg p-4 text-left">
-                    <h6 class="font-semibold text-info-800 mb-2">📱 Cara Menggunakan:</h6>
-                    <ol class="list-decimal list-inside text-sm text-neutral-600 space-y-1">
-                        <li>Tunjukkan barcode ini kepada staff GYM</li>
-                        <li>Staff akan scan barcode dengan scanner</li>
-                        <li>Absensi Anda akan tercatat otomatis</li>
-                        <li>Atau download kartu member untuk dicetak</li>
-                    </ol>
+        {{-- DIGITAL MEMBER CARD --}}
+        <div class="mp-dc">
+            <div class="mp-dc-hdr">
+                <span class="mp-dc-lbl">KARTU MEMBER</span>
+                <svg viewBox="0 0 40 40" fill="none" style="width:26px;height:26px;opacity:.9">
+                    <path d="M20 2 35.3 11v18L20 38 4.7 29V11Z" fill="#fff"/>
+                    <g stroke="#F2622E" stroke-width="2.6" stroke-linecap="round">
+                        <path d="M13 20h14"/><path d="M13 16.5v7M27 16.5v7"/>
+                    </g>
+                </svg>
+            </div>
+            <div class="mp-dc-body">
+                <div class="mp-dc-qr">
+                    {!! DNS2D::getBarcodeHTML($anggota->id_kartu, 'QRCODE', 5, 5) !!}
+                </div>
+                <div class="mp-dc-info">
+                    <div class="mp-dc-name">{{ $anggota->name }}</div>
+                    <div class="mp-dc-id">{{ $anggota->id_kartu }}</div>
+                    <div class="mp-dc-status">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" style="width:11px;height:11px;flex:none"><path d="M20 6 9 17l-5-5"/></svg>
+                        ACTIVE
+                    </div>
                 </div>
             </div>
-        </x-slot:body>
-    </x-modal>
+            <div class="mp-dc-btns">
+                <button type="button" onclick="HexaModal.show('qr-modal')" class="mp-dc-btn mp-dc-ghost">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex:none"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8v8M11 8v8M15 8v8"/></svg>
+                    Perbesar QR
+                </button>
+                <a href="{{ route('member.download-card') }}" class="mp-dc-btn mp-dc-primary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex:none"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+                    Unduh
+                </a>
+            </div>
+        </div>
+
+    </div>
+    {{-- END LEFT --}}
+
+    {{-- ============================================================
+         RIGHT COLUMN (col-8)
+    ============================================================ --}}
+    <div class="col-span-12 lg:col-span-8 flex flex-col gap-5">
+
+        {{-- DATA PRIBADI --}}
+        <div class="mp-card">
+            <div class="mp-ch">
+                <h3>Data Pribadi</h3>
+            </div>
+            <div class="mp-fields">
+                {{-- Baris 1 --}}
+                <div class="mp-row">
+                    <div class="mp-field">
+                        <div class="mp-field-lbl">ID Kartu</div>
+                        <div class="mp-field-val mono">{{ $anggota->id_kartu }}</div>
+                    </div>
+                    <div class="mp-field">
+                        <div class="mp-field-lbl">No. Telepon</div>
+                        <div class="mp-field-val">{{ $anggota->no_telp }}</div>
+                    </div>
+                </div>
+                {{-- Baris 2 --}}
+                <div class="mp-row">
+                    <div class="mp-field">
+                        <div class="mp-field-lbl">Jenis Kelamin</div>
+                        <div class="mp-field-val">{{ $anggota->jenis_kelamin }}</div>
+                    </div>
+                    <div class="mp-field">
+                        <div class="mp-field-lbl">Tanggal Lahir</div>
+                        <div class="mp-field-val">{{ $anggota->tgl_lahir->format('d M Y') }} ({{ $anggota->age }} thn)</div>
+                    </div>
+                </div>
+                {{-- Baris 3 --}}
+                <div class="mp-row">
+                    <div class="mp-field">
+                        <div class="mp-field-lbl">Tempat Lahir</div>
+                        <div class="mp-field-val">{{ $anggota->tempat_lahir }}</div>
+                    </div>
+                    <div class="mp-field">
+                        <div class="mp-field-lbl">Golongan Darah</div>
+                        <div class="mp-field-val">{{ $anggota->gol_darah }}</div>
+                    </div>
+                </div>
+                {{-- Baris 4 --}}
+                <div class="mp-row">
+                    <div class="mp-field">
+                        <div class="mp-field-lbl">Tinggi Badan</div>
+                        <div class="mp-field-val">{{ $anggota->tinggi }} cm</div>
+                    </div>
+                    <div class="mp-field">
+                        <div class="mp-field-lbl">Berat Badan</div>
+                        <div class="mp-field-val">{{ $anggota->berat }} kg</div>
+                    </div>
+                </div>
+                {{-- Baris 5 - Alamat (full) --}}
+                <div class="mp-row">
+                    <div class="mp-field" style="flex:1">
+                        <div class="mp-field-lbl">Alamat</div>
+                        <div class="mp-field-val">{{ $anggota->alamat }}</div>
+                    </div>
+                </div>
+                {{-- Baris 6 - Tanggal Daftar (full) --}}
+                <div class="mp-row">
+                    <div class="mp-field" style="flex:1">
+                        <div class="mp-field-lbl">Tanggal Daftar</div>
+                        <div class="mp-field-val">{{ $anggota->tgl_daftar->format('d M Y') }}</div>
+                    </div>
+                </div>
+                {{-- Baris 7 - Riwayat Kesehatan (optional, full) --}}
+                @if ($anggota->riwayat_kesehatan)
+                    <div class="mp-row" style="border-bottom:none;">
+                        <div class="mp-field" style="flex:1">
+                            <div class="mp-field-lbl">Riwayat Kesehatan</div>
+                            <div class="mp-field-val">{{ $anggota->riwayat_kesehatan }}</div>
+                        </div>
+                    </div>
+                @endif
+            </div>
+
+            @if ($bmiValue)
+                <div class="mp-bmi">
+                    <div>
+                        <div class="mp-bmi-lbl-txt">Body Mass Index</div>
+                        <div class="mp-bmi-num {{ $bmiClass }}">{{ $bmiValue }}</div>
+                    </div>
+                    <div class="mp-bmi-bar-wrap">
+                        <div class="mp-bmi-track">
+                            <div class="mp-bmi-thumb {{ $bmiClass }}"
+                                 style="left:{{ $bmiPosition }}%;"></div>
+                        </div>
+                        <div class="mp-bmi-cats">
+                            <span>Kurus</span><span>Normal</span><span>Gemuk</span><span>Obesitas</span>
+                        </div>
+                    </div>
+                    <div class="mp-bmi-cat">
+                        <div class="mp-bmi-cat-l">Kategori</div>
+                        <div class="mp-bmi-cat-v {{ $bmiClass }}">{{ $bmiCategory }}</div>
+                    </div>
+                </div>
+            @endif
+        </div>
+
+        {{-- RIWAYAT KEHADIRAN --}}
+        <div class="mp-card">
+            <div class="mp-ch">
+                <div>
+                    <h3>Riwayat Kehadiran Terakhir</h3>
+                    <div class="mp-ch-sub">10 aktivitas check-in / check-out terakhir</div>
+                </div>
+            </div>
+            <div class="mp-klist">
+                @if ($anggota->kehadirans->count() > 0)
+                    @foreach ($anggota->kehadirans->take(10) as $kehadiran)
+                        @php
+                            $isIn      = $kehadiran->status === 'in';
+                            $namaHari  = $hariId[$kehadiran->created_at->dayOfWeek];
+                            $namaBulan = $bulanId[(int) $kehadiran->created_at->format('n')];
+                            $tglFmt    = $namaHari . ', ' . $kehadiran->created_at->format('d') . ' ' . $namaBulan . ' ' . $kehadiran->created_at->format('Y');
+                        @endphp
+                        <div class="mp-kitem">
+                            <div class="mp-kicon {{ $isIn ? 'mp-kicon-in' : 'mp-kicon-out' }}">
+                                @if ($isIn)
+                                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M5 12h13"/>
+                                    </svg>
+                                @else
+                                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+                                    </svg>
+                                @endif
+                            </div>
+                            <div class="mp-kinfo">
+                                <div class="mp-kdate">{{ $tglFmt }}</div>
+                                <div class="mp-ktime">{{ $kehadiran->created_at->format('H:i') }} WIB · {{ $namaHari }}</div>
+                            </div>
+                            <span class="mp-kpill {{ $isIn ? 'mp-kpill-in' : 'mp-kpill-out' }}">
+                                {{ $isIn ? 'CHECK IN' : 'CHECK OUT' }}
+                            </span>
+                        </div>
+                    @endforeach
+                @else
+                    <div style="text-align:center;padding:40px 0;color:var(--t3);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"
+                             style="width:44px;height:44px;margin:0 auto 10px;display:block;opacity:.45">
+                            <rect x="3" y="4" width="18" height="18" rx="2"/>
+                            <path d="M8 2v4M16 2v4M3 10h18M10 14l-2 2 2 2M14 14l2 2-2 2"/>
+                        </svg>
+                        <div style="font-size:13px;">Belum ada riwayat kehadiran</div>
+                    </div>
+                @endif
+            </div>
+        </div>
+
+    </div>
+    {{-- END RIGHT --}}
+
+</div>
+</div>
+
+{{-- QR MODAL --}}
+<x-modal id="qr-modal" title="Barcode Kartu Member" maxWidth="max-w-[480px]">
+    <x-slot:body>
+        <div style="text-align:center;">
+            <div style="font-family:'Barlow Condensed',Oswald,sans-serif;font-size:24px;font-weight:700;margin-bottom:4px;color:var(--t1,#1A1A18)">
+                {{ $anggota->name }}
+            </div>
+            <div style="font-size:13px;margin-bottom:20px;color:var(--t2,#6E6A63);font-family:'JetBrains Mono',monospace;">
+                {{ $anggota->id_kartu }}
+            </div>
+            <div class="mp-qrborder">
+                {!! DNS2D::getBarcodeHTML($anggota->id_kartu, 'QRCODE', 8, 8) !!}
+            </div>
+            <div class="mp-instr">
+                <div class="mp-instr-ttl">Cara menggunakan</div>
+                <ol>
+                    <li>Tunjukkan barcode ini ke staf HexaGym</li>
+                    <li>Staf memindai dengan scanner</li>
+                    <li>Absensi tercatat otomatis</li>
+                    <li>Atau download kartu member untuk dicetak</li>
+                </ol>
+            </div>
+        </div>
+    </x-slot:body>
+</x-modal>
 
 @endsection
 
 @section('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const removeButtons = document.querySelectorAll('.remove-button');
-            removeButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const alert = this.closest('.alert');
-                    if (alert) {
-                        alert.remove();
-                    }
-                });
-            });
-        });
-
-        // Print styles untuk barcode
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            #barcode - modal, #barcode - modal * {
-                visibility: visible;
-            }
-            #barcode - modal {
-                position: absolute;
-                left: 0;
-                top: 0;
-            }
-        }
-    </script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.remove-button').forEach(function (btn) {
+        btn.addEventListener('click', function () { this.closest('.alert')?.remove(); });
+    });
+});
+</script>
 @endsection
