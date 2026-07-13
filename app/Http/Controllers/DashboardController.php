@@ -15,17 +15,63 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        $memberLakiLaki = Anggota::where('jenis_kelamin', 'Laki-laki')->count();
+        $today = Carbon::today();
+
+        $memberLakiLaki  = Anggota::where('jenis_kelamin', 'Laki-laki')->count();
         $memberPerempuan = Anggota::where('jenis_kelamin', 'Perempuan')->count();
-        $totalMember = Anggota::count();
-        $memberAktif = Anggota::all()->filter(fn($anggota) => $anggota->status_keanggotaan)->count();
-        $memberInGym = KehadiranMember::whereDate('created_at', now()->toDateString())
+        $totalMember     = Anggota::count();
+        $memberAktif     = Anggota::all()->filter(fn($anggota) => $anggota->status_keanggotaan)->count();
+        $memberInGym     = KehadiranMember::whereDate('created_at', $today->toDateString())
             ->latest()
             ->get()
             ->groupBy('rfid')
             ->map(fn($items) => $items->first())
             ->filter(fn($item) => strtolower($item->status) === 'in')
             ->count();
+
+        // ========================================
+        // MEMBER TERBARU (5 pendaftaran terakhir)
+        // ========================================
+        $memberTerbaru = Anggota::with([
+            'user',
+            'anggotaMemberships' => fn($q) => $q->orderByDesc('tgl_selesai'),
+        ])->latest()->take(5)->get()->map(function ($anggota) use ($today) {
+            $active = $anggota->anggotaMemberships
+                ->filter(fn($m) => $m->tgl_mulai <= $today && $m->tgl_selesai >= $today)
+                ->first();
+            $latest = $active ?? $anggota->anggotaMemberships->first();
+
+            if (!$latest || $latest->tgl_selesai->lt($today)) {
+                $statusLabel = $latest ? 'Expired' : 'Belum daftar';
+                $statusType  = $latest ? 'danger' : 'neutral';
+            } elseif ($today->diffInDays($latest->tgl_selesai) <= 7) {
+                $statusLabel = 'Akan berakhir';
+                $statusType  = 'warning';
+            } else {
+                $statusLabel = 'Aktif';
+                $statusType  = 'success';
+            }
+
+            return [
+                'id'           => $anggota->id,
+                'name'         => $anggota->name,
+                'email'        => $anggota->user?->email ?? '-',
+                'photo_url'    => $anggota->photo_url,
+                'nama_paket'   => $latest?->nama_paket ?? '-',
+                'tgl_selesai'  => $latest ? $latest->tgl_selesai->format('d M Y') : '-',
+                'status_label' => $statusLabel,
+                'status_type'  => $statusType,
+                'edit_url'     => route('anggota.edit', $anggota->id),
+            ];
+        });
+
+        // ========================================
+        // KEHADIRAN LANGSUNG (hari ini, terbaru 8)
+        // ========================================
+        $kehadiranLangsung = KehadiranMember::whereDate('created_at', $today->toDateString())
+            ->latest()
+            ->take(8)
+            ->get();
 
         // ========================================
         // DAFTAR TAHUN TERSEDIA
@@ -196,7 +242,9 @@ class DashboardController extends Controller
             'memberAktif',
             'memberInGym',
             'memberLakiLaki',
-            'memberPerempuan'
+            'memberPerempuan',
+            'memberTerbaru',
+            'kehadiranLangsung'
         ));
     }
 
@@ -272,7 +320,7 @@ class DashboardController extends Controller
         $perPage = (int) $request->get('perPage', 5);
         $page = (int) $request->get('page', 1);
 
-        $query = KehadiranMember::latest();
+        $query = KehadiranMember::whereDate('created_at', now()->toDateString())->latest();
 
         if ($search) {
             $query->where(function ($q) use ($search) {

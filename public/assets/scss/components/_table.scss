@@ -3,16 +3,16 @@
   @apply overflow-x-auto;
 }
 .table {
-  @apply w-full min-w-max rounded-lg border-spacing-0 border-separate border border-neutral-200 dark:border-neutral-600;
+  @apply w-full min-w-max rounded-lg border-spacing-0 border-separate border border-neutral-200 dark:border-line-dark;
 }
 
 .table {
   @apply border border-neutral-200 rounded-lg;
   th {
-      @apply px-4 py-3 bg-neutral-100 dark:bg-neutral-800 first:rounded-tl-lg last:rounded-tr-lg font-medium text-center first:text-start;
+      @apply px-4 py-3 bg-neutral-100 dark:bg-surface-dark-raised first:rounded-tl-lg last:rounded-tr-lg font-medium text-center first:text-start;
   }
   td {
-      @apply px-4 py-3 text-center first:text-start border-b-[1px] border-neutral-200 dark:border-neutral-600;
+      @apply px-4 py-3 text-center first:text-start border-b-[1px] border-neutral-200 dark:border-line-dark;
   }
 
   tr {
@@ -46,13 +46,46 @@
     @apply text-primary-600 dark:text-primary-500;
 }
 .datatable-wrapper .datatable-table thead th, .datatable-wrapper .datatable-table tbody th, .datatable-wrapper .datatable-table tbody td {
-    @apply dark:text-white;
+    @apply dark:text-ink-d;
 }
 
+.dark .datatable-wrapper .datatable-table {
+    @apply border-line-dark;
+}
+.dark .datatable-wrapper .datatable-table thead th {
+    @apply bg-surface-dark-raised border-line-dark;
+}
+.dark .datatable-wrapper .datatable-table tbody tr:nth-child(even) {
+    background-color: #28231D;
+}
+.dark .datatable-wrapper .datatable-table tbody tr:hover {
+    @apply bg-primary-600/10;
+}
 .dark .datatable-wrapper .datatable-bottom .datatable-pagination .datatable-pagination-list-item-link {
-    @apply border-neutral-600;
+    @apply border-line-dark;
 }
 .dark .datatable-wrapper .datatable-bottom .datatable-pagination .datatable-pagination-list-item:first-of-type .datatable-pagination-list-item-link {
     @apply border-s border-neutral-600;
 }
 /*============================================= Table Css End =============================================*/
+
+/* AjaxTable — layout, zebra, hover (sekali edit, kena semua halaman) */
+.ajax-table {
+  border-collapse: collapse;
+
+  thead th {
+    @apply bg-surface-raised dark:bg-surface-dark-raised
+           text-ink-3 dark:text-ink-d3
+           text-xs font-semibold uppercase tracking-wider
+           px-4 py-3 whitespace-nowrap;
+  }
+  tbody tr {
+    @apply border-b border-line-light dark:border-line-dark;
+  }
+  tbody tr:nth-child(even) {
+    @apply bg-surface-raised dark:bg-surface-dark;
+  }
+  tbody tr:hover {
+    @apply bg-primary-50 dark:bg-primary-600/10;
+  }
+}

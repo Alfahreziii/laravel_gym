@@ -18,6 +18,37 @@ class LevelTrainerController extends Controller
         return view('pages.trainer.level-trainer.index', compact('levels'));
     }
 
+    public function datatable(Request $request)
+    {
+        $search  = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page    = (int) $request->get('page', 1);
+
+        $query = LevelTrainer::query();
+        if ($search) {
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        $total = (clone $query)->count();
+        $data  = (clone $query)->orderBy('name')->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        return response()->json([
+            'data' => $data->map(function ($item, $index) use ($page, $perPage) {
+                return [
+                    'no'         => (($page - 1) * $perPage) + $index + 1,
+                    'id'         => $item->id,
+                    'name'       => $item->name,
+                    'update_url' => route('level_trainer.update', $item->id),
+                    'delete_url' => route('level_trainer.destroy', $item->id),
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
+    }
+
     /**
      * Store a newly created resource in storage.
      */

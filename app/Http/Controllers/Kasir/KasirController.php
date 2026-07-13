@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Models\KategoriProduct;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
@@ -438,10 +439,65 @@ class KasirController extends Controller
         return view('pages.kasir.riwayat', compact('transactions'));
     }
 
+    public function datatableRiwayat(Request $request)
+    {
+        $search  = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page    = (int) $request->get('page', 1);
+
+        $productHppMap = Product::pluck('hpp', 'id')->map(fn($v) => (float) ($v ?? 0));
+
+        $query = Transaction::with('items')->where('status', 'completed')->latest();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('transaction_code', 'like', "%{$search}%")
+                  ->orWhere('customer_name', 'like', "%{$search}%")
+                  ->orWhere('metode_pembayaran', 'like', "%{$search}%");
+            });
+        }
+
+        $total = (clone $query)->count();
+        $data  = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        return response()->json([
+            'data' => $data->map(function ($item, $index) use ($page, $perPage, $productHppMap) {
+                $totalHPP = $item->items->sum(fn($t) => ($productHppMap[$t->product_id] ?? 0) * $t->qty);
+                return [
+                    'no'                   => (($page - 1) * $perPage) + $index + 1,
+                    'id'                   => $item->id,
+                    'kode_transaksi'       => $item->transaction_code,
+                    'customer_name'        => $item->customer_name ?? '-',
+                    'tanggal'              => Carbon::parse($item->created_at)->format('d M Y'),
+                    'total_amount'         => 'Rp ' . number_format($item->total_amount, 0, ',', '.'),
+                    'dibayarkan'           => 'Rp ' . number_format($item->dibayarkan, 0, ',', '.'),
+                    'kembalian'            => 'Rp ' . number_format($item->kembalian, 0, ',', '.'),
+                    'metode_pembayaran'    => $item->metode_pembayaran ?? '-',
+                    'harga_sebelum_diskon' => 'Rp ' . number_format($item->harga_sebelum_diskon, 0, ',', '.'),
+                    'diskon_barang'        => 'Rp ' . number_format($item->diskon_barang, 0, ',', '.'),
+                    'diskon'               => 'Rp ' . number_format($item->diskon, 0, ',', '.'),
+                    'total_hpp'            => 'Rp ' . number_format($totalHPP, 0, ',', '.'),
+                    'items_json'           => $item->items->map(fn($t) => [
+                        'product_name' => $t->product_name,
+                        'keterangan'   => $t->keterangan,
+                        'qty'          => $t->qty,
+                        'price'        => (float) $t->price,
+                        'hpp'          => $productHppMap[$t->product_id] ?? 0,
+                        'diskon'       => (float) ($t->diskon ?? 0),
+                    ])->values()->toArray(),
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
+    }
+
     public function index()
     {
-        $products = Product::with('kategori')->get();
-        return view('pages.kasir.index', compact('products'));
+        $kategoris = KategoriProduct::orderBy('name')->get();
+        return view('pages.kasir.index', compact('kategoris'));
     }
 
     /**
@@ -759,6 +815,108 @@ class KasirController extends Controller
             'net_bayar'        => $netBayar,
             'total_hpp'        => $totalHPP,
             'metode_pembayaran' => $metodePembayaran
+        ]);
+    }
+
+    /**
+     * AJAX endpoint untuk grid produk kasir (pagination + filter)
+     */
+    public function productsGrid(Request $request)
+    {
+        $search   = $request->get('search', '');
+        $kategori = $request->get('kategori', '');
+        $perPage  = 24;
+        $page     = max(1, (int) $request->get('page', 1));
+
+        $query = Product::with('kategori')->orderBy('name');
+
+        if ($search) {
+            $query->where('name', 'like', "%{$search}%");
+        }
+        if ($kategori) {
+            $query->where('kategori_product_id', $kategori);
+        }
+
+        $total    = (clone $query)->count();
+        $products = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        return response()->json([
+            'data' => $products->map(fn($p) => [
+                'id'                  => $p->id,
+                'name'                => $p->name,
+                'price'               => (float) $p->price,
+                'discount'            => (float) ($p->discount ?? 0),
+                'discount_type'       => $p->discount_type ?? '',
+                'image'               => $p->image,
+                'kategori_product_id' => $p->kategori_product_id,
+                'kategori_name'       => $p->kategori->name ?? '',
+                'quantity'            => (int) $p->quantity,
+                'is_active'           => (bool) $p->is_active,
+            ]),
+            'page'     => $page,
+            'lastPage' => max(1, (int) ceil($total / $perPage)),
+            'total'    => $total,
+            'perPage'  => $perPage,
+        ]);
+    }
+
+    /**
+     * Datatable AJAX untuk transaksi yang di-hold (Hold Items modal)
+     */
+    public function holdItemsDatatable(Request $request)
+    {
+        $search  = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page    = (int) $request->get('page', 1);
+
+        $query = Transaction::with('items')
+            ->where('status', 'hold')
+            ->latest();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('transaction_code', 'like', "%{$search}%")
+                  ->orWhere('customer_name', 'like', "%{$search}%");
+            });
+        }
+
+        $total = (clone $query)->count();
+        $data  = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        return response()->json([
+            'data' => $data->map(function ($transaction, $index) use ($page, $perPage) {
+                $totalQty      = $transaction->items->sum('qty');
+                $hasKeterangan = $transaction->items->contains(fn($it) => !empty($it->keterangan));
+
+                return [
+                    'no'                   => (($page - 1) * $perPage) + $index + 1,
+                    'id'                   => $transaction->id,
+                    'kode_transaksi'       => $transaction->transaction_code,
+                    'customer_name'        => $transaction->customer_name ?? '-',
+                    'customer_name_raw'    => $transaction->customer_name ?? '',
+                    'qty'                  => $totalQty,
+                    'harga_sebelum_diskon' => $transaction->harga_sebelum_diskon,
+                    'total_amount'         => $transaction->total_amount,
+                    'diskon'               => $transaction->diskon,
+                    'diskon_barang'        => $transaction->diskon_barang,
+                    'keterangan_flag'      => $hasKeterangan,
+                    'created_at'           => Carbon::parse($transaction->created_at)->format('d M Y H:i'),
+                    'items_json'           => $transaction->items->map(fn($it) => [
+                        'product_id'   => $it->product_id,
+                        'product_name' => $it->product_name,
+                        'qty'          => $it->qty,
+                        'price'        => (float) $it->price,
+                        'diskon'       => (float) ($it->diskon ?? 0),
+                        'keterangan'   => $it->keterangan,
+                        'kategori'     => $it->kategori,
+                        'image'        => $it->image,
+                    ])->values()->toArray(),
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
         ]);
     }
 

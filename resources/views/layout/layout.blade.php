@@ -4,7 +4,7 @@
 
 <x-head />
 
-<body class="dark:bg-neutral-800 bg-neutral-100">
+<body class="bg-canvas-light dark:bg-canvas-dark text-ink dark:text-ink-d font-sans antialiased">
 
     <!-- ..::  header area start ::.. -->
     <x-sidebar />
@@ -16,10 +16,6 @@
         <x-navbar />
         <!-- ..::  navbar end ::.. -->
         <div class="dashboard-main-body">
-
-            <!-- ..::  breadcrumb  start ::.. -->
-            <x-breadcrumb title='{{ isset($title) ? $title : "" }}' subTitle='{{ isset($subTitle) ? $subTitle : "" }}' />
-            <!-- ..::  header area end ::.. -->
 
             @yield('content')
 

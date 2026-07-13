@@ -154,6 +154,61 @@ class ProductController extends Controller
         return view('pages.admin.kasir.products.index', compact('products'));
     }
 
+    public function datatable(Request $request)
+    {
+        $search  = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page    = (int) $request->get('page', 1);
+
+        $query = Product::with('kategori');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhereHas('kategori', fn ($q2) => $q2->where('name', 'like', "%{$search}%"));
+            });
+        }
+
+        $total   = (clone $query)->count();
+        $data    = (clone $query)->latest()->skip(($page - 1) * $perPage)->take($perPage)->get();
+        $isAdmin = (bool) auth()->user()?->hasRole('admin');
+
+        return response()->json([
+            'data' => $data->map(function ($item, $index) use ($page, $perPage, $isAdmin) {
+                $diskon = '-';
+                if ($item->discount > 0) {
+                    $diskon = $item->discount_type === 'percent'
+                        ? $item->discount . '%'
+                        : 'Rp ' . number_format($item->discount, 0, ',', '.');
+                }
+                return [
+                    'no'            => (($page - 1) * $perPage) + $index + 1,
+                    'id'            => $item->id,
+                    'name'          => $item->name,
+                    'image_url'     => $item->image
+                        ? asset('storage/' . $item->image)
+                        : asset('assets/images/kasir/product-placeholder.png'),
+                    'quantity'      => $item->quantity,
+                    'is_active'     => (bool) $item->is_active,
+                    'kategori_name' => $item->kategori->name ?? '-',
+                    'hpp'           => $item->hpp,
+                    'price'         => $item->price,
+                    'diskon'        => $diskon,
+                    'reorder'       => $item->reorder,
+                    'edit_url'      => $isAdmin ? route('products.edit', $item->id) : null,
+                    'logs_url'      => route('products.logs', $item->id),
+                    'adjust_url'    => $isAdmin ? route('products.adjust', $item->id) : null,
+                    'delete_url'    => $isAdmin ? route('products.destroy', $item->id) : null,
+                    'is_admin'      => $isAdmin,
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
+    }
+
     public function create()
     {
         $categories = KategoriProduct::all();
@@ -356,6 +411,44 @@ class ProductController extends Controller
         $products = Product::findOrFail($product);
         $logs     = $products->quantityLogs()->latest()->get();
         return view('pages.admin.kasir.products.logs', compact('products', 'logs'));
+    }
+
+    public function datatableLogs(Request $request, $product)
+    {
+        $productModel = Product::findOrFail($product);
+        $search  = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page    = (int) $request->get('page', 1);
+
+        $query = ProductQuantityLog::where('product_id', $productModel->id)->latest();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('type', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $total = (clone $query)->count();
+        $data  = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        return response()->json([
+            'data' => $data->map(function ($item, $index) use ($page, $perPage, $productModel) {
+                return [
+                    'no'               => (($page - 1) * $perPage) + $index + 1,
+                    'product_name'     => $productModel->name,
+                    'type'             => $item->type,
+                    'quantity'         => $item->quantity,
+                    'current_quantity' => $item->current_quantity,
+                    'description'      => $item->description ?? '-',
+                    'created_at'       => $item->created_at->format('d M Y, H:i'),
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
     }
 
     // =========================================================

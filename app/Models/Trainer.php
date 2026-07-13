@@ -121,15 +121,15 @@ class Trainer extends Model
         $labels = [
             self::STATUS_PENDING => [
                 'text'  => 'Menunggu Persetujuan',
-                'class' => 'bg-warning-100 text-warning-600 px-4 py-1.5 rounded-full font-medium text-sm'
+                'class' => 'bg-warning-100 text-warning-600 dark:bg-warning-600/20 dark:text-warning-400 px-4 py-1.5 rounded-full font-medium text-sm'
             ],
             self::STATUS_NONAKTIF => [
                 'text'  => 'Tidak Aktif',
-                'class' => 'bg-danger-100 text-danger-600 px-4 py-1.5 rounded-full font-medium text-sm'
+                'class' => 'bg-danger-100 text-danger-600 dark:bg-danger-600/20 dark:text-danger-400 px-4 py-1.5 rounded-full font-medium text-sm'
             ],
             self::STATUS_AKTIF => [
                 'text'  => 'Aktif',
-                'class' => 'bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm'
+                'class' => 'bg-success-100 text-success-600 dark:bg-success-600/20 dark:text-success-400 px-4 py-1.5 rounded-full font-medium text-sm'
             ],
         ];
 

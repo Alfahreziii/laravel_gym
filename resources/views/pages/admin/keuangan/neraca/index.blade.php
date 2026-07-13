@@ -6,251 +6,296 @@
 @endphp
 
 @section('content')
-    @if (session('success'))
-        <div
-            class="alert alert-success bg-success-50 dark:bg-success-600/25 
-        text-success-600 dark:text-success-400 border-success-50 
-        px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                {{ session('success') }}
-            </div>
-            <button class="remove-button text-success-600 text-2xl">
-                <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
-            </button>
-        </div>
-    @endif
+@if(session('success'))
+    <x-alert type="success">{{ session('success') }}</x-alert>
+@endif
+@if(session('danger'))
+    <x-alert type="danger">{{ session('danger') }}</x-alert>
+@endif
 
-    @if (session('danger'))
-        <div
-            class="alert alert-danger bg-danger-100 dark:bg-danger-600/25 
-        text-danger-600 dark:text-danger-400 border-danger-100 
-        px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
-            {{ session('danger') }}
-            <button class="remove-button text-danger-600 text-2xl">
-                <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
-            </button>
-        </div>
-    @endif
+{{-- ==================== BALANCE SHEET CARDS ==================== --}}
+<div class="grid md:grid-cols-2 gap-5">
 
-    <div class="grid md:grid-cols-3 gap-6">
-        {{-- Bagian Aset --}}
-        <div class="bg-white dark:bg-gray-800 shadow rounded-2xl p-5">
-            <div class="flex items-center justify-between mb-3">
-                <h3 class="text-xl font-semibold text-green-600">Aset</h3>
-            </div>
-            <table class="w-full text-sm text-gray-700 dark:text-gray-300">
-                <thead>
-                    <tr class="border-b border-gray-300 dark:border-gray-600">
-                        <th class="text-left py-2">Nama Akun</th>
-                        <th class="text-right py-2">Saldo (Rp)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($kategori->where('kode', 'AST')->first()?->akun ?? [] as $akun)
-                        <tr class="border-b border-gray-200 dark:border-gray-700">
-                            <td class="py-2 flex items-center gap-2">
+    {{-- Bagian Aset --}}
+    <div class="card overflow-hidden border border-neutral-200 dark:border-neutral-700">
+        <div class="flex items-center gap-3 px-5 py-4 border-b border-neutral-200 dark:border-neutral-700">
+            <div class="w-1.5 h-5 rounded-full bg-success-500 flex-none"></div>
+            <h3 class="font-display font-semibold text-lg text-ink dark:text-ink-d">Aset</h3>
+        </div>
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="bg-neutral-50 dark:bg-neutral-700/30 border-b border-neutral-200 dark:border-neutral-700">
+                    <th class="text-left px-5 py-2.5 text-xs font-semibold text-ink-2 dark:text-ink-d2 uppercase tracking-wider">Nama Akun</th>
+                    <th class="text-right px-5 py-2.5 text-xs font-semibold text-ink-2 dark:text-ink-d2 uppercase tracking-wider">Saldo (Rp)</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-neutral-200 dark:divide-neutral-700">
+                @foreach ($kategori->where('kode', 'AST')->first()?->akun ?? [] as $akun)
+                    <tr class="hover:bg-neutral-50 dark:hover:bg-neutral-700/20">
+                        <td class="px-5 py-3 text-ink dark:text-ink-d">
+                            <div class="flex items-center gap-2">
                                 {{ $akun->nama }}
                                 @if ($akun->kode === 'AST001')
-                                    <button type="button" data-modal-target="modal-tambah-kas"
-                                        data-modal-toggle="modal-tambah-kas"
-                                        class="text-green-600 hover:text-green-700 focus:outline-none" title="Tambah Kas">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
-                                            fill="currentColor">
-                                            <path fill-rule="evenodd"
-                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
-                                                clip-rule="evenodd" />
-                                        </svg>
+                                    <button type="button" onclick="HexaModal.show('modal-tambah-kas')"
+                                        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-success-50 text-success-700 hover:bg-success-100 border border-success-200 dark:bg-success-600/10 dark:border-success-600/30 dark:text-success-400 transition-colors"
+                                        title="Tambah Kas">
+                                        <iconify-icon icon="lucide:plus-circle" class="text-xs"></iconify-icon>
                                     </button>
                                 @endif
-                            </td>
-                            <td class="text-right py-2">{{ number_format($akun->saldo, 2, ',', '.') }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-                <tfoot>
-                    <tr class="font-semibold border-t border-gray-400">
-                        <td class="py-2">Total Aset</td>
-                        <td class="text-right py-2 text-green-600">{{ number_format($total_aset, 2, ',', '.') }}</td>
+                            </div>
+                        </td>
+                        <td class="px-5 py-3 text-right tabular-nums text-ink dark:text-ink-d">{{ number_format($akun->saldo, 2, ',', '.') }}</td>
                     </tr>
-                </tfoot>
-            </table>
-        </div>
+                @endforeach
+            </tbody>
+            <tfoot>
+                <tr class="border-t-2 border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-700/30">
+                    <td class="px-5 py-3 font-bold text-ink dark:text-ink-d">Total Aset</td>
+                    <td class="px-5 py-3 text-right font-bold tabular-nums text-success-600 dark:text-success-400">{{ number_format($total_aset, 2, ',', '.') }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
 
-        {{-- Bagian Kewajiban --}}
-        <div class="bg-white dark:bg-gray-800 shadow rounded-2xl p-5">
-            <h3 class="text-xl font-semibold mb-3 text-green-600">Kewajiban</h3>
-            <table class="w-full text-sm text-gray-700 dark:text-gray-300 mb-4">
-                <tbody>
-                    @foreach ($kategori->where('kode', 'KEW')->first()?->akun ?? [] as $akun)
-                        <tr class="border-b border-gray-200 dark:border-gray-700">
-                            <td class="py-2">{{ $akun->nama }}</td>
-                            <td class="text-right py-2">{{ number_format($akun->saldo, 2, ',', '.') }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-                <tfoot>
-                    <tr class="font-semibold border-t border-gray-400">
-                        <td class="py-2">Total Kewajiban</td>
-                        <td class="text-right py-2 text-blue-600">{{ number_format($total_kewajiban, 2, ',', '.') }}</td>
-                    </tr>
-                </tfoot>
-            </table>
+    {{-- Bagian Kewajiban --}}
+    <div class="card overflow-hidden border border-neutral-200 dark:border-neutral-700">
+        <div class="flex items-center gap-3 px-5 py-4 border-b border-neutral-200 dark:border-neutral-700">
+            <div class="w-1.5 h-5 rounded-full bg-primary-500 flex-none"></div>
+            <h3 class="font-display font-semibold text-lg text-ink dark:text-ink-d">Kewajiban</h3>
         </div>
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="bg-neutral-50 dark:bg-neutral-700/30 border-b border-neutral-200 dark:border-neutral-700">
+                    <th class="text-left px-5 py-2.5 text-xs font-semibold text-ink-2 dark:text-ink-d2 uppercase tracking-wider">Nama Akun</th>
+                    <th class="text-right px-5 py-2.5 text-xs font-semibold text-ink-2 dark:text-ink-d2 uppercase tracking-wider">Saldo (Rp)</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-neutral-200 dark:divide-neutral-700">
+                @foreach ($kategori->where('kode', 'KEW')->first()?->akun ?? [] as $akun)
+                    <tr class="hover:bg-neutral-50 dark:hover:bg-neutral-700/20">
+                        <td class="px-5 py-3 text-ink dark:text-ink-d">{{ $akun->nama }}</td>
+                        <td class="px-5 py-3 text-right tabular-nums text-ink dark:text-ink-d">{{ number_format($akun->saldo, 2, ',', '.') }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+            <tfoot>
+                <tr class="border-t-2 border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-700/30">
+                    <td class="px-5 py-3 font-bold text-ink dark:text-ink-d">Total Kewajiban</td>
+                    <td class="px-5 py-3 text-right font-bold tabular-nums text-primary-600 dark:text-primary-400">{{ number_format($total_kewajiban, 2, ',', '.') }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
 
-        {{-- Bagian Modal --}}
-        <div class="bg-white dark:bg-gray-800 shadow rounded-2xl p-5">
-            <h3 class="text-xl font-semibold mb-3 text-green-600">Modal</h3>
-            <table class="w-full text-sm text-gray-700 dark:text-gray-300">
-                <tbody>
-                    @foreach ($kategori->where('kode', 'MOD')->first()?->akun ?? [] as $akun)
-                        <tr class="border-b border-gray-200 dark:border-gray-700">
-                            <td class="py-2">{{ $akun->nama }}</td>
-                            <td class="text-right py-2">{{ number_format($akun->saldo, 2, ',', '.') }}</td>
-                        </tr>
+    {{-- Bagian Modal --}}
+    <div class="card overflow-hidden border border-neutral-200 dark:border-neutral-700">
+        <div class="flex items-center gap-3 px-5 py-4 border-b border-neutral-200 dark:border-neutral-700">
+            <div class="w-1.5 h-5 rounded-full bg-violet-500 flex-none"></div>
+            <h3 class="font-display font-semibold text-lg text-ink dark:text-ink-d">Modal</h3>
+        </div>
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="bg-neutral-50 dark:bg-neutral-700/30 border-b border-neutral-200 dark:border-neutral-700">
+                    <th class="text-left px-5 py-2.5 text-xs font-semibold text-ink-2 dark:text-ink-d2 uppercase tracking-wider">Nama Akun</th>
+                    <th class="text-right px-5 py-2.5 text-xs font-semibold text-ink-2 dark:text-ink-d2 uppercase tracking-wider">Saldo (Rp)</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-neutral-200 dark:divide-neutral-700">
+                @foreach ($kategori->where('kode', 'MOD')->first()?->akun ?? [] as $akun)
+                    <tr class="hover:bg-neutral-50 dark:hover:bg-neutral-700/20">
+                        <td class="px-5 py-3 text-ink dark:text-ink-d">{{ $akun->nama }}</td>
+                        <td class="px-5 py-3 text-right tabular-nums text-ink dark:text-ink-d">{{ number_format($akun->saldo, 2, ',', '.') }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+            <tfoot>
+                <tr class="border-t border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-700/30">
+                    <td class="px-5 py-3 font-bold text-ink dark:text-ink-d">Total Modal</td>
+                    <td class="px-5 py-3 text-right font-bold tabular-nums text-violet-600 dark:text-violet-400">{{ number_format($total_modal, 2, ',', '.') }}</td>
+                </tr>
+                <tr class="border-t-2 border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-700/30">
+                    <td class="px-5 py-3 font-bold text-ink dark:text-ink-d">Total Kewajiban + Modal</td>
+                    <td class="px-5 py-3 text-right font-bold tabular-nums text-primary-600 dark:text-primary-400">{{ number_format($total_kewajiban_modal, 2, ',', '.') }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    {{-- Rincian Pemasukan — dari akun MOD yang namanya mengandung "Pendapatan" --}}
+    @php
+        $modKat = $kategori->where('kode', 'MOD')->first();
+        $pendapatanAkun = collect($modKat?->akun ?? [])
+            ->filter(fn($a) => str_contains($a->nama, 'Pendapatan'))
+            ->values();
+        $totalPendapatan = $pendapatanAkun->sum('saldo');
+        $barColors = ['bg-primary-500', 'bg-info-500', 'bg-violet-500', 'bg-warning-500'];
+    @endphp
+    <div class="card overflow-hidden border border-neutral-200 dark:border-neutral-700">
+        <div class="px-5 py-4 border-b border-neutral-200 dark:border-neutral-700">
+            <h3 class="font-display font-semibold text-lg text-ink dark:text-ink-d">Rincian Pemasukan</h3>
+            <p class="text-xs text-ink-2 dark:text-ink-d2 mt-0.5">Breakdown sumber pendapatan</p>
+        </div>
+        <div class="px-5 py-5 flex flex-col gap-5">
+            @forelse ($pendapatanAkun as $akun)
+                @php
+                    $pct = $totalPendapatan > 0 ? round($akun->saldo / $totalPendapatan * 100) : 0;
+                    $barColor = $barColors[$loop->index % count($barColors)];
+                @endphp
+                <div>
+                    <div class="flex items-start justify-between gap-2 mb-1.5">
+                        <span class="flex items-center gap-2 text-sm font-semibold text-ink dark:text-ink-d leading-snug">
+                            <i class="w-2.5 h-2.5 rounded-[3px] {{ $barColor }} flex-none mt-0.5"></i>
+                            {{ $akun->nama }}
+                        </span>
+                        <span class="text-sm font-semibold tabular-nums text-ink dark:text-ink-d flex-none">
+                            {{ number_format($akun->saldo, 0, ',', '.') }}
+                        </span>
+                    </div>
+                    <div class="h-[7px] rounded-full bg-neutral-200 dark:bg-neutral-700 overflow-hidden">
+                        <div class="h-full rounded-full {{ $barColor }}" style="width: {{ $pct }}%"></div>
+                    </div>
+                    <div class="text-xs text-ink-3 dark:text-ink-d3 mt-1">{{ $pct }}% dari total pendapatan</div>
+                </div>
+            @empty
+                <p class="text-sm text-ink-3 dark:text-ink-d3 text-center py-6">Belum ada data pendapatan.</p>
+            @endforelse
+
+            @if ($pendapatanAkun->isNotEmpty())
+                <div class="border-t border-neutral-200 dark:border-neutral-700 pt-4 mt-1">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-sm font-semibold text-ink-2 dark:text-ink-d2">Total Pendapatan</span>
+                        <span class="font-display font-bold text-lg text-success-600 dark:text-success-400 tabular-nums">
+                            Rp {{ number_format($totalPendapatan, 0, ',', '.') }}
+                        </span>
+                    </div>
+                </div>
+            @endif
+        </div>
+    </div>
+
+</div>
+
+{{-- ==================== BUKU BESAR (full-width) ==================== --}}
+<div class="mt-5">
+    <div class="card border-0 overflow-hidden">
+        <div class="flex items-center px-5 py-3.5 border-b border-neutral-200 dark:border-neutral-700">
+            <div>
+                <span class="font-semibold text-base text-ink dark:text-ink-d">Buku Besar</span>
+                <p class="text-xs text-ink-2 dark:text-ink-d2 mt-0.5">Saldo per akun berdasarkan kategori</p>
+            </div>
+        </div>
+        <div class="overflow-x-auto w-full">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="bg-neutral-50 dark:bg-neutral-700/30 border-b border-neutral-200 dark:border-neutral-700">
+                        <th class="text-left px-5 py-2.5 text-xs font-semibold text-ink-2 dark:text-ink-d2 uppercase tracking-wider">Kode</th>
+                        <th class="text-left px-5 py-2.5 text-xs font-semibold text-ink-2 dark:text-ink-d2 uppercase tracking-wider">Nama Akun</th>
+                        <th class="text-right px-5 py-2.5 text-xs font-semibold text-ink-2 dark:text-ink-d2 uppercase tracking-wider">Debit (Rp)</th>
+                        <th class="text-right px-5 py-2.5 text-xs font-semibold text-ink-2 dark:text-ink-d2 uppercase tracking-wider">Kredit (Rp)</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-neutral-200 dark:divide-neutral-700">
+                    @php
+                        $totalDebit = 0;
+                        $totalKredit = 0;
+
+                        // helper fungsi: tentukan sisi normal
+                        $isDebitSide = function ($kodeKategori) {
+                            return in_array($kodeKategori, ['AST', 'BEB']); // Aset & Beban di Debit
+                        };
+                    @endphp
+
+                    @foreach ($kategori as $kat)
+                        @foreach ($kat->akun ?? [] as $akun)
+                            @php
+                                $saldo = (float) ($akun->saldo ?? 0);
+                                $kodeKat = $kat->kode ?? '';
+
+                                // letakkan saldo ke kolom sesuai sisi normal
+                                $debit = $isDebitSide($kodeKat) ? $saldo : 0;
+                                $kredit = $isDebitSide($kodeKat) ? 0 : $saldo;
+
+                                $totalDebit += $debit;
+                                $totalKredit += $kredit;
+                            @endphp
+                            <tr class="hover:bg-neutral-50 dark:hover:bg-neutral-700/20">
+                                <td class="px-5 py-3 font-medium text-ink-2 dark:text-ink-d2 tabular-nums">{{ $akun->kode ?? '-' }}</td>
+                                <td class="px-5 py-3 text-ink dark:text-ink-d">{{ $akun->nama }}</td>
+                                <td class="px-5 py-3 text-right tabular-nums text-ink dark:text-ink-d">
+                                    {{ $debit ? number_format($debit, 2, ',', '.') : '—' }}</td>
+                                <td class="px-5 py-3 text-right tabular-nums text-ink dark:text-ink-d">
+                                    {{ $kredit ? number_format($kredit, 2, ',', '.') : '—' }}</td>
+                            </tr>
+                        @endforeach
                     @endforeach
                 </tbody>
                 <tfoot>
-                    <tr class="font-semibold border-t border-gray-400">
-                        <td class="py-2">Total Modal</td>
-                        <td class="text-right py-2 text-purple-600">{{ number_format($total_modal, 2, ',', '.') }}</td>
+                    <tr class="border-t-2 border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-700/30">
+                        <td class="px-5 py-3 font-bold text-ink dark:text-ink-d" colspan="2">Total</td>
+                        <td class="px-5 py-3 text-right font-bold tabular-nums text-success-600 dark:text-success-400">
+                            {{ number_format($totalDebit, 2, ',', '.') }}</td>
+                        <td class="px-5 py-3 text-right font-bold tabular-nums text-danger-600 dark:text-danger-400">
+                            {{ number_format($totalKredit, 2, ',', '.') }}</td>
                     </tr>
-                    <tr class="font-semibold border-t-2 border-gray-500">
-                        <td class="py-2">Total Kewajiban + Modal</td>
-                        <td class="text-right py-2 text-blue-700">{{ number_format($total_kewajiban_modal, 2, ',', '.') }}
+                    <tr class="bg-neutral-50 dark:bg-neutral-700/30">
+                        <td class="px-5 py-3" colspan="4">
+                            @if (number_format($totalDebit, 2) === number_format($totalKredit, 2))
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-success-50 text-success-700 border border-success-200 dark:bg-success-600/10 dark:border-success-600/30 dark:text-success-400">
+                                    <iconify-icon icon="lucide:check-circle" class="text-sm"></iconify-icon>
+                                    Seimbang (Debit = Kredit)
+                                </span>
+                            @else
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-warning-50 text-warning-700 border border-warning-200 dark:bg-warning-600/10 dark:border-warning-600/30 dark:text-warning-400">
+                                    <iconify-icon icon="lucide:alert-triangle" class="text-sm"></iconify-icon>
+                                    Belum seimbang (cek jurnal)
+                                </span>
+                            @endif
                         </td>
                     </tr>
                 </tfoot>
             </table>
         </div>
     </div>
+</div>
 
-    <div class="grid grid-cols-12 mt-6 shadow">
-        <div class="col-span-12">
-            <div class="card border-0 overflow-hidden">
-                <div class="overflow-x-auto w-full">
-                    <table class="w-full text-sm">
-                        <thead>
-                            <tr class="border-b border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/30">
-                                <th class="text-left py-2 px-3">Kode</th>
-                                <th class="text-left py-2 px-3">Nama Akun</th>
-                                <th class="text-right py-2 px-3">Debit (Rp)</th>
-                                <th class="text-right py-2 px-3">Kredit (Rp)</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                            @php
-                                $totalDebit = 0;
-                                $totalKredit = 0;
+    <x-modal id="modal-tambah-kas" title="Tambah Kas Manual" maxWidth="max-w-[600px]">
+        <x-slot:body>
+            <form id="formTambahKas" action="{{ route('neraca.tambah-kas') }}" method="POST">
+                @csrf
 
-                                // helper fungsi: tentukan sisi normal
-                                $isDebitSide = function ($kodeKategori) {
-                                    return in_array($kodeKategori, ['AST', 'BEB']); // Aset & Beban di Debit
-                                };
-                            @endphp
+                <div class="grid grid-cols-1 gap-6">
+                    <div class="col-span-12">
+                        <label for="jumlahKas" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
+                            Jumlah Kas (Rp)
+                        </label>
+                        <input type="number" name="jumlah" id="jumlahKas" step="0.01" min="0" required
+                            class="form-control rounded-lg" placeholder="Masukkan jumlah kas">
+                    </div>
 
-                            @foreach ($kategori as $kat)
-                                @foreach ($kat->akun ?? [] as $akun)
-                                    @php
-                                        $saldo = (float) ($akun->saldo ?? 0);
-                                        $kodeKat = $kat->kode ?? '';
+                    <div class="col-span-12">
+                        <label for="deskripsiKas" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
+                            Deskripsi
+                        </label>
+                        <textarea name="deskripsi" id="deskripsiKas" rows="3" required class="form-control rounded-lg"
+                            placeholder="Contoh: Setoran modal awal pemilik"></textarea>
+                    </div>
 
-                                        // letakkan saldo ke kolom sesuai sisi normal
-                                        $debit = $isDebitSide($kodeKat) ? $saldo : 0;
-                                        $kredit = $isDebitSide($kodeKat) ? 0 : $saldo;
-
-                                        $totalDebit += $debit;
-                                        $totalKredit += $kredit;
-                                    @endphp
-                                    <tr>
-                                        <td class="py-2 px-3 font-medium text-gray-600">{{ $akun->kode ?? '-' }}</td>
-                                        <td class="py-2 px-3">{{ $akun->nama }}</td>
-                                        <td class="py-2 px-3 text-right">
-                                            {{ $debit ? number_format($debit, 2, ',', '.') : '-' }}</td>
-                                        <td class="py-2 px-3 text-right">
-                                            {{ $kredit ? number_format($kredit, 2, ',', '.') : '-' }}</td>
-                                    </tr>
-                                @endforeach
-                            @endforeach
-                        </tbody>
-                        <tfoot>
-                            <tr class="border-t-2 border-gray-400">
-                                <td class="py-2 px-3 font-semibold" colspan="2">Total</td>
-                                <td class="py-2 px-3 text-right font-semibold text-green-600">
-                                    {{ number_format($totalDebit, 2, ',', '.') }}</td>
-                                <td class="py-2 px-3 text-right font-semibold text-blue-600">
-                                    {{ number_format($totalKredit, 2, ',', '.') }}</td>
-                            </tr>
-                            <tr>
-                                <td class="py-2 px-3 font-medium" colspan="4">
-                                    @if (number_format($totalDebit, 2) === number_format($totalKredit, 2))
-                                        <span class="text-emerald-600">✅ Seimbang (Debit = Kredit)</span>
-                                    @else
-                                        <span class="text-amber-600">⚠️ Belum seimbang (cek jurnal)</span>
-                                    @endif
-                                </td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Modal Tambah Kas --}}
-    <div id="modal-tambah-kas" tabindex="-1"
-        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-        <div class="rounded-2xl bg-white max-w-[600px] w-full">
-            <div class="py-4 px-6 border-b border-neutral-200 flex items-center justify-between">
-                <h1 class="text-xl font-semibold">Tambah Kas Manual</h1>
-                <button data-modal-hide="modal-tambah-kas" type="button"
-                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
-                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                        viewBox="0 0 14 14">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                    </svg>
-                    <span class="sr-only">Close modal</span>
-                </button>
-            </div>
-
-            <div class="p-6">
-                <form id="formTambahKas" action="{{ route('neraca.tambah-kas') }}" method="POST">
-                    @csrf
-
-                    <div class="grid grid-cols-1 gap-6">
-                        <div class="col-span-12">
-                            <label for="jumlahKas" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
-                                Jumlah Kas (Rp)
-                            </label>
-                            <input type="number" name="jumlah" id="jumlahKas" step="0.01" min="0" required
-                                class="form-control rounded-lg" placeholder="Masukkan jumlah kas">
-                        </div>
-
-                        <div class="col-span-12">
-                            <label for="deskripsiKas" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
-                                Deskripsi
-                            </label>
-                            <textarea name="deskripsi" id="deskripsiKas" rows="3" required class="form-control rounded-lg"
-                                placeholder="Contoh: Setoran modal awal pemilik"></textarea>
-                        </div>
-
-                        <div class="col-span-12">
-                            <div class="flex items-center justify-start gap-3 mt-6">
-                                <button type="reset" data-modal-hide="modal-tambah-kas"
-                                    class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
-                                    Cancel
-                                </button>
-                                <button type="submit"
-                                    class="btn btn-primary border border-primary-600 text-base px-6 py-3 rounded-lg">
-                                    Save
-                                </button>
-                            </div>
+                    <div class="col-span-12">
+                        <div class="flex items-center justify-start gap-3 mt-6">
+                            <button type="reset" data-close-modal="modal-tambah-kas"
+                                class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
+                                Cancel
+                            </button>
+                            <button type="submit"
+                                class="btn btn-primary border border-primary-600 text-base px-6 py-3 rounded-lg">
+                                Save
+                            </button>
                         </div>
                     </div>
-                </form>
-            </div>
-        </div>
-    </div>
+                </div>
+            </form>
+        </x-slot:body>
+    </x-modal>
 @endsection
 
 @section('scripts')

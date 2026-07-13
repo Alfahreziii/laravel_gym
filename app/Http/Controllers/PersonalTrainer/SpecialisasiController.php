@@ -19,6 +19,37 @@ class SpecialisasiController extends Controller
         return view('pages.admin.personal-trainer.specialisasi.index', compact('specialisasis'));
     }
 
+    public function datatable(Request $request)
+    {
+        $search  = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page    = (int) $request->get('page', 1);
+
+        $query = Specialisasi::query();
+        if ($search) {
+            $query->where('nama_specialisasi', 'like', "%{$search}%");
+        }
+
+        $total = (clone $query)->count();
+        $data  = (clone $query)->orderBy('nama_specialisasi')->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        return response()->json([
+            'data' => $data->map(function ($item, $index) use ($page, $perPage) {
+                return [
+                    'no'                => (($page - 1) * $perPage) + $index + 1,
+                    'id'                => $item->id,
+                    'nama_specialisasi' => $item->nama_specialisasi,
+                    'update_url'        => route('specialisasi.update', $item->id),
+                    'delete_url'        => route('specialisasi.destroy', $item->id),
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
+    }
+
     /**
      * Simpan specialisasi baru
      */

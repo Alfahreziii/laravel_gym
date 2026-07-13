@@ -9,6 +9,45 @@ use Illuminate\Http\Request;
 
 class PaketPersonalTrainerController extends Controller
 {
+    public function datatable(Request $request)
+    {
+        $search  = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page    = (int) $request->get('page', 1);
+
+        $query = PaketPersonalTrainer::latest();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_paket', 'like', "%{$search}%")
+                  ->orWhere('periode', 'like', "%{$search}%");
+            });
+        }
+
+        $total = (clone $query)->count();
+        $data  = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        return response()->json([
+            'data' => $data->map(function ($item, $index) use ($page, $perPage) {
+                return [
+                    'no'          => (($page - 1) * $perPage) + $index + 1,
+                    'id'          => $item->id,
+                    'nama_paket'  => $item->nama_paket,
+                    'durasi'      => $item->durasi,
+                    'periode'     => ucfirst($item->periode),
+                    'jumlah_sesi' => $item->jumlah_sesi ?? '-',
+                    'biaya'       => 'Rp ' . number_format($item->biaya, 0, ',', '.'),
+                    'edit_url'    => route('paket_personal_trainer.edit', $item->id),
+                    'delete_url'  => route('paket_personal_trainer.destroy', $item->id),
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
+    }
+
     /**
      * Tampilkan semua paket personal trainer
      */

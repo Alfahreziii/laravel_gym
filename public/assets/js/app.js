@@ -73,14 +73,35 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
-// ====== Force light mode ======
-document.documentElement.classList.remove('dark');
-localStorage.setItem('color-theme', 'light');
+// ====== Dark mode toggle ======
+(function () {
+    var saved = localStorage.getItem('color-theme');
+    if (saved === 'dark') {
+        document.documentElement.classList.add('dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+    }
+})();
 
-var themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
-var themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
-var themeToggleBtn = document.getElementById('theme-toggle');
+document.addEventListener('DOMContentLoaded', function () {
+    var toggleBtn      = document.getElementById('theme-toggle');
+    var darkIcon       = document.getElementById('theme-toggle-dark-icon');
+    var lightIcon      = document.getElementById('theme-toggle-light-icon');
 
-if(themeToggleDarkIcon) themeToggleDarkIcon.classList.add('hidden');
-if(themeToggleLightIcon) themeToggleLightIcon.classList.remove('hidden');
-if(themeToggleBtn) themeToggleBtn.style.display = 'none';
+    function syncIcons() {
+        var isDark = document.documentElement.classList.contains('dark');
+        if (darkIcon)  darkIcon.classList.toggle('hidden', isDark);
+        if (lightIcon) lightIcon.classList.toggle('hidden', !isDark);
+    }
+
+    syncIcons();
+
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', function () {
+            document.documentElement.classList.toggle('dark');
+            var isDark = document.documentElement.classList.contains('dark');
+            localStorage.setItem('color-theme', isDark ? 'dark' : 'light');
+            syncIcons();
+        });
+    }
+});

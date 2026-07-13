@@ -1,361 +1,342 @@
 <!-- meta tags and other links -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 
 <x-head/>
 
-<body class="dark:bg-neutral-800 bg-neutral-100">
+<body class="bg-white dark:bg-neutral-900">
 
-    <style>
-        .auth-section {
-            min-height: 100vh;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem 1rem;
-            background-image: url('{{ asset('assets/images/auth/auth-img.png') }}');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-        }
-        
-        .auth-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1;
-        }
-        
-        .auth-form-container {
-            position: relative;
-            z-index: 2;
-            background: white;
-            border-radius: 24px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 800px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            padding: 2.5rem;
-        }
-        
-        /* Custom Scrollbar */
-        .auth-form-container::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        .auth-form-container::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        
-        .auth-form-container::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 10px;
-        }
-        
-        .auth-form-container::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-        
-        @media (max-width: 768px) {
-            .auth-section {
-                padding: 1rem;
-            }
-            
-            .auth-form-container {
-                padding: 1.5rem;
-                border-radius: 16px;
-                max-height: 95vh;
-            }
-        }
-    </style>
+<div class="flex min-h-screen">
 
-    <section class="auth-section">
-        <div class="auth-form-container">
-            <div>
-                <div>
-                    <a href="{{ route('index') }}" class="mb-2.5 max-w-[135px]">
-                        <img src="{{ asset('assets/images/logo.png') }}" alt="">
-                    </a>
-                    <h4 class="mb-3">Pendaftaran Trainer</h4>
-                    <p class="mb-6 text-secondary-light text-lg">Daftar sebagai Personal Trainer</p>
+    {{-- ──────────────────── PANEL KIRI (sticky) ──────────────────── --}}
+    <div class="hidden lg:block lg:w-[480px] xl:w-[520px] flex-shrink-0">
+        <div class="sticky top-0 h-screen relative overflow-hidden flex flex-col">
+
+            <img src="{{ asset('assets/images/auth/auth-img.png') }}"
+                 alt="Gym HexaGym"
+                 class="absolute inset-0 w-full h-full object-cover">
+
+            <div class="absolute inset-0 bg-gradient-to-br from-primary-600/85 via-primary-700/80 to-primary-900/90"></div>
+
+            <div class="relative z-10 flex flex-col h-full px-10 py-10">
+
+                <div class="flex items-center gap-3">
+                    <svg viewBox="0 0 40 40" fill="none" class="w-[42px] h-[42px] flex-shrink-0">
+                        <path d="M20 2 35.3 11v18L20 38 4.7 29V11Z" fill="#fff"/>
+                        <g stroke="#F2622E" stroke-width="2.6" stroke-linecap="round">
+                            <path d="M13 20h14"/>
+                            <path d="M13 16.5v7M27 16.5v7"/>
+                            <path d="M10.5 18v4M29.5 18v4"/>
+                        </g>
+                    </svg>
+                    <div>
+                        <div class="font-display font-bold text-[26px] leading-none text-white">HexaGym</div>
+                        <div class="text-[11px] text-white/85 font-medium tracking-[0.04em] mt-0.5">Gym Management System</div>
+                    </div>
                 </div>
 
-                @if(session('error'))
-                    <div class="bg-danger-100 border border-danger-600 text-danger-600 px-4 py-3 rounded-lg mb-4">
-                        {{ session('error') }}
-                    </div>
-                @endif
+                <div class="mt-auto max-w-[380px]">
+                    <div class="text-[11px] font-bold tracking-[0.14em] uppercase text-white/80">Gabung Tim Trainer</div>
+                    <h1 class="font-display font-bold text-[38px] leading-[1.04] text-white mt-3"
+                        style="text-wrap: balance">
+                        Jadilah bagian dari tim trainer kami.
+                    </h1>
+                    <p class="mt-4 text-sm leading-relaxed text-white/90">
+                        Daftarkan diri sebagai personal trainer profesional dan bantu member mencapai target fitness mereka.
+                    </p>
+                </div>
 
-                <form method="POST" action="{{ route('register.trainer.submit') }}" enctype="multipart/form-data">
-                    @csrf
+                <div class="mt-9 text-[11px] text-white/70">© 2026 HexaGym · Cabang Depok</div>
 
-                    {{-- ========== DATA AKUN ========== --}}
-                    <div class="mb-6">
-                        <h6 class="text-md font-semibold mb-3 text-primary-600">📋 Data Akun Login</h6>
-                        
-                        {{-- Nama Lengkap --}}
-                        <div class="icon-field mb-4 relative">
-                            <span class="absolute start-4 top-1/2 -translate-y-1/2 pointer-events-none flex text-xl">
-                                <iconify-icon icon="f7:person"></iconify-icon>
-                            </span>
-                            <input name="name" value="{{ old('name') }}" required type="text" 
-                                class="form-control h-[56px] ps-11 border-neutral-300 bg-neutral-50 rounded-xl @error('name') border-danger-600 @enderror" 
-                                placeholder="Nama Lengkap">
-                            @error('name')
-                                <span class="text-danger-600 text-sm">{{ $message }}</span>
-                            @enderror
-                        </div>
+            </div>
+        </div>
+    </div>
 
-                        {{-- Email --}}
-                        <div class="icon-field mb-4 relative">
-                            <span class="absolute start-4 top-1/2 -translate-y-1/2 pointer-events-none flex text-xl">
-                                <iconify-icon icon="mage:email"></iconify-icon>
-                            </span>
-                            <input type="email" name="email" required value="{{ old('email') }}" 
-                                class="form-control h-[56px] ps-11 border-neutral-300 bg-neutral-50 rounded-xl @error('email') border-danger-600 @enderror" 
-                                placeholder="Email">
-                            @error('email')
-                                <span class="text-danger-600 text-sm">{{ $message }}</span>
-                            @enderror
-                        </div>
+    {{-- ──────────────────── PANEL KANAN (scrollable) ──────────────────── --}}
+    <div class="flex-1 py-12 px-8 bg-white dark:bg-neutral-800 overflow-y-auto">
+        <div class="max-w-[640px] mx-auto">
 
-                        {{-- Password --}}
-                        <div class="mb-4">
-                            <div class="relative">
-                                <div class="icon-field">
-                                    <span class="absolute start-4 top-1/2 -translate-y-1/2 pointer-events-none flex text-xl">
-                                        <iconify-icon icon="solar:lock-password-outline"></iconify-icon>
-                                    </span>
-                                    <input type="password" name="password" required 
-                                        class="form-control h-[56px] ps-11 border-neutral-300 bg-neutral-50 rounded-xl @error('password') border-danger-600 @enderror" 
-                                        id="password" placeholder="Password (min. 8 karakter)">
-                                </div>
-                                <span class="toggle-password ri-eye-line cursor-pointer absolute end-0 top-1/2 -translate-y-1/2 me-4 text-secondary-light" data-toggle="#password"></span>
-                            </div>
-                            @error('password')
-                                <span class="text-danger-600 text-sm">{{ $message }}</span>
-                            @enderror
-                        </div>
+            <h2 class="font-display font-bold text-[30px] leading-[1.05] text-ink dark:text-ink-d">
+                Pendaftaran Trainer 🏋️
+            </h2>
+            <p class="mt-1.5 text-sm text-ink-2 dark:text-ink-d2 mb-6">
+                Lengkapi data berikut untuk mendaftar sebagai personal trainer HexaGym.
+            </p>
 
-                        {{-- Konfirmasi Password --}}
-                        <div class="mb-4">
-                            <div class="relative">
-                                <div class="icon-field">
-                                    <span class="absolute start-4 top-1/2 -translate-y-1/2 pointer-events-none flex text-xl">
-                                        <iconify-icon icon="solar:lock-password-outline"></iconify-icon>
-                                    </span>
-                                    <input type="password" name="password_confirmation" required 
-                                        class="form-control h-[56px] ps-11 border-neutral-300 bg-neutral-50 rounded-xl" 
-                                        id="password_confirmation" placeholder="Konfirmasi Password">
-                                </div>
-                                <span class="toggle-password ri-eye-line cursor-pointer absolute end-0 top-1/2 -translate-y-1/2 me-4 text-secondary-light" data-toggle="#password_confirmation"></span>
-                            </div>
-                        </div>
-                    </div>
+            @if(session('error'))
+                <div class="mb-6 flex items-start gap-3 px-4 py-3 rounded-xl bg-danger-50 border border-danger-200 dark:bg-danger-600/10 dark:border-danger-600/30">
+                    <iconify-icon icon="lucide:alert-circle" class="text-danger-600 text-lg mt-0.5 flex-none"></iconify-icon>
+                    <p class="text-[13px] text-danger-700 dark:text-danger-400">{{ session('error') }}</p>
+                </div>
+            @endif
 
-                    {{-- ========== DATA TRAINER ========== --}}
-                    <div class="mb-6">
-                        <h6 class="text-md font-semibold mb-3 text-primary-600">👤 Data Trainer</h6>
+            <form method="POST" action="{{ route('register.trainer.submit') }}" enctype="multipart/form-data">
+                @csrf
 
-                        {{-- RFID --}}
-                        <div class="icon-field mb-4 relative">
-                            <span class="absolute start-4 top-1/2 -translate-y-1/2 pointer-events-none flex text-xl">
-                                <iconify-icon icon="mdi:card-account-details"></iconify-icon>
-                            </span>
-                            <input type="text" name="rfid" value="{{ old('rfid') }}" required 
-                                class="form-control h-[56px] ps-11 border-neutral-300 bg-neutral-50 rounded-xl @error('rfid') border-danger-600 @enderror" 
-                                placeholder="RFID">
-                            @error('rfid')
-                                <span class="text-danger-600 text-sm">{{ $message }}</span>
-                            @enderror
-                        </div>
+                {{-- ========== DATA AKUN ========== --}}
+                <div class="mb-7">
+                    <h6 class="text-sm font-bold mb-4 text-primary-600 flex items-center gap-2">
+                        <iconify-icon icon="lucide:clipboard-list" class="text-base"></iconify-icon>
+                        Data Akun Login
+                    </h6>
 
-                        {{-- No Telepon --}}
-                        <div class="icon-field mb-4 relative">
-                            <span class="absolute start-4 top-1/2 -translate-y-1/2 pointer-events-none flex text-xl">
-                                <iconify-icon icon="solar:phone-outline"></iconify-icon>
-                            </span>
-                            <input type="text" name="no_telp" value="{{ old('no_telp') }}" required 
-                                class="form-control h-[56px] ps-11 border-neutral-300 bg-neutral-50 rounded-xl @error('no_telp') border-danger-600 @enderror" 
-                                placeholder="No Telepon">
-                            @error('no_telp')
-                                <span class="text-danger-600 text-sm">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        {{-- Spesialisasi --}}
-                        <div class="icon-field mb-4 relative">
-                            <span class="absolute start-4 top-1/2 -translate-y-1/2 pointer-events-none flex text-xl">
-                                <iconify-icon icon="mdi:dumbbell"></iconify-icon>
-                            </span>
-                            <select name="id_specialisasi" required 
-                                class="form-control h-[56px] ps-11 border-neutral-300 bg-neutral-50 rounded-xl @error('id_specialisasi') border-danger-600 @enderror">
-                                <option value="">-- Pilih Spesialisasi --</option>
-                                @foreach($specialisasis as $specialisasi)
-                                    <option value="{{ $specialisasi->id }}" {{ old('id_specialisasi') == $specialisasi->id ? 'selected' : '' }}>
-                                        {{ $specialisasi->nama_specialisasi }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('id_specialisasi')
-                                <span class="text-danger-600 text-sm">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        {{-- Experience --}}
-                        <div class="icon-field mb-4 relative">
-                            <span class="absolute start-4 top-1/2 -translate-y-1/2 pointer-events-none flex text-xl">
-                                <iconify-icon icon="mdi:certificate"></iconify-icon>
-                            </span>
-                            <input type="text" name="experience" value="{{ old('experience') }}" required 
-                                class="form-control h-[56px] ps-11 border-neutral-300 bg-neutral-50 rounded-xl @error('experience') border-danger-600 @enderror" 
-                                placeholder="Pengalaman (contoh: 5 Tahun)">
-                            @error('experience')
-                                <span class="text-danger-600 text-sm">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        {{-- Tempat Lahir --}}
-                        <div class="icon-field mb-4 relative">
-                            <span class="absolute start-4 top-1/2 -translate-y-1/2 pointer-events-none flex text-xl">
-                                <iconify-icon icon="mdi:map-marker"></iconify-icon>
-                            </span>
-                            <input type="text" name="tempat_lahir" value="{{ old('tempat_lahir') }}" required 
-                                class="form-control h-[56px] ps-11 border-neutral-300 bg-neutral-50 rounded-xl @error('tempat_lahir') border-danger-600 @enderror" 
-                                placeholder="Tempat Lahir">
-                            @error('tempat_lahir')
-                                <span class="text-danger-600 text-sm">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        {{-- Tanggal Lahir --}}
-                        <div class="icon-field mb-4 relative">
-                            <span class="absolute start-4 top-1/2 -translate-y-1/2 pointer-events-none flex text-xl">
-                                <iconify-icon icon="mdi:calendar"></iconify-icon>
-                            </span>
-                            <input type="date" name="tgl_lahir" value="{{ old('tgl_lahir') }}" required 
-                                class="form-control h-[56px] ps-11 border-neutral-300 bg-neutral-50 rounded-xl @error('tgl_lahir') border-danger-600 @enderror">
-                            @error('tgl_lahir')
-                                <span class="text-danger-600 text-sm">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        {{-- Jenis Kelamin --}}
-                        <div class="icon-field mb-4 relative">
-                            <span class="absolute start-4 top-1/2 -translate-y-1/2 pointer-events-none flex text-xl">
-                                <iconify-icon icon="mdi:gender-male-female"></iconify-icon>
-                            </span>
-                            <select name="jenis_kelamin" required 
-                                class="form-control h-[56px] ps-11 border-neutral-300 bg-neutral-50 rounded-xl @error('jenis_kelamin') border-danger-600 @enderror">
-                                <option value="">-- Pilih Jenis Kelamin --</option>
-                                <option value="Laki-laki" {{ old('jenis_kelamin') == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
-                                <option value="Perempuan" {{ old('jenis_kelamin') == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
-                            </select>
-                            @error('jenis_kelamin')
-                                <span class="text-danger-600 text-sm">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        {{-- Alamat --}}
-                        <div class="mb-4">
-                            <textarea name="alamat" required rows="3" 
-                                class="form-control border-neutral-300 bg-neutral-50 rounded-xl @error('alamat') border-danger-600 @enderror" 
-                                placeholder="Alamat Lengkap">{{ old('alamat') }}</textarea>
-                            @error('alamat')
-                                <span class="text-danger-600 text-sm">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        {{-- Foto --}}
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium mb-2">Foto Profil <span class="text-danger-600">*</span></label>
-                            <input type="file" name="photo" accept="image/*" required 
-                                class="border border-neutral-300 bg-neutral-50 w-full rounded-xl @error('photo') border-danger-600 @enderror">
-                            @error('photo')
-                                <span class="text-danger-600 text-sm">{{ $message }}</span>
-                            @enderror
-                        </div>
-                    </div>
-
-                    {{-- ========== JADWAL TRAINER ========== --}}
-                    <div class="mb-6">
-                        <h6 class="text-md font-semibold mb-3 text-primary-600">📅 Jadwal Ketersediaan</h6>
-                        
-                        <div id="jadwal-container">
-                            <div class="jadwal-item border border-neutral-200 rounded-xl p-4 mb-3 bg-neutral-50">
-                                <div class="grid grid-cols-12 gap-3">
-                                    <div class="col-span-12 md:col-span-4">
-                                        <label class="text-sm font-medium mb-1 block">Hari</label>
-                                        <select name="jadwal[0][day_of_week]" class="form-control h-[48px] border-neutral-300 bg-white rounded-lg" required>
-                                            <option value="">-- Pilih Hari --</option>
-                                            <option value="Senin">Senin</option>
-                                            <option value="Selasa">Selasa</option>
-                                            <option value="Rabu">Rabu</option>
-                                            <option value="Kamis">Kamis</option>
-                                            <option value="Jumat">Jumat</option>
-                                            <option value="Sabtu">Sabtu</option>
-                                            <option value="Minggu">Minggu</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-span-6 md:col-span-3">
-                                        <label class="text-sm font-medium mb-1 block">Jam Mulai</label>
-                                        <input type="time" name="jadwal[0][start_time]" class="form-control h-[48px] border-neutral-300 bg-white rounded-lg" required>
-                                    </div>
-                                    <div class="col-span-6 md:col-span-3">
-                                        <label class="text-sm font-medium mb-1 block">Jam Selesai</label>
-                                        <input type="time" name="jadwal[0][end_time]" class="form-control h-[48px] border-neutral-300 bg-white rounded-lg" required>
-                                    </div>
-                                    <div class="col-span-12 md:col-span-2 flex items-end">
-                                        <button type="button" class="btn-remove-jadwal w-full h-[48px] text-danger-600 hover:bg-danger-600 border border-danger-600 hover:text-white rounded-lg text-sm font-medium">
-                                            Hapus
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button type="button" id="add-jadwal" class="text-primary-600 hover:bg-primary-600 border border-primary-600 hover:text-white rounded-lg text-sm px-4 py-2.5 font-medium inline-flex items-center gap-2">
-                            <iconify-icon icon="mdi:plus"></iconify-icon> Tambah Jadwal
-                        </button>
-                    </div>
-
-                    {{-- Terms & Conditions --}}
-                    <div class="mt-6">
-                        <div class="form-check style-check flex items-start gap-2">
-                            <input class="form-check-input border border-neutral-300 mt-1.5 @error('terms') border-danger-600 @enderror" 
-                                type="checkbox" name="terms" value="1" id="terms" required>
-                            <label class="text-sm" for="terms">
-                                Dengan mendaftar, saya menyetujui
-                                <a href="javascript:void(0)" class="text-primary-600 font-semibold">Syarat & Ketentuan</a> 
-                                dan 
-                                <a href="javascript:void(0)" class="text-primary-600 font-semibold">Kebijakan Privasi</a>
-                            </label>
-                        </div>
-                        @error('terms')
-                            <span class="text-danger-600 text-sm">{{ $message }}</span>
+                    {{-- Nama Lengkap --}}
+                    <div class="mb-4 relative">
+                        <iconify-icon icon="f7:person"
+                            class="absolute start-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 pointer-events-none z-10"></iconify-icon>
+                        <input name="name" value="{{ old('name') }}" required type="text"
+                            class="form-control h-[48px] ps-10 border-neutral-200 bg-neutral-50 rounded-xl w-full @error('name') border-danger-600 @enderror"
+                            placeholder="Nama Lengkap">
+                        @error('name')
+                            <span class="text-danger-600 text-xs mt-1 block">{{ $message }}</span>
                         @enderror
                     </div>
 
-                    <button type="submit" class="btn btn-primary justify-center text-sm btn-sm px-3 py-4 w-full rounded-xl mt-6">
-                        Daftar Sebagai Trainer
-                    </button>
-                    
-                    <div class="mt-6 text-center text-sm">
-                        <p class="mb-0">Sudah punya akun? <a href="{{ route('login') }}" class="text-primary-600 font-semibold hover:underline">Login</a></p>
-                        <p class="mb-0 mt-2">Daftar sebagai member? <a href="{{ route('register') }}" class="text-primary-600 font-semibold hover:underline">Daftar di sini</a></p>
+                    {{-- Email --}}
+                    <div class="mb-4 relative">
+                        <iconify-icon icon="mage:email"
+                            class="absolute start-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 pointer-events-none z-10"></iconify-icon>
+                        <input type="email" name="email" required value="{{ old('email') }}"
+                            class="form-control h-[48px] ps-10 border-neutral-200 bg-neutral-50 rounded-xl w-full @error('email') border-danger-600 @enderror"
+                            placeholder="Email">
+                        @error('email')
+                            <span class="text-danger-600 text-xs mt-1 block">{{ $message }}</span>
+                        @enderror
                     </div>
 
-                </form>
-            </div>
+                    {{-- Password --}}
+                    <div class="mb-4">
+                        <div class="relative">
+                            <iconify-icon icon="solar:lock-password-outline"
+                                class="absolute start-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 pointer-events-none z-10"></iconify-icon>
+                            <input type="password" name="password" required
+                                class="form-control h-[48px] ps-10 pe-10 border-neutral-200 bg-neutral-50 rounded-xl w-full @error('password') border-danger-600 @enderror"
+                                id="password" placeholder="Password (min. 8 karakter)">
+                            <span class="toggle-password ri-eye-line cursor-pointer absolute end-3 top-1/2 -translate-y-1/2 text-xl text-neutral-400 hover:text-neutral-600"
+                                data-toggle="#password"></span>
+                        </div>
+                        @error('password')
+                            <span class="text-danger-600 text-xs mt-1 block">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    {{-- Konfirmasi Password --}}
+                    <div class="mb-4">
+                        <div class="relative">
+                            <iconify-icon icon="solar:lock-password-outline"
+                                class="absolute start-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 pointer-events-none z-10"></iconify-icon>
+                            <input type="password" name="password_confirmation" required
+                                class="form-control h-[48px] ps-10 pe-10 border-neutral-200 bg-neutral-50 rounded-xl w-full"
+                                id="password_confirmation" placeholder="Konfirmasi Password">
+                            <span class="toggle-password ri-eye-line cursor-pointer absolute end-3 top-1/2 -translate-y-1/2 text-xl text-neutral-400 hover:text-neutral-600"
+                                data-toggle="#password_confirmation"></span>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- ========== DATA TRAINER ========== --}}
+                <div class="mb-7">
+                    <h6 class="text-sm font-bold mb-4 text-primary-600 flex items-center gap-2">
+                        <iconify-icon icon="lucide:user-circle" class="text-base"></iconify-icon>
+                        Data Trainer
+                    </h6>
+
+                    {{-- RFID --}}
+                    <div class="mb-4 relative">
+                        <iconify-icon icon="mdi:card-account-details"
+                            class="absolute start-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 pointer-events-none z-10"></iconify-icon>
+                        <input type="text" name="rfid" value="{{ old('rfid') }}" required
+                            class="form-control h-[48px] ps-10 border-neutral-200 bg-neutral-50 rounded-xl w-full @error('rfid') border-danger-600 @enderror"
+                            placeholder="RFID">
+                        @error('rfid')
+                            <span class="text-danger-600 text-xs mt-1 block">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    {{-- No Telepon --}}
+                    <div class="mb-4 relative">
+                        <iconify-icon icon="solar:phone-outline"
+                            class="absolute start-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 pointer-events-none z-10"></iconify-icon>
+                        <input type="text" name="no_telp" value="{{ old('no_telp') }}" required
+                            class="form-control h-[48px] ps-10 border-neutral-200 bg-neutral-50 rounded-xl w-full @error('no_telp') border-danger-600 @enderror"
+                            placeholder="No Telepon">
+                        @error('no_telp')
+                            <span class="text-danger-600 text-xs mt-1 block">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    {{-- Spesialisasi --}}
+                    <div class="mb-4 relative">
+                        <iconify-icon icon="mdi:dumbbell"
+                            class="absolute start-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 pointer-events-none z-10"></iconify-icon>
+                        <select name="id_specialisasi" required
+                            class="form-control h-[48px] ps-10 border-neutral-200 bg-neutral-50 rounded-xl w-full @error('id_specialisasi') border-danger-600 @enderror">
+                            <option value="">-- Pilih Spesialisasi --</option>
+                            @foreach($specialisasis as $specialisasi)
+                                <option value="{{ $specialisasi->id }}" {{ old('id_specialisasi') == $specialisasi->id ? 'selected' : '' }}>
+                                    {{ $specialisasi->nama_specialisasi }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('id_specialisasi')
+                            <span class="text-danger-600 text-xs mt-1 block">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    {{-- Experience --}}
+                    <div class="mb-4 relative">
+                        <iconify-icon icon="mdi:certificate"
+                            class="absolute start-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 pointer-events-none z-10"></iconify-icon>
+                        <input type="text" name="experience" value="{{ old('experience') }}" required
+                            class="form-control h-[48px] ps-10 border-neutral-200 bg-neutral-50 rounded-xl w-full @error('experience') border-danger-600 @enderror"
+                            placeholder="Pengalaman (contoh: 5 Tahun)">
+                        @error('experience')
+                            <span class="text-danger-600 text-xs mt-1 block">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    {{-- Tempat Lahir --}}
+                    <div class="mb-4 relative">
+                        <iconify-icon icon="mdi:map-marker"
+                            class="absolute start-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 pointer-events-none z-10"></iconify-icon>
+                        <input type="text" name="tempat_lahir" value="{{ old('tempat_lahir') }}" required
+                            class="form-control h-[48px] ps-10 border-neutral-200 bg-neutral-50 rounded-xl w-full @error('tempat_lahir') border-danger-600 @enderror"
+                            placeholder="Tempat Lahir">
+                        @error('tempat_lahir')
+                            <span class="text-danger-600 text-xs mt-1 block">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    {{-- Tanggal Lahir --}}
+                    <div class="mb-4 relative">
+                        <iconify-icon icon="mdi:calendar"
+                            class="absolute start-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 pointer-events-none z-10"></iconify-icon>
+                        <input type="date" name="tgl_lahir" value="{{ old('tgl_lahir') }}" required
+                            class="form-control h-[48px] ps-10 border-neutral-200 bg-neutral-50 rounded-xl w-full @error('tgl_lahir') border-danger-600 @enderror">
+                        @error('tgl_lahir')
+                            <span class="text-danger-600 text-xs mt-1 block">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    {{-- Jenis Kelamin --}}
+                    <div class="mb-4 relative">
+                        <iconify-icon icon="mdi:gender-male-female"
+                            class="absolute start-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 pointer-events-none z-10"></iconify-icon>
+                        <select name="jenis_kelamin" required
+                            class="form-control h-[48px] ps-10 border-neutral-200 bg-neutral-50 rounded-xl w-full @error('jenis_kelamin') border-danger-600 @enderror">
+                            <option value="">-- Pilih Jenis Kelamin --</option>
+                            <option value="Laki-laki" {{ old('jenis_kelamin') == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
+                            <option value="Perempuan" {{ old('jenis_kelamin') == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
+                        </select>
+                        @error('jenis_kelamin')
+                            <span class="text-danger-600 text-xs mt-1 block">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    {{-- Alamat --}}
+                    <div class="mb-4">
+                        <textarea name="alamat" required rows="3"
+                            class="form-control border-neutral-200 bg-neutral-50 rounded-xl w-full @error('alamat') border-danger-600 @enderror"
+                            placeholder="Alamat Lengkap">{{ old('alamat') }}</textarea>
+                        @error('alamat')
+                            <span class="text-danger-600 text-xs mt-1 block">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    {{-- Foto --}}
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2">Foto Profil <span class="text-danger-600">*</span></label>
+                        <input type="file" name="photo" accept="image/*" required
+                            class="border border-neutral-200 bg-neutral-50 w-full rounded-xl @error('photo') border-danger-600 @enderror">
+                        @error('photo')
+                            <span class="text-danger-600 text-xs mt-1 block">{{ $message }}</span>
+                        @enderror
+                    </div>
+                </div>
+
+                {{-- ========== JADWAL TRAINER ========== --}}
+                <div class="mb-7">
+                    <h6 class="text-sm font-bold mb-4 text-primary-600 flex items-center gap-2">
+                        <iconify-icon icon="lucide:calendar-days" class="text-base"></iconify-icon>
+                        Jadwal Ketersediaan
+                    </h6>
+
+                    <div id="jadwal-container">
+                        <div class="jadwal-item border border-neutral-200 rounded-xl p-4 mb-3 bg-neutral-50">
+                            <div class="grid grid-cols-12 gap-3">
+                                <div class="col-span-12 md:col-span-4">
+                                    <label class="text-sm font-medium mb-1 block">Hari</label>
+                                    <select name="jadwal[0][day_of_week]" class="form-control h-[48px] border-neutral-300 bg-white rounded-lg" required>
+                                        <option value="">-- Pilih Hari --</option>
+                                        <option value="Senin">Senin</option>
+                                        <option value="Selasa">Selasa</option>
+                                        <option value="Rabu">Rabu</option>
+                                        <option value="Kamis">Kamis</option>
+                                        <option value="Jumat">Jumat</option>
+                                        <option value="Sabtu">Sabtu</option>
+                                        <option value="Minggu">Minggu</option>
+                                    </select>
+                                </div>
+                                <div class="col-span-6 md:col-span-3">
+                                    <label class="text-sm font-medium mb-1 block">Jam Mulai</label>
+                                    <input type="time" name="jadwal[0][start_time]" class="form-control h-[48px] border-neutral-300 bg-white rounded-lg" required>
+                                </div>
+                                <div class="col-span-6 md:col-span-3">
+                                    <label class="text-sm font-medium mb-1 block">Jam Selesai</label>
+                                    <input type="time" name="jadwal[0][end_time]" class="form-control h-[48px] border-neutral-300 bg-white rounded-lg" required>
+                                </div>
+                                <div class="col-span-12 md:col-span-2 flex items-end">
+                                    <button type="button" class="btn-remove-jadwal w-full h-[48px] text-danger-600 hover:bg-danger-600 border border-danger-600 hover:text-white rounded-lg text-sm font-medium">
+                                        Hapus
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" id="add-jadwal" class="text-primary-600 hover:bg-primary-600 border border-primary-600 hover:text-white rounded-lg text-sm px-4 py-2.5 font-medium inline-flex items-center gap-2">
+                        <iconify-icon icon="mdi:plus"></iconify-icon> Tambah Jadwal
+                    </button>
+                </div>
+
+                {{-- Terms & Conditions --}}
+                <div class="mb-6">
+                    <div class="form-check style-check flex items-start gap-2">
+                        <input class="form-check-input border border-neutral-300 mt-1.5 @error('terms') border-danger-600 @enderror"
+                            type="checkbox" name="terms" value="1" id="terms" required>
+                        <label class="text-sm text-ink-2 dark:text-ink-d2" for="terms">
+                            Dengan mendaftar, saya menyetujui
+                            <a href="javascript:void(0)" class="text-primary-600 font-semibold hover:underline">Syarat & Ketentuan</a>
+                            dan
+                            <a href="javascript:void(0)" class="text-primary-600 font-semibold hover:underline">Kebijakan Privasi</a>
+                        </label>
+                    </div>
+                    @error('terms')
+                        <span class="text-danger-600 text-xs mt-1 block">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <button type="submit"
+                    class="btn btn-primary w-full justify-center py-[13px] rounded-xl font-bold text-[15px]"
+                    style="box-shadow: 0 8px 20px -8px rgba(242, 98, 46, 0.6)">
+                    Daftar Sebagai Trainer
+                    <iconify-icon icon="lucide:arrow-right" class="text-lg"></iconify-icon>
+                </button>
+
+                <div class="mt-5 text-center text-sm text-ink-2 dark:text-ink-d2 space-y-1.5">
+                    <p>Sudah punya akun?
+                        <a href="{{ route('login') }}" class="font-semibold text-primary-600 hover:underline">Masuk</a>
+                    </p>
+                    <p>Daftar sebagai member?
+                        <a href="{{ route('register') }}" class="font-semibold text-primary-600 hover:underline">Daftar di sini</a>
+                    </p>
+                </div>
+
+            </form>
         </div>
-    </section>
+    </div>
+
+</div>
 
 <x-script />
 

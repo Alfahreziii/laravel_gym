@@ -40,20 +40,6 @@ class AnggotaMembershipController extends Controller
             $statusFilter = $request->status_filter;
             $filterType   = $request->filter_type;
 
-            // Hitung statistik dari SEMUA data (tidak terfilter)
-            $allMemberships = AnggotaMembership::with(['anggota', 'paketMembership', 'pembayaranMemberships'])->get();
-
-            $totalMembership  = $allMemberships->count();
-            $totalLunas       = $allMemberships->where('status_pembayaran', 'Lunas')->count();
-            $totalBelumLunas  = $allMemberships->where('status_pembayaran', 'Belum Lunas')->count();
-
-            $totalPendapatan = $allMemberships->sum('total_biaya');
-            $totalTerbayar   = $allMemberships->sum(function ($item) {
-                return $item->pembayaranMemberships->sum('jumlah_bayar');
-            });
-            $totalPiutang = $totalPendapatan - $totalTerbayar;
-
-            // Query untuk data yang akan ditampilkan
             $query = AnggotaMembership::with(['anggota', 'paketMembership', 'pembayaranMemberships']);
 
             if ($statusFilter === 'lunas') {
@@ -98,6 +84,16 @@ class AnggotaMembershipController extends Controller
             };
 
             $anggotaMemberships = $query->orderBy('tgl_mulai', 'desc')->get();
+
+            $totalMembership  = $anggotaMemberships->count();
+            $totalLunas       = $anggotaMemberships->where('status_pembayaran', 'Lunas')->count();
+            $totalBelumLunas  = $anggotaMemberships->where('status_pembayaran', 'Belum Lunas')->count();
+
+            $totalPendapatan = $anggotaMemberships->sum('total_biaya');
+            $totalTerbayar   = $anggotaMemberships->sum(function ($item) {
+                return $item->pembayaranMemberships->sum('jumlah_bayar');
+            });
+            $totalPiutang = $totalPendapatan - $totalTerbayar;
 
             $title = 'Laporan Anggota Membership';
             if ($statusFilter !== 'all' || $filterType !== 'all') {
@@ -163,18 +159,6 @@ class AnggotaMembershipController extends Controller
             $statusFilter = $request->status_filter;
             $filterType   = $request->filter_type;
 
-            $allMemberships = AnggotaMembership::with(['anggota', 'paketMembership', 'pembayaranMemberships'])->get();
-
-            $totalMembership = $allMemberships->count();
-            $totalLunas      = $allMemberships->where('status_pembayaran', 'Lunas')->count();
-            $totalBelumLunas = $allMemberships->where('status_pembayaran', 'Belum Lunas')->count();
-
-            $totalPendapatan = $allMemberships->sum('total_biaya');
-            $totalTerbayar   = $allMemberships->sum(function ($item) {
-                return $item->pembayaranMemberships->sum('jumlah_bayar');
-            });
-            $totalPiutang = $totalPendapatan - $totalTerbayar;
-
             $query = AnggotaMembership::with(['anggota', 'paketMembership', 'pembayaranMemberships']);
 
             if ($statusFilter === 'lunas') {
@@ -219,6 +203,16 @@ class AnggotaMembershipController extends Controller
             };
 
             $anggotaMemberships = $query->orderBy('tgl_mulai', 'desc')->get();
+
+            $totalMembership  = $anggotaMemberships->count();
+            $totalLunas       = $anggotaMemberships->where('status_pembayaran', 'Lunas')->count();
+            $totalBelumLunas  = $anggotaMemberships->where('status_pembayaran', 'Belum Lunas')->count();
+
+            $totalPendapatan = $anggotaMemberships->sum('total_biaya');
+            $totalTerbayar   = $anggotaMemberships->sum(function ($item) {
+                return $item->pembayaranMemberships->sum('jumlah_bayar');
+            });
+            $totalPiutang = $totalPendapatan - $totalTerbayar;
 
             $title = 'Laporan Anggota Membership';
             if ($statusFilter !== 'all' || $filterType !== 'all') {
@@ -301,6 +295,84 @@ class AnggotaMembershipController extends Controller
             return redirect()->back()
                 ->with('danger', 'Gagal export Excel: ' . $e->getMessage());
         }
+    }
+
+    public function datatable(Request $request)
+    {
+        $search  = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page    = (int) $request->get('page', 1);
+
+        $query = AnggotaMembership::with([
+            'anggota', 'paketMembership', 'pembayaranMemberships',
+        ])->latest();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('kode_transaksi', 'like', "%{$search}%")
+                  ->orWhere('status_pembayaran', 'like', "%{$search}%")
+                  ->orWhereHas('anggota.user', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
+                  ->orWhereHas('paketMembership', fn($q2) => $q2->where('nama_paket', 'like', "%{$search}%"));
+            });
+        }
+
+        $total = (clone $query)->count();
+        $data  = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        return response()->json([
+            'data' => $data->map(function ($item, $index) use ($page, $perPage) {
+                $tglBayarAwal     = $item->pembayaranMemberships->min('tgl_bayar');
+                $metodePembayaran = $item->pembayaranMemberships->first()?->metode_pembayaran ?? '-';
+
+                return [
+                    'no'                => (($page - 1) * $perPage) + $index + 1,
+                    'id'                => $item->id,
+                    'kode_transaksi'    => $item->kode_transaksi,
+                    'nama_anggota'      => $item->anggota?->name ?? '-',
+                    'nama_paket'        => $item->paketMembership?->nama_paket ?? '-',
+                    'tgl_bayar_awal'    => $tglBayarAwal ? Carbon::parse($tglBayarAwal)->format('d M Y') : '-',
+                    'metode_pembayaran' => $metodePembayaran,
+                    'tgl_mulai'         => Carbon::parse($item->tgl_mulai)->format('d M Y'),
+                    'tgl_selesai'       => Carbon::parse($item->tgl_selesai)->format('d M Y'),
+                    'status_pembayaran' => $item->status_pembayaran,
+                    'total_biaya'       => 'Rp ' . number_format($item->total_biaya, 0, ',', '.'),
+                    'edit_url'          => route('anggota_membership.edit', $item->id),
+                    'delete_url'        => route('anggota_membership.destroy', $item->id),
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
+    }
+
+    public function datatablePembayaran(Request $request, $id)
+    {
+        $perPage = (int) $request->get('perPage', 10);
+        $page    = (int) $request->get('page', 1);
+
+        $query = PembayaranMembership::where('id_anggota_membership', $id)->latest('tgl_bayar');
+
+        $total = (clone $query)->count();
+        $data  = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        return response()->json([
+            'data' => $data->map(function ($item, $index) use ($page, $perPage) {
+                return [
+                    'no'                => (($page - 1) * $perPage) + $index + 1,
+                    'id'                => $item->id,
+                    'tgl_bayar'         => Carbon::parse($item->tgl_bayar)->format('d-m-Y'),
+                    'jumlah_bayar'      => 'Rp ' . number_format($item->jumlah_bayar, 0, ',', '.'),
+                    'metode_pembayaran' => $item->metode_pembayaran,
+                    'delete_url'        => route('pembayaran_membership.destroy', $item->id),
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
     }
 
     public function index()

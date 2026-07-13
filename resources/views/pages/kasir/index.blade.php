@@ -1,589 +1,319 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kasir</title>
-    <link rel="icon" type="image/png') }}" href="{{ asset('assets/images/favicon.png') }}" sizes="16x16">
-    <!-- google fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
-    <!-- remix icon font css  -->
-    <link rel="stylesheet" href="{{ asset('assets/css/remixicon.css') }}">
+@extends('layout.layout')
 
-    <!-- Apex Chart css -->
-    <link rel="stylesheet" href="{{ asset('assets/css/lib/apexcharts.css') }}">
-    <!-- Data Table css -->
-    <link rel="stylesheet" href="{{ asset('assets/css/lib/dataTables.min.css') }}">
-    <!-- Text Editor css -->
-    <link rel="stylesheet" href="{{ asset('assets/css/lib/editor-katex.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/lib/editor.atom-one-dark.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/lib/editor.quill.snow.css') }}">
-    <!-- Date picker css -->
-    <link rel="stylesheet" href="{{ asset('assets/css/lib/flatpickr.min.css') }}">
-    <!-- Calendar css -->
-    <link rel="stylesheet" href="{{ asset('assets/css/lib/full-calendar.css') }}">
-    <!-- Vector Map css -->
-    <link rel="stylesheet" href="{{ asset('assets/css/lib/jquery-jvectormap-2.0.5.css') }}">
-    <!-- Popup css -->
-    <link rel="stylesheet" href="{{ asset('assets/css/lib/magnific-popup.css') }}">
-    <!-- Slick Slider css -->
-    <link rel="stylesheet" href="{{ asset('assets/css/lib/slick.css') }}">
-    <!-- prism css -->
-    <link rel="stylesheet" href="{{ asset('assets/css/lib/prism.css') }}">
-    <!-- file upload css -->
-    <link rel="stylesheet" href="{{ asset('assets/css/lib/file-upload.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/lib/audioplayer.css') }}">
-    <!-- main css -->
-    @vite(['public/assets/scss/style.scss'])
+@php
+    $title    = 'Kasir';
+    $subTitle = 'Point of Sale';
 
-    <link rel="stylesheet" href="{{ asset('assets/css/custom.css') }}">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const profileToggle = document.getElementById('profileToggle');
-            const dropdown = document.getElementById('dropdownProfile');
-            const chevron = document.getElementById('chevronIcon');
+    // Hex colors for fallback card backgrounds — inline styles to avoid Tailwind JIT missing dynamic classes
+    $catColors = ['#f97316','#3b82f6','#10b981','#8b5cf6','#ec4899',
+                  '#f59e0b','#14b8a6','#f43f5e','#6366f1','#06b6d4'];
+@endphp
 
-            if (!profileToggle || !dropdown || !chevron) return;
+@section('content')
 
-            // pastikan icon punya animasi
-            chevron.classList.add('transition-rotate');
+{{-- Full-bleed POS layout that fills the dashboard-main-body area --}}
+<style>@media (min-width:1536px){.pos-shell{margin-bottom:-1.5rem}}</style>
+<div class="pos-shell"
+     style="display:flex; height:calc(100vh - 4.5rem); overflow:hidden;
+            margin-left:-0.9375rem; margin-right:-0.9375rem;
+            margin-top:-0.9375rem; margin-bottom:-0.9375rem;">
 
-            // Ketika tombol profile diklik: tunggu sebentar lalu sinkronkan icon
-            profileToggle.addEventListener('click', function (e) {
-                // beri waktu ke script dropdown (jika ada) untuk toggle class hidden
-                setTimeout(() => {
-                    if (dropdown.classList.contains('hidden')) {
-                        chevron.classList.remove('rotate-180');
-                    } else {
-                        chevron.classList.add('rotate-180');
-                    }
-                }, 0);
-            });
+    {{-- ===== LEFT: Product Panel ===== --}}
+    <div class="bg-neutral-50 dark:bg-canvas-dark"
+         style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
 
-            // Klik di luar -> pastikan dropdown ditutup dan chevron kembali
-            document.addEventListener('click', function (e) {
-                if (!dropdown.contains(e.target) && !profileToggle.contains(e.target)) {
-                    // jika dropdown masih terbuka, tutup & reset icon
-                    if (!dropdown.classList.contains('hidden')) {
-                        dropdown.classList.add('hidden'); // aman jika library sudah menutupnya
-                    }
-                    chevron.classList.remove('rotate-180');
-                }
-            });
+        {{-- Header: title + search --}}
+        <div class="bg-white dark:bg-surface-dark border-b border-neutral-200 dark:border-line-dark"
+             style="display:flex; align-items:center; gap:12px; padding:12px 20px; flex-shrink:0;">
+            <h6 class="font-display font-semibold text-base text-ink dark:text-ink-d m-0" style="flex:1;">Pilih Produk</h6>
+            <div style="position:relative;">
+                <iconify-icon icon="lucide:search" class="text-neutral-400 text-sm" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;"></iconify-icon>
+                <input type="text" id="product-search" placeholder="Cari produk..."
+                    class="form-control rounded-lg text-sm" style="padding-top:6px;padding-bottom:6px;padding-left:32px;width:192px;">
+            </div>
+        </div>
 
-            // Tombol ESC juga menutup dropdown + reset icon
-            document.addEventListener('keydown', function (e) {
-                if (e.key === 'Escape' || e.key === 'Esc') {
-                    if (!dropdown.classList.contains('hidden')) {
-                        dropdown.classList.add('hidden');
-                    }
-                    chevron.classList.remove('rotate-180');
-                }
-            });
-        });
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const moreToggle = document.getElementById('moreToggle');
-            const dropdownMore = document.getElementById('dropdownMore');
-            const chevronMore = document.getElementById('chevronMore');
+        {{-- Category filter pills --}}
+        <div class="bg-white dark:bg-surface-dark border-b border-neutral-200 dark:border-line-dark"
+             style="padding:10px 20px; flex-shrink:0;">
+            <div class="flex flex-wrap gap-2" id="category-pills">
+                <button type="button"
+                    class="category-pill active px-3 py-1 rounded-full text-xs font-semibold bg-primary-500 text-white transition-colors"
+                    data-category="all">
+                    Semua
+                </button>
+                @foreach($kategoris as $kat)
+                <button type="button"
+                    class="category-pill px-3 py-1 rounded-full text-xs font-semibold bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-surface-dark-raised dark:text-ink-d2 transition-colors"
+                    data-category="{{ $kat->id }}">
+                    {{ $kat->name }}
+                </button>
+                @endforeach
+            </div>
+        </div>
 
-            if (moreToggle && dropdownMore && chevronMore) {
-                moreToggle.addEventListener('click', function (e) {
-                    e.stopPropagation();
-                    dropdownMore.classList.toggle('hidden');
-                    chevronMore.classList.toggle('rotate-180');
-                });
+        {{-- Product grid (scrollable) — kartu dirender via fetchProductGrid() --}}
+        <div id="product-grid"
+             style="flex:1; overflow-y:auto; padding:14px;
+                    display:grid; grid-template-columns:repeat(3,1fr); gap:14px;
+                    align-content:start;">
+            {{-- JS render via AJAX --}}
+        </div>
 
-                document.addEventListener('click', function (e) {
-                    if (!dropdownMore.contains(e.target) && !moreToggle.contains(e.target)) {
-                        dropdownMore.classList.add('hidden');
-                        chevronMore.classList.remove('rotate-180');
-                    }
-                });
+        {{-- Pagination grid produk --}}
+        <div id="product-grid-pagination"
+             class="border-t border-neutral-200 dark:border-line-dark"
+             style="flex-shrink:0; display:flex; justify-content:center; align-items:center;
+                    gap:4px; padding:8px 14px; flex-wrap:wrap; min-height:44px;">
+        </div>
 
-                document.addEventListener('keydown', function (e) {
-                    if (e.key === 'Escape') {
-                        dropdownMore.classList.add('hidden');
-                        chevronMore.classList.remove('rotate-180');
-                    }
-                });
-            }
+    </div>
 
-            // tombol Hold Items buka modal
-            document.querySelectorAll('.btn-hold-items').forEach(btn => {
-                btn.addEventListener('click', function () {
-                    const targetModal = document.getElementById(this.dataset.modalTarget);
-                    if (targetModal) {
-                        targetModal.classList.remove('hidden');
-                    }
-                });
-            });
+    {{-- ===== RIGHT: Cart Panel ===== --}}
+    <div class="cart-produk flex flex-col justify-between wrapper-produk-detail">
+        <div class="">
+            <div class="produk-header flex items-center justify-between">
+                <h6 class="font-display font-semibold text-base text-ink dark:text-ink-d m-0">Detail Items</h6>
+            </div>
+            <div class="mt-3 mb-3">
+                <label for="customer_name_cart" class="inline-block font-semibold text-neutral-600 dark:text-ink-d2 text-sm mb-2">
+                    Nama Pelanggan
+                </label>
+                <input type="text" id="customer_name_cart" name="customer_name"
+                    placeholder="Masukkan nama pelanggan"
+                    class="form-control rounded-lg text-sm">
+            </div>
+            <!-- tempat item cart muncul -->
+            <div class="produk-body-container mt-3"></div>
 
-            // tombol close modal
-            document.querySelectorAll('.btn-close-modal').forEach(btn => {
-                btn.addEventListener('click', function () {
-                    this.closest('.hidden')?.classList.add('hidden');
-                    this.closest('[id$="-modal"]')?.classList.add('hidden'); // fallback
-                });
-            });
-        });
-    </script>
+            <div class="flex py-2 border-t border-b border-neutral-200 dark:border-line-dark">
+                <button type="button" onclick="HexaModal.show('diskon-modal')"
+                 class="w-full py-2 text-xs bg-primary-600 text-white rounded-lg">
+                 Tambahkan Diskon <i class="ri-money-dollar-box-fill"></i></button>
+            </div>
+
+            <div class="produk-footer mt-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-neutral-500 dark:text-ink-d2">Total Items</span>
+                    <span class="font-medium text-sm total-items">0 Items</span>
+                </div>
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-neutral-500 dark:text-ink-d2">Total Harga</span>
+                    <span class="font-medium text-sm total-harga">Rp 0</span>
+                </div>
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-neutral-500 dark:text-ink-d2">Diskon :</span>
+                    <span></span>
+                </div>
+                <div class="inner-diskon">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs text-neutral-500 dark:text-ink-d2">- Diskon</span>
+                        <span class="font-medium text-danger-600 text-xs diskon-input">-Rp 0</span>
+                    </div>
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs text-neutral-500 dark:text-ink-d2">- Diskon Barang</span>
+                        <span class="font-medium text-danger-600 text-xs diskon-barang">-Rp 0</span>
+                    </div>
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs text-neutral-500 dark:text-ink-d2">- Total Diskon</span>
+                        <span class="font-medium text-danger-600 text-xs total-diskon">-Rp 0</span>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between  py-2">
+                    <span class="text-sm text-neutral-500 dark:text-ink-d2">Total Tagihan</span>
+                    <span class="font-medium text-sm total-tagihan">Rp 0</span>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="flex mt-4 gap-2 relative">
+                <button id="btn-empty-cart" class="w-full py-2 bg-danger-600 text-white rounded-lg">Empty <i class="ri-delete-bin-line"></i></button>
+
+                <button id="moreToggle"
+                    class="w-full flex justify-center items-center py-2 bg-warning-600 text-white rounded-lg gap-1 relative"
+                    type="button">
+                    More
+                    <iconify-icon id="chevronMore" icon="mdi:chevron-down" class="text-lg transition-transform duration-200"></iconify-icon>
+                </button>
+
+                <div id="dropdownMore" class="hidden absolute mb-2 dropdown-more bg-white dark:bg-surface-dark border border-neutral-100 dark:border-line-dark text-black dark:text-ink-d rounded-lg shadow-lg w-48 z-50">
+                    <ul class="p-2 text-sm">
+                        <li><button type="button" class="block px-3 py-2 hover:bg-neutral-100 dark:hover:bg-surface-dark-raised rounded btn-hold">Hold</button></li>
+                        <li><button type="button" class="block px-3 py-2 hover:bg-neutral-100 dark:hover:bg-surface-dark-raised rounded btn-hold-items">Hold Items</button></li>
+                    </ul>
+                </div>
+
+            </div>
+            <button type="button" id="btn-open-bayar" onclick="HexaModal.show('bayar-modal')" class="w-full py-2 bg-primary-600 text-white rounded-lg mt-2">Bayar <i class="ri-bank-card-fill"></i></button>
+        </div>
+    </div>
+
+</div>
+
+{{-- ===== Per-product modals ===== --}}
+{{-- Generic product modal — populated via JS sebelum show --}}
+<x-modal id="tambah-product-modal-generic" title="Tambah Product">
+    <x-slot:body>
+        <form class="form-tambah-cart">
+            @csrf
+            @method('PUT')
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                <div class="col-span-12">
+                    <label for="generic-qty" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
+                        Quantity
+                    </label>
+                    <input type="text" id="generic-qty" name="qty"
+                        class="form-control rounded-lg" required>
+                </div>
+
+                <div class="col-span-12">
+                    <label for="generic-keterangan" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
+                        Keterangan (Opsional)
+                    </label>
+                    <textarea id="generic-keterangan" name="keterangan"
+                        class="form-control rounded-lg" rows="3"
+                        placeholder="Catatan tambahan untuk item ini..."></textarea>
+                </div>
+
+                <div class="col-span-12 mt-4 flex items-center gap-3">
+                    <button type="button" data-close-modal="tambah-product-modal-generic"
+                        class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="btn btn-primary border border-primary-600 text-base px-6 py-3 rounded-lg">
+                        Tambah
+                    </button>
+                </div>
+            </div>
+        </form>
+    </x-slot:body>
+</x-modal>
+
+{{-- MODAL Hold Items --}}
+<x-modal id="hold-items-modal" title="Hold Items" maxWidth="max-w-5xl">
+    <x-slot:body>
+        <x-data-table tableId="holdItems" :colspan="11" placeholder="Cari kode / nama pelanggan...">
+            <x-slot:header>
+                <tr>
+                    <th scope="col">Aksi</th>
+                    <th scope="col">No</th>
+                    <th scope="col">Kode Transaksi</th>
+                    <th scope="col">Nama Pelanggan</th>
+                    <th scope="col">Qty</th>
+                    <th scope="col">Total Sbl Diskon</th>
+                    <th scope="col">Total Sesudah Diskon</th>
+                    <th scope="col">Diskon</th>
+                    <th scope="col">Diskon Barang</th>
+                    <th scope="col">Keterangan</th>
+                    <th scope="col">Tanggal Hold</th>
+                </tr>
+            </x-slot:header>
+        </x-data-table>
+    </x-slot:body>
+</x-modal>
+
+{{-- MODAL BAYAR --}}
+<x-modal id="bayar-modal" title="Pembayaran">
+    <x-slot:body>
+        <form id="form-pembayaran">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                <div class="col-span-12">
+                    <label for="total_harus_bayar" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
+                        Total Yang Harus Dibayarkan
+                    </label>
+                    <input type="text" id="total_harus_bayar" name="total_harus_bayar"
+                        class="form-control rounded-lg total-tagihan" readonly>
+                </div>
+                <div class="col-span-12 md:col-span-6">
+                    <label for="bayar" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
+                        Jumlah Dibayarkan
+                    </label>
+                    <input type="text" id="bayar" name="bayar" placeholder="Masukkan jumlah bayar (Rp)"
+                        class="form-control rounded-lg" required>
+                </div>
+                <div class="col-span-12 md:col-span-6">
+                    <label for="kembalian" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
+                        Jumlah Kembalian
+                    </label>
+                    <input type="text" id="kembalian" name="kembalian"
+                        class="form-control rounded-lg" readonly>
+                </div>
+                {{-- Metode Pembayaran --}}
+                <div class="col-span-12">
+                    <label class="form-label">Metode Pembayaran</label>
+                    <select id="metode_pembayaran" name="metode_pembayaran" class="form-control" required>
+                        <option value="">-- Pilih Metode --</option>
+                        <option value="cash">Cash</option>
+                        <option value="transfer">Transfer</option>
+                        <option value="ewallet">E-Wallet</option>
+                    </select>
+                </div>
+
+                {{-- Checkbox Print Nota --}}
+                <div class="col-span-12">
+                    <div class="flex items-center gap-3 p-4 bg-neutral-50 dark:bg-surface-dark-raised rounded-lg border border-neutral-200 dark:border-line-dark">
+                        <input type="checkbox" id="print_nota" name="print_nota"
+                            class="w-5 h-5 text-primary-600 bg-white border-neutral-300 rounded focus:ring-primary-500 focus:ring-2"
+                            checked>
+                        <label for="print_nota" class="flex items-center gap-2 cursor-pointer">
+                            <iconify-icon icon="solar:printer-bold" class="text-xl text-primary-600"></iconify-icon>
+                            <span class="font-semibold text-neutral-700">Cetak Nota Otomatis</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="col-span-12 mt-4 flex items-center gap-3">
+                    <button type="button" data-close-modal="bayar-modal"
+                        class="border w-1/2 border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
+                        Cancel
+                    </button>
+                    <button type="submit" id="btn-bayar"
+                        class="w-1/2 bg-primary-500 hover:bg-primary-600 text-white border border-primary-600 text-base px-6 py-3 rounded-lg">
+                        <iconify-icon icon="solar:card-bold" class="text-lg mr-2"></iconify-icon>
+                        Proses Bayar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </x-slot:body>
+</x-modal>
+
+{{-- MODAL DISKON --}}
+<x-modal id="diskon-modal" title="Tambahkan Diskon" maxWidth="max-w-md">
+    <x-slot:body>
+        <form>
+            @csrf
+            @method('PUT')
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                <div class="col-span-12">
+                    <label for="diskon" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
+                        Jumlah Diskon
+                    </label>
+                    <input type="text" id="diskon" name="diskon" placeholder="Masukkan jumlah diskon (Rp)"
+                        class="form-control rounded-lg" required>
+                </div>
+
+                <div class="col-span-12 mt-4 flex items-center gap-3">
+                    <button type="button" data-close-modal="diskon-modal"
+                        class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="btn btn-primary border border-primary-600 text-base px-6 py-3 rounded-lg">
+                        Tambah
+                    </button>
+                </div>
+            </div>
+        </form>
+    </x-slot:body>
+</x-modal>
+
+@endsection
+
+@section('scripts')
 <script src="{{ asset('assets/js/data-table.js') }}"></script>
-</head>
-<body class="dark:bg-neutral-800 bg-neutral-100">
-    <div class="flex">
-        <div class="bg-white">
-            <a href="{{ route('index') }}" class="sidebar-logo">
-                <img src="{{ asset('assets/images/logo.png') }}" alt="site logo" class="light-logo">
-                <img src="{{ asset('assets/images/logo-light.png') }}" alt="site logo" class="dark-logo">
-                <img src="{{ asset('assets/images/logo-icon.png') }}" alt="site logo" class="logo-icon">
-            </a>
-        </div>
-        <div class="navbar-header border-b border-neutral-200 w-full">
-            <div class="flex items-center justify-end py-2">
-                <div class="col-auto">
-                    <div class="flex flex-wrap items-center gap-3">
-                        <button data-dropdown-toggle="dropdownProfile" id="profileToggle"
-                            class="flex justify-center items-center rounded-full gap-1" type="button">
-                            {{ Auth::user()->name }}
-                            <iconify-icon id="chevronIcon" icon="mdi:chevron-down" class="text-lg transition-transform duration-200"></iconify-icon>
-                        </button>
-                        <div id="dropdownProfile" class="z-10 hidden bg-white rounded-lg shadow-lg dropdown-menu-sm p-3">
-                            <div class="py-3 px-4 rounded-lg bg-primary-50 mb-4 flex items-center justify-between gap-2">
-                                <div>
-                                    <h6 class="text-lg text-neutral-900 font-semibold mb-0">{{ Auth::user()->name }}</h6>
-                                    <span class="text-neutral-500">Admin</span>
-                                </div>
-                            </div>
-    
-                            <div class="max-h-[400px] overflow-y-auto scroll-sm pe-2">
-                                <ul class="flex flex-col">
-                                    <li>
-                                        <a class="text-black px-0 py-2 hover:text-primary-600 flex items-center gap-4" href="{{ route('viewProfile') }}">
-                                            <iconify-icon icon="solar:user-linear" class="icon text-xl"></iconify-icon>  My Profile
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <form method="POST" action="{{ route('logout') }}">
-                                            @csrf
-                                            <button type="submit"
-                                                class="text-black px-0 py-2 hover:text-danger-600 flex items-center gap-4">
-                                                <iconify-icon icon="lucide:power" class="icon text-xl"></iconify-icon> Log Out
-                                            </button>
-                                        </form>
-                                        <!-- <a class="text-black px-0 py-2 hover:text-danger-600 flex items-center gap-4" href="javascript:void(0)">
-                                            <iconify-icon icon="lucide:power" class="icon text-xl"></iconify-icon>  Log Out
-                                        </a> -->
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="wrapper w-full">
-        <div class="flex">
-            <div class="content-produk">
-                <div class="grid grid-cols-12">
-                    <div class="col-span-12">
-                        <div class="card border-0 overflow-hidden">
-                            <div class="card-header flex items-center justify-between">
-                                <h6 class="card-title mb-0 text-lg">Produk</h6>
-                            </div>
-                            <div class="card-body">
-                                <table id="selection-table" class="border border-neutral-200 rounded-lg border-separate w-full">
-                                    <thead>
-                                        <tr>
-                                            <th>No</th>
-                                            <th>Foto Produk</th>
-                                            <th>Nama Produk</th>
-                                            <th>Harga</th>
-                                            <th>Diskon</th>
-                                            <th>Stok</th>
-                                            <th>Status</th>
-                                            <th>Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($products as $index => $product)
-                                            <tr>
-                                                <td class="whitespace-nowrap">{{ $index + 1 }}</td>
-                                                <td class="whitespace-nowrap">
-                                                    @if($product->image)
-                                                        <img src="{{ asset('storage/' . $product->image) }}" 
-                                                            alt="image {{ $product->name }}" 
-                                                            class="w-10 h-10 rounded-full object-cover">
-                                                    @else
-                                                        <img src="{{ asset('assets/images/kasir/product-placeholder.png') }}" 
-                                                            alt="image {{ $product->name }}" 
-                                                            class="w-10 h-10 rounded-full object-cover">
-                                                    @endif
-                                                </td>
-                                                <td class="whitespace-nowrap">
-                                                    {{ $product->name }}
-                                                </td>
-                                                <td class="whitespace-nowrap">
-                                                    Rp {{ number_format($product->price, 0, ',', '.') }}
-                                                </td>
-                                                <td class="whitespace-nowrap">
-                                                    @if($product->discount > 0)
-                                                    {{ $product->discount_type == 'percent' ? '%' : 'Rp' }}
-                                                    {{ $product->discount }}
-                                                    @else
-                                                        -
-                                                    @endif
-                                                </td>
-                                                <td class="whitespace-nowrap">
-                                                    {{ $product->quantity }}
-                                                </td>
-                                                <td class="whitespace-nowrap ">
-                                                    @if($product->is_active)
-                                                        <span class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm">Aktif</span>
-                                                    @else
-                                                        <span class="bg-danger-100 text-danger-600 px-4 py-1.5 rounded-full font-medium text-sm">Nonaktif</span>
-                                                    @endif
-                                                </td>
-                                                <td class="whitespace-nowrap flex gap-2 items-center justify-center">
-                                                    <button 
-                                                        type="button" 
-                                                        data-modal-id="tambah-product-modal-{{ $product->id }}"
-                                                        data-name="{{ $product->name }}"
-                                                        data-price="{{ $product->price }}"
-                                                        data-discount="{{ $product->discount }}"
-                                                        data-discount_type="{{ $product->discount_type }}"
-                                                        data-image="{{ $product->image }}"
-                                                        data-category="{{ $product->kategori->name }}"
-                                                        class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center btn-open-product-modal">
-                                                        <i class="ri-shopping-bag-fill"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                                @foreach($products as $product)
-                                {{-- MODAL TAMBAH PRODUCT --}}
-                                <div id="tambah-product-modal-{{ $product->id }}" tabindex="-1" 
-                                    class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 
-                                    justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-                                    <div class="rounded-2xl bg-white max-w-[800px] w-full">
-                                        <div class="py-4 px-6 border-b border-neutral-200 flex items-center justify-between">
-                                            <h1 class="text-xl">Tambah Product</h1>
-                                            <button data-modal-hide="tambah-product-modal-{{ $product->id }}" type="button"
-                                                class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
-                                                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
-                                                </svg>
-                                                <span class="sr-only">Close modal</span>
-                                            </button>
-                                        </div>
-
-                                        <div class="p-6">
-<form 
-    data-product-id="{{ $product->id }}"  
-    data-name="{{ $product->name }}"
-    data-price="{{ $product->price }}"
-    data-discount="{{ $product->discount }}"
-    data-discount_type="{{ $product->discount_type }}"
-    data-image="{{ $product->image }}"
-    data-category="{{ $product->kategori->name ?? 'ada nih' }}"
-    class="form-tambah-cart">
-
-    @csrf
-    @method('PUT')
-
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-        <div class="col-span-12">
-            <label for="quantity_{{ $product->id }}" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
-                Quantity
-            </label>
-            <input type="text" id="quantity_{{ $product->id }}" name="qty"
-                class="form-control rounded-lg" required>
-        </div>
-
-        {{-- TAMBAH FIELD INI --}}
-        <div class="col-span-12">
-            <label for="keterangan_{{ $product->id }}" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
-                Keterangan (Opsional)
-            </label>
-            <textarea id="keterangan_{{ $product->id }}" name="keterangan" 
-                class="form-control rounded-lg" rows="3" 
-                placeholder="Catatan tambahan untuk item ini..."></textarea>
-        </div>
-
-        <div class="col-span-12 mt-4 flex items-center gap-3">
-            <button type="button" data-modal-hide="tambah-product-modal-{{ $product->id }}"
-                class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
-                Cancel
-            </button>
-            <button type="submit" data-modal-hide="tambah-product-modal-{{ $product->id }}"
-                class="btn btn-primary border border-primary-600 text-base px-6 py-3 rounded-lg">
-                Tambah
-            </button>
-        </div>
-    </div>
-</form>
-                                        </div>
-                                    </div>
-                                </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="cart-produk flex flex-col justify-between wrapper-produk-detail">
-                <div class="">
-                    <div class="produk-header flex items-center justify-between">
-                        <h6 class="card-title mb-0 text-lg">Detail Items</h6>
-                    </div>
-                            <div class="mt-3 mb-3">
-            <label for="customer_name_cart" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
-                Nama Pelanggan
-            </label>
-            <input type="text" id="customer_name_cart" name="customer_name" 
-                placeholder="Masukkan nama pelanggan"
-                class="form-control rounded-lg text-sm">
-        </div>
-                    <!-- tempat item cart muncul -->
-                    <div class="produk-body-container mt-3"></div>
-
-                    <div class="flex py-2 border-t border-b border-neutral-200">
-                        <button type="button" data-modal-target="diskon-modal" data-modal-toggle="diskon-modal"
-                         class="w-full py-2 text-xs bg-primary-600 text-white rounded-lg">
-                         Tambahkan Diskon <i class="ri-money-dollar-box-fill"></i></button>
-                    </div>
-
-                    <div class="produk-footer mt-4">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm text-neutral-500">Total Items</span>
-                            <span class="font-medium text-sm total-items">0 Items</span>
-                        </div>
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm text-neutral-500">Total Harga</span>
-                            <span class="font-medium text-sm total-harga">Rp 0</span>
-                        </div>
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm text-neutral-500">Diskon :</span>
-                            <span></span>
-                        </div>
-                        <div class="inner-diskon">
-                            <div class="flex items-center justify-between mb-1">
-                                <span class="text-xs text-neutral-500">- Diskon</span>
-                                <span class="font-medium text-danger-600 text-xs diskon-input">-Rp 0</span>
-                            </div>
-                            <div class="flex items-center justify-between mb-1">
-                                <span class="text-xs text-neutral-500">- Diskon Barang</span>
-                                <span class="font-medium text-danger-600 text-xs diskon-barang">-Rp 0</span>
-                            </div>
-                            <div class="flex items-center justify-between mb-1">
-                                <span class="text-xs text-neutral-500">- Total Diskon</span>
-                                <span class="font-medium text-danger-600 text-xs total-diskon">-Rp 0</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-between  py-2">
-                            <span class="text-sm text-neutral-500">Total Tagihan</span>
-                            <span class="font-medium text-sm total-tagihan">Rp 0</span>
-                        </div>
-                    </div>
-                </div>
-                <div>
-                    <div class="flex mt-4 gap-2 relative">
-                        <button id="btn-empty-cart" class="w-full py-2 bg-danger-600 text-white rounded-lg">Empty <i class="ri-delete-bin-line"></i></button>
-
-                        <button id="moreToggle"
-                            class="w-full flex justify-center items-center py-2 bg-warning-600 text-white rounded-lg gap-1 relative"
-                            type="button">
-                            More
-                            <iconify-icon id="chevronMore" icon="mdi:chevron-down" class="text-lg transition-transform duration-200"></iconify-icon>
-                        </button>
-
-                        <div id="dropdownMore" class="hidden absolute mb-2 dropdown-more bg-white text-black rounded-lg shadow-lg w-48 z-50">
-                            <ul class="p-2 text-sm">
-                                <li><button type="button" class="block px-3 py-2 hover:bg-neutral-100 rounded btn-hold">Hold</button></li>
-                                <li><button type="button" data-modal-target="hold-items-modal" data-modal-toggle="hold-items-modal" class="block px-3 py-2 hover:bg-neutral-100 rounded btn-hold-items">Hold Items</button></li>
-                            </ul>
-                        </div>
-
-                    </div>
-                    <button type="button" data-modal-target="bayar-modal" data-modal-toggle="bayar-modal" class="w-full py-2 bg-primary-600 text-white rounded-lg mt-2">Bayar <i class="ri-bank-card-fill"></i></button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    {{-- MODAL Hold Items --}}
-    <div id="hold-items-modal" tabindex="-1"
-        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center 
-        w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-        <div class="rounded-2xl bg-white max-w-[800px] w-full">
-            <div class="py-4 px-6 border-b border-neutral-200 flex items-center justify-between">
-                <h1 class="text-xl">Hold Items</h1>
-                <button data-modal-hide="hold-items-modal" type="button"
-                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
-                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
-                    </svg>
-                    <span class="sr-only">Close modal</span>
-                </button>
-            </div>
-            <div class="card-body">
-                <table id="selection-table-2" class="border border-neutral-200 rounded-lg border-separate w-full">
-                    <thead>
-                        <tr>
-                            <th>Aksi</th>
-                            <th>No</th>
-                            <th>Kode Transaksi</th>
-                            <th>Nama Pelanggan</th>
-                            <th>Qty</th>
-                            <th>Total Sebelum Diskon</th>
-                            <th>Total Sesudah Diskon</th>
-                            <th>Diskon</th>
-                            <th>Diskon Barang</th>
-                            <th>Keterangan</th>
-                            <th>Tanggal Hold</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    {{-- MODAL BAYAR - Replace yang lama dengan ini --}}
-    <div id="bayar-modal" tabindex="-1"
-        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center 
-        w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-        <div class="rounded-2xl bg-white max-w-[800px] w-full">
-            <div class="py-4 px-6 border-b border-neutral-200 flex items-center justify-between">
-                <h1 class="text-xl">Pembayaran</h1>
-                <button data-modal-hide="bayar-modal" type="button"
-                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
-                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
-                    </svg>
-                    <span class="sr-only">Close modal</span>
-                </button>
-            </div>
-            <div class="card-body">
-                <form id="form-pembayaran">
-                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-                        <div class="col-span-12">
-                            <label for="total_harus_bayar" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
-                                Total Yang Harus Dibayarkan
-                            </label>
-                            <input type="text" id="total_harus_bayar" name="total_harus_bayar"
-                                class="form-control rounded-lg total-tagihan" readonly>
-                        </div>
-                        <div class="col-span-12 md:col-span-6">
-                            <label for="bayar" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
-                                Jumlah Dibayarkan
-                            </label>
-                            <input type="text" id="bayar" name="bayar" placeholder="Masukkan jumlah bayar (Rp)"
-                                class="form-control rounded-lg" required>
-                        </div>
-                        <div class="col-span-12 md:col-span-6">
-                            <label for="kembalian" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
-                                Jumlah Kembalian
-                            </label>
-                            <input type="text" id="kembalian" name="kembalian"
-                                class="form-control rounded-lg" readonly>
-                        </div>
-                        {{-- Metode Pembayaran --}}
-                        <div class="col-span-12">
-                            <label class="form-label">Metode Pembayaran</label>
-                            <select id="metode_pembayaran" name="metode_pembayaran" class="form-control" required>
-                                <option value="">-- Pilih Metode --</option>
-                                <option value="cash">Cash</option>
-                                <option value="transfer">Transfer</option>
-                                <option value="ewallet">E-Wallet</option>
-                            </select>
-                        </div>
-
-                        {{-- Checkbox Print Nota --}}
-                        <div class="col-span-12">
-                            <div class="flex items-center gap-3 p-4 bg-neutral-50 rounded-lg border border-neutral-200">
-                                <input type="checkbox" id="print_nota" name="print_nota" 
-                                    class="w-5 h-5 text-primary-600 bg-white border-neutral-300 rounded focus:ring-primary-500 focus:ring-2" 
-                                    checked>
-                                <label for="print_nota" class="flex items-center gap-2 cursor-pointer">
-                                    <iconify-icon icon="solar:printer-bold" class="text-xl text-primary-600"></iconify-icon>
-                                    <span class="font-semibold text-neutral-700">Cetak Nota Otomatis</span>
-                                </label>
-                            </div>
-                        </div>
-                    
-                        <div class="col-span-12 mt-4 flex items-center gap-3">
-                            <button type="button" data-modal-hide="bayar-modal"
-                                class="border w-1/2 border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
-                                Cancel
-                            </button>
-                            <button type="submit" id="btn-bayar"
-                                class="w-1/2 bg-primary-500 hover:bg-primary-600 text-white border border-primary-600 text-base px-6 py-3 rounded-lg">
-                                <iconify-icon icon="solar:card-bold" class="text-lg mr-2"></iconify-icon>
-                                Proses Bayar
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    {{-- MODAL DISKON --}}
-    <div id="diskon-modal" tabindex="-1"
-        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center 
-        w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-        <div class="rounded-2xl bg-white max-w-[800px] w-full">
-            <div class="py-4 px-6 border-b border-neutral-200 flex items-center justify-between">
-                <h1 class="text-xl">Tambahkan Diskon</h1>
-                <button data-modal-hide="diskon-modal" type="button"
-                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
-                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
-                    </svg>
-                    <span class="sr-only">Close modal</span>
-                </button>
-            </div>
-            <div class="card-body">
-                <form>
-                    @csrf
-                    @method('PUT')
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-                        <div class="col-span-12">
-                            <label for="diskon" class="inline-block font-semibold text-neutral-600 text-sm mb-2">
-                                Jumlah Diskon
-                            </label>
-                            <input type="text" id="diskon" name="diskon" placeholder="Masukkan jumlah diskon (Rp)"
-                                class="form-control rounded-lg" required>
-                        </div>
-                    
-                        <div class="col-span-12 mt-4 flex items-center gap-3">
-                            <button type="button" data-modal-hide="diskon-modal"
-                                class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
-                                Cancel
-                            </button>
-                            <button type="submit" data-modal-hide="diskon-modal"
-                                class="btn btn-primary border border-primary-600 text-base px-6 py-3 rounded-lg">
-                                Tambah
-                            </button>
-                        </div>
-                    </div>
-                    </form>
-            </div>
-        </div>
-    </div>
-    
+<script src="{{ asset('assets/js/ajax-table.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     let cart = [];
@@ -632,15 +362,15 @@ document.addEventListener('DOMContentLoaded', function () {
             totalItemDiscount += discountAmount;
             totalItems += item.qty;
 
-            const imgSrc = item.image 
-                ? `/storage/${item.image}` 
+            const imgSrc = item.image
+                ? `/storage/${item.image}`
                 : '{{ asset("assets/images/kasir/product-placeholder.png") }}';
 
-            const hargaHTML = discountAmount > 0 
+            const hargaHTML = discountAmount > 0
                 ? `
                     <div class="flex flex-col items-end text-right">
                         <span class="text-danger-600 text-sm font-semibold">Rp ${formatRp(itemSubtotal)}</span>
-                        <span class="text-neutral-400 text-xs line-through">Rp ${formatRp(itemTotal)}</span>
+                        <span class="text-neutral-400 dark:text-ink-d3 text-xs line-through">Rp ${formatRp(itemTotal)}</span>
                     </div>
                 `
                 : `
@@ -649,16 +379,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                 `;
 
-            const keteranganHTML = item.keterangan 
-                ? `<p class="text-xs text-neutral-400 mt-1 italic">📝 ${item.keterangan}</p>`
+            const keteranganHTML = item.keterangan
+                ? `<p class="text-xs text-neutral-400 dark:text-ink-d3 mt-1 italic">📝 ${item.keterangan}</p>`
                 : '';
 
             cartContainer.innerHTML += `
-                <div class="produk-body flex gap-3 py-2 border-b border-neutral-200">
+                <div class="produk-body flex gap-3 py-2 border-b border-neutral-200 dark:border-line-dark">
                     <img src="${imgSrc}" alt="${item.name}" class="rounded w-12 h-12 object-cover">
                     <div class="w-full">
                         <h5 class="font-semibold text-sm">${item.name}</h5>
-                        <p class="text-xs text-neutral-500">${item.kategori?.name ?? ''}</p>
+                        <p class="text-xs text-neutral-500 dark:text-ink-d2">${item.kategori?.name ?? ''}</p>
                         ${keteranganHTML}
                         <div class="flex items-center justify-between gap-3 mt-2 w-full">
                             <div class="flex items-center gap-2">
@@ -736,12 +466,7 @@ document.addEventListener('DOMContentLoaded', function () {
         form.querySelector('input[name="qty"]').value = '';
         form.querySelector('textarea[name="keterangan"]').value = '';
 
-        const modalId = 'tambah-product-modal-' + form.dataset.productId;
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
+        HexaModal.hide('tambah-product-modal-generic');
 
         updateCartUI();
     });
@@ -787,9 +512,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 Swal.fire('Kosong', 'Tidak ada item dalam cart!', 'warning');
                 return;
             }
-            
+
             const currentCustomerName = customerNameInput ? customerNameInput.value.trim() : '';
-         
+
             fetch('{{ route("kasir.hold") }}', {
                 method: 'POST',
                 headers: {
@@ -836,12 +561,12 @@ document.addEventListener('DOMContentLoaded', function () {
             diskon = inputDiskon;
             updateCartUI();
             Swal.fire('Berhasil', 'Diskon berhasil diterapkan!', 'success');
-            document.getElementById('diskon-modal').classList.add('hidden');
+            HexaModal.hide('diskon-modal');
         });
     }
 
     // === Saat Modal Pembayaran Dibuka ===
-    document.querySelectorAll('[data-modal-target="bayar-modal"]').forEach(btn => {
+    document.querySelectorAll('#btn-open-bayar').forEach(btn => {
         btn.addEventListener('click', function () {
             let totalSebelumDiskon = 0;
             let totalDiskonBarang = 0;
@@ -875,30 +600,27 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // === Buka modal produk manual ===
+    // === Buka modal produk generic — populate form dari data-* card ===
     document.addEventListener('click', function(e) {
         const btn = e.target.closest('.btn-open-product-modal');
         if (!btn) return;
-        
-        const modalId = btn.dataset.modalId;
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-    });
+        if (btn.dataset.unavailable === '1') return;
 
-    // === Tutup modal produk ===
-    document.addEventListener('click', function(e) {
-        const hideBtn = e.target.closest('[data-modal-hide^="tambah-product-modal"]');
-        if (!hideBtn) return;
+        const form = document.querySelector('#tambah-product-modal-generic .form-tambah-cart');
+        if (!form) return;
 
-        const modalId = hideBtn.dataset.modalHide;
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
+        form.dataset.productId     = btn.dataset.productId;
+        form.dataset.name          = btn.dataset.name;
+        form.dataset.price         = btn.dataset.price;
+        form.dataset.discount      = btn.dataset.discount;
+        form.dataset.discount_type = btn.dataset.discount_type;
+        form.dataset.image         = btn.dataset.image;
+        form.dataset.category      = btn.dataset.category;
+
+        form.querySelector('input[name="qty"]').value        = '';
+        form.querySelector('textarea[name="keterangan"]').value = '';
+
+        HexaModal.show('tambah-product-modal-generic');
     });
 
     // === Auto hitung kembalian ===
@@ -915,29 +637,29 @@ document.addEventListener('DOMContentLoaded', function () {
     // === FORM PEMBAYARAN ===
     document.getElementById('form-pembayaran').addEventListener('submit', async (e) => {
         e.preventDefault();
-    
+
         if (cart.length === 0) {
             Swal.fire('Kosong', 'Tidak ada item di cart untuk dibayar!', 'warning');
             return;
         }
-    
+
         const metodePembayaran = document.getElementById('metode_pembayaran').value;
         const dibayarkan = parseFloat(document.getElementById('bayar').value.replace(/[^\d]/g, '')) || 0;
         const kembalian = parseFloat(document.getElementById('kembalian').value.replace(/[^\d]/g, '')) || 0;
         const printNota = document.getElementById('print_nota').checked;
         const customerName = customerNameInput ? customerNameInput.value.trim() : '';
-    
+
         if (!metodePembayaran) {
             Swal.fire('Oops!', 'Pilih metode pembayaran terlebih dahulu.', 'warning');
             return;
         }
-    
+
         const totalTagihan = parseFloat(document.getElementById('total_harus_bayar').value.replace(/[^\d]/g, '')) || 0;
         if (dibayarkan < totalTagihan) {
             Swal.fire('Oops!', 'Jumlah yang dibayarkan kurang dari total tagihan!', 'warning');
             return;
         }
-    
+
         const payload = {
             cart,
             diskon,
@@ -977,7 +699,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (printNota && data.transaction_id) {
                     const printUrl = `/kasir/print-nota/${data.transaction_id}`;
                     window.open(printUrl, '_blank');
-                    
+
                     Swal.fire({
                         icon: 'success',
                         title: 'Pembayaran Berhasil!',
@@ -1002,8 +724,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 updateCartUI();
                 currentTransactionId = null;
 
-                const closeBtn = document.querySelector('[data-modal-hide="bayar-modal"]');
-                if (closeBtn) closeBtn.click();
+                HexaModal.hide('bayar-modal');
 
                 document.getElementById('form-pembayaran').reset();
                 document.getElementById('print_nota').checked = true;
@@ -1017,231 +738,392 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // === Hold Items Modal ===
+    // === Hold Items: cache untuk data aksi tombol ===
+    let holdItemsCache = {};
+
+    // === AjaxTable untuk Hold Items ===
+    AjaxTable.init('holdItems', {
+        url: '{{ route("kasir.hold.datatable") }}',
+        colSpan: 11,
+        renderRow: function(item) {
+            holdItemsCache[item.id] = {
+                items:         item.items_json,
+                diskon:        item.diskon,
+                diskon_barang: item.diskon_barang,
+                customer_name: item.customer_name_raw,
+            };
+            return `<tr>
+                <td class="whitespace-nowrap">
+                    <button type="button" class="btn-view-detail btn-action" data-hold-id="${item.id}">
+                        <iconify-icon icon="iconamoon:eye-light"></iconify-icon>
+                    </button>
+                    <button type="button" class="btn-load-cart btn-action" data-hold-id="${item.id}">
+                        <i class="ri-shopping-bag-fill"></i>
+                    </button>
+                    <button type="button" class="btn-delete-hold btn-action btn-action-del" data-hold-id="${item.id}">
+                        <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
+                    </button>
+                </td>
+                <td class="whitespace-nowrap">${item.no}</td>
+                <td class="whitespace-nowrap">${item.kode_transaksi}</td>
+                <td class="whitespace-nowrap">${item.customer_name}</td>
+                <td class="whitespace-nowrap">${item.qty}</td>
+                <td class="whitespace-nowrap">Rp ${Number(item.harga_sebelum_diskon).toLocaleString('id-ID')}</td>
+                <td class="whitespace-nowrap">Rp ${Number(item.total_amount).toLocaleString('id-ID')}</td>
+                <td class="whitespace-nowrap">Rp ${Number(item.diskon).toLocaleString('id-ID')}</td>
+                <td class="whitespace-nowrap">Rp ${Number(item.diskon_barang).toLocaleString('id-ID')}</td>
+                <td class="whitespace-nowrap text-xs italic text-neutral-500">${item.keterangan_flag ? '📝 Ada catatan' : '-'}</td>
+                <td class="whitespace-nowrap">${item.created_at}</td>
+            </tr>`;
+        }
+    });
+
+    // === Buka Hold Items modal + refresh data ===
     document.querySelectorAll('.btn-hold-items').forEach(btn => {
         btn.addEventListener('click', function () {
-            const targetModal = document.getElementById(this.dataset.modalTarget);
-            if (!targetModal) return;
-
-            targetModal.classList.remove('hidden');
-            const tableEl = targetModal.querySelector('#selection-table-2');
-
-            if (tableEl.classList.contains('datatable-initialized')) {
-                const instance = simpleDatatables.DataTable.instances.find(dt => dt.table === tableEl);
-                if (instance) instance.destroy();
-                tableEl.classList.remove('datatable-initialized');
+            HexaModal.show('hold-items-modal');
+            if (window._ajaxTables && window._ajaxTables['tbodyHoldItems']) {
+                window._ajaxTables['tbodyHoldItems'].refresh();
             }
-
-            fetch('{{ route("getHeldTransactions") }}')
-                .then(res => res.json())
-                .then(data => {
-                    const tbody = tableEl.querySelector('tbody');
-                    tbody.innerHTML = '';
-             
-                    data.forEach((transaction, index) => {
-                        const totalItems = transaction.items.reduce((sum, item) => sum + parseInt(item.qty), 0);
-             
-                        tbody.innerHTML += `
-                            <tr>
-                                <td class="whitespace-nowrap">
-                                    <button 
-                                        class="btn-view-detail w-8 h-8 bg-primary-50 text-primary-600 rounded-full inline-flex items-center justify-center"
-                                        data-items='${JSON.stringify(transaction.items)}'>
-                                        <iconify-icon icon="iconamoon:eye-light"></iconify-icon>
-                                    </button>
-                                    <button 
-                                        type="button" 
-                                        class="btn-load-cart w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center"
-                                        data-id="${transaction.id}"
-                                        data-items='${JSON.stringify(transaction.items)}'
-                                        data-diskon="${transaction.diskon}"
-                                        data-diskon-barang="${transaction.diskon_barang}"
-                                        data-customer-name="${transaction.customer_name || ''}">
-                                        <i class="ri-shopping-bag-fill"></i>
-                                    </button>
-                                    <button 
-                                        type="button" 
-                                        class="btn-delete-hold w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center"
-                                        data-id="${transaction.id}">
-                                        <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
-                                    </button>
-                                </td>
-                                <td class="whitespace-nowrap">${index + 1}</td>
-                                <td class="whitespace-nowrap">${transaction.transaction_code}</td>
-                                <td class="whitespace-nowrap">${transaction.customer_name ?? '-'}</td>
-                                <td class="whitespace-nowrap">${totalItems}</td>
-                                <td class="whitespace-nowrap">Rp ${transaction.harga_sebelum_diskon.toLocaleString()}</td>
-                                <td class="whitespace-nowrap">Rp ${transaction.total_amount.toLocaleString()}</td>
-                                <td class="whitespace-nowrap">Rp ${transaction.diskon.toLocaleString()}</td>
-                                <td class="whitespace-nowrap">Rp ${transaction.diskon_barang.toLocaleString()}</td>
-                                <td class="whitespace-nowrap text-xs italic text-neutral-500">
-                                    ${transaction.items.some(it => it.keterangan) 
-                                        ? '📝 Ada catatan' 
-                                        : '-'}
-                                </td>
-                                <td class="whitespace-nowrap">${new Date(transaction.created_at).toLocaleString()}</td>
-                            </tr>
-                        `;
-                    });
-             
-                    const datatable = new simpleDatatables.DataTable(tableEl, {
-                        searchable: true,
-                        fixedHeight: true,
-                        perPageSelect: [5, 10, 15],
-                        labels: {
-                            placeholder: "Cari...",
-                            perPage: "Data per halaman",
-                            noRows: "Tidak ada data hold",
-                            info: "Menampilkan {start}–{end} dari {rows} data"
-                        }
-                    });
-             
-                    tableEl.classList.add('datatable-initialized');
-             
-                    tableEl.querySelectorAll('.btn-view-detail').forEach(btn => {
-                        btn.addEventListener('click', () => {
-                            const items = JSON.parse(btn.dataset.items);
-                            let html = `
-                                <div class="card border-0 overflow-hidden">
-                                    <div class="card-header">
-                                        <h5 class="card-title text-lg mb-0">Detail Transaksi</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="table-responsive">
-                                            <table class="table basic-border-table mb-0">
-                                                <thead>
-                                                    <tr>
-                                                        <th>No</th>
-                                                        <th>Nama Produk</th>
-                                                        <th>Keterangan</th>
-                                                        <th>Qty</th>
-                                                        <th>Harga</th>
-                                                        <th>Diskon per Barang</th>
-                                                        <th>Subtotal</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                            `;
-                            if (items.length > 0) {
-                                items.forEach((it, i) => {
-                                    const subtotal = (it.qty * it.price) - (it.diskon * it.qty);
-                                    html += `
-                                        <tr>
-                                            <td>${i + 1}</td>
-                                            <td>${it.product_name}</td>
-                                            <td>${it.keterangan ?? '-'}</td>
-                                            <td>${it.qty}</td>
-                                            <td>Rp ${it.price.toLocaleString('id-ID')}</td>
-                                            <td>Rp ${it.diskon.toLocaleString('id-ID')}</td>
-                                            <td>Rp ${subtotal.toLocaleString('id-ID')}</td>
-                                        </tr>
-                                    `;
-                                });
-                            } else {
-                                html += `<tr><td colspan="7" class="text-center py-3">Tidak ada item.</td></tr>`;
-                            }
-                            html += `</tbody></table></div></div></div>`;
-                            Swal.fire({ html, showConfirmButton: true, confirmButtonText: 'Tutup', width: '800px' });
-                        });
-                    });
-             
-                    tableEl.querySelectorAll('.btn-load-cart').forEach(btn => {
-                        btn.addEventListener('click', () => {
-                            const items = JSON.parse(btn.dataset.items);
-                            const transaksiId = parseInt(btn.dataset.id);
-                            const transaksiDiskon = parseFloat(btn.dataset.diskon) || 0;
-                            const transaksiDiskonBarang = parseFloat(btn.dataset.diskonBarang) || 0;
-                            const transaksiCustomerName = btn.dataset.customerName || '';
-
-                            Swal.fire({
-                                title: 'Ganti Cart Sekarang?',
-                                text: 'Transaksi yang di-hold akan dimuat ke keranjang dan cart saat ini akan diganti.',
-                                icon: 'warning',
-                                showCancelButton: true,
-                                confirmButtonText: 'Override',
-                                cancelButtonText: 'Batal',
-                            }).then((result) => {
-                                if (result.isConfirmed) {
-                                    cart = items.map(it => ({
-                                        id: String(it.product_id),
-                                        name: it.product_name,
-                                        qty: it.qty,
-                                        price: it.price,
-                                        discount: it.diskon ?? 0,
-                                        discount_type: 'nominal',
-                                        kategori: { name: it.kategori ?? '' },
-                                        image: it.image ?? null,
-                                        keterangan: it.keterangan ?? '',
-                                    }));
-
-                                    diskon = transaksiDiskon;
-                                    diskonBarang = transaksiDiskonBarang;
-                                    currentTransactionId = transaksiId;
-                                    
-                                    if (customerNameInput) customerNameInput.value = transaksiCustomerName;
-
-                                    updateCartUI();
-
-                                    const closeBtn = document.querySelector('[data-modal-hide="hold-items-modal"]');
-                                    if (closeBtn) closeBtn.click();
-
-                                    Swal.fire('Berhasil', 'Transaksi berhasil dimuat ke cart!', 'success');
-                                }
-                            });
-                        });
-                    });
-             
-                    tableEl.querySelectorAll('.btn-delete-hold').forEach(btn => {
-                        btn.addEventListener('click', () => {
-                            const holdId = btn.dataset.id;
-             
-                            Swal.fire({
-                                title: 'Hapus Transaksi Hold?',
-                                text: 'Data hold ini akan dihapus permanen.',
-                                icon: 'warning',
-                                showCancelButton: true,
-                                confirmButtonColor: '#e3342f',
-                                cancelButtonColor: '#6c757d',
-                                confirmButtonText: 'Ya, hapus!',
-                                cancelButtonText: 'Batal',
-                            }).then((result) => {
-                                if (result.isConfirmed) {
-                                    fetch(`/kasir/hold/${holdId}`, {
-                                        method: 'DELETE',
-                                        headers: {
-                                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                            'Accept': 'application/json',
-                                        }
-                                    })
-                                    .then(res => res.json())
-                                    .then(data => {
-                                        if (data.success) {
-                                            Swal.fire('Terhapus!', 'Transaksi hold berhasil dihapus.', 'success');
-                                            btn.closest('tr').remove();
-             
-                                            if (currentTransactionId == holdId) {
-                                                currentTransactionId = null;
-                                            }
-                                        } else {
-                                            Swal.fire('Gagal', data.message, 'error');
-                                        }
-                                    })
-                                    .catch(() => Swal.fire('Error', 'Gagal menghubungi server.', 'error'));
-                                }
-                            });
-                        });
-                    });
-                })
-                .catch(err => console.error('Error fetching held transactions:', err));
         });
     });
+
+    // === Event delegation untuk aksi tabel hold ===
+    document.addEventListener('click', function(e) {
+        const viewBtn   = e.target.closest('#hold-items-modal .btn-view-detail');
+        const loadBtn   = e.target.closest('#hold-items-modal .btn-load-cart');
+        const deleteBtn = e.target.closest('#hold-items-modal .btn-delete-hold');
+
+        if (viewBtn) {
+            const cached = holdItemsCache[viewBtn.dataset.holdId];
+            if (!cached) return;
+            const items = cached.items;
+            let html = `
+                <div class="card border-0 overflow-hidden">
+                    <div class="card-header">
+                        <h5 class="card-title text-lg mb-0">Detail Transaksi</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table basic-border-table mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Nama Produk</th>
+                                        <th>Keterangan</th>
+                                        <th>Qty</th>
+                                        <th>Harga</th>
+                                        <th>Diskon per Barang</th>
+                                        <th>Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+            `;
+            if (items.length > 0) {
+                items.forEach((it, i) => {
+                    const subtotal = (it.qty * it.price) - (it.diskon * it.qty);
+                    html += `
+                        <tr>
+                            <td>${i + 1}</td>
+                            <td>${it.product_name}</td>
+                            <td>${it.keterangan ?? '-'}</td>
+                            <td>${it.qty}</td>
+                            <td>Rp ${it.price.toLocaleString('id-ID')}</td>
+                            <td>Rp ${it.diskon.toLocaleString('id-ID')}</td>
+                            <td>Rp ${subtotal.toLocaleString('id-ID')}</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                html += `<tr><td colspan="7" class="text-center py-3">Tidak ada item.</td></tr>`;
+            }
+            html += `</tbody></table></div></div></div>`;
+            Swal.fire({ html, showConfirmButton: true, confirmButtonText: 'Tutup', width: '800px' });
+            return;
+        }
+
+        if (loadBtn) {
+            const holdId = loadBtn.dataset.holdId;
+            const cached = holdItemsCache[holdId];
+            if (!cached) return;
+
+            Swal.fire({
+                title: 'Ganti Cart Sekarang?',
+                text: 'Transaksi yang di-hold akan dimuat ke keranjang dan cart saat ini akan diganti.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Override',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    cart = cached.items.map(it => ({
+                        id: String(it.product_id),
+                        name: it.product_name,
+                        qty: it.qty,
+                        price: it.price,
+                        discount: it.diskon ?? 0,
+                        discount_type: 'nominal',
+                        kategori: { name: it.kategori ?? '' },
+                        image: it.image ?? null,
+                        keterangan: it.keterangan ?? '',
+                    }));
+
+                    diskon = parseFloat(cached.diskon) || 0;
+                    diskonBarang = parseFloat(cached.diskon_barang) || 0;
+                    currentTransactionId = parseInt(holdId);
+
+                    if (customerNameInput) customerNameInput.value = cached.customer_name;
+
+                    updateCartUI();
+                    HexaModal.hide('hold-items-modal');
+                    Swal.fire('Berhasil', 'Transaksi berhasil dimuat ke cart!', 'success');
+                }
+            });
+            return;
+        }
+
+        if (deleteBtn) {
+            const holdId = deleteBtn.dataset.holdId;
+
+            Swal.fire({
+                title: 'Hapus Transaksi Hold?',
+                text: 'Data hold ini akan dihapus permanen.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e3342f',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`/kasir/hold/${holdId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire('Terhapus!', 'Transaksi hold berhasil dihapus.', 'success');
+                            if (currentTransactionId == holdId) {
+                                currentTransactionId = null;
+                            }
+                            if (window._ajaxTables && window._ajaxTables['tbodyHoldItems']) {
+                                window._ajaxTables['tbodyHoldItems'].refresh();
+                            }
+                        } else {
+                            Swal.fire('Gagal', data.message, 'error');
+                        }
+                    })
+                    .catch(() => Swal.fire('Error', 'Gagal menghubungi server.', 'error'));
+                }
+            });
+        }
+    });
+
+    // === More dropdown ===
+    const moreToggle = document.getElementById('moreToggle');
+    const dropdownMore = document.getElementById('dropdownMore');
+    const chevronMore = document.getElementById('chevronMore');
+
+    if (moreToggle && dropdownMore && chevronMore) {
+        moreToggle.addEventListener('click', function (e) {
+            e.stopPropagation();
+            dropdownMore.classList.toggle('hidden');
+            chevronMore.classList.toggle('rotate-180');
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!dropdownMore.contains(e.target) && !moreToggle.contains(e.target)) {
+                dropdownMore.classList.add('hidden');
+                chevronMore.classList.remove('rotate-180');
+            }
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                dropdownMore.classList.add('hidden');
+                chevronMore.classList.remove('rotate-180');
+            }
+        });
+    }
 
     updateCartUI();
 });
 </script>
 
+{{-- Product grid: AJAX fetch + pagination --}}
+<script>
+(function () {
+    var CAT_COLORS = ['#f97316','#3b82f6','#10b981','#8b5cf6','#ec4899',
+                      '#f59e0b','#14b8a6','#f43f5e','#6366f1','#06b6d4'];
+    var _page = 1, _search = '', _kat = '', _searchTimer = null;
 
-    <x-script  script='{!! isset($script) ? $script : "" !!}' />
-    <script src="{{ asset('assets/js/data-table.js') }}"></script>
-</body>
-</html>
+    function fmtRp(n) {
+        return Number(n || 0).toLocaleString('id-ID');
+    }
+
+    function renderCard(p) {
+        var isUnavailable = !p.is_active || p.quantity <= 0;
+        var bgColor = CAT_COLORS[(p.kategori_product_id || 0) % CAT_COLORS.length];
+
+        var imageHtml = p.image
+            ? '<img src="/storage/' + p.image + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">'
+            : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background-color:' + bgColor + ';">'
+              + '<iconify-icon icon="lucide:shopping-bag" class="text-white opacity-80" style="font-size:2rem;"></iconify-icon>'
+              + '</div>';
+
+        var overlay = '';
+        if (!p.is_active) {
+            overlay = '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(23,23,23,.5);">'
+                    + '<span style="color:#fff;font-size:11px;font-weight:700;padding:2px 10px;border-radius:999px;background:#404040;">Nonaktif</span>'
+                    + '</div>';
+        } else if (p.quantity <= 0) {
+            overlay = '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(23,23,23,.4);">'
+                    + '<span style="color:#fff;font-size:11px;font-weight:700;padding:2px 10px;border-radius:999px;background:#dc2626;">Habis</span>'
+                    + '</div>';
+        }
+
+        var stockBadge = !isUnavailable
+            ? '<span style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.5);color:#fff;font-size:10px;font-weight:600;padding:2px 6px;border-radius:999px;">' + p.quantity + '</span>'
+            : '';
+
+        var discountHtml = p.discount > 0
+            ? '<p class="text-danger-500" style="font-size:10px;margin:4px 0 0;line-height:1.3;">Diskon: '
+              + (p.discount_type === 'percent' ? p.discount + '%' : 'Rp ' + fmtRp(p.discount))
+              + '</p>'
+            : '';
+
+        var outerStyle = 'display:flex;flex-direction:column;border-radius:16px;overflow:hidden;position:relative;min-height:196px;'
+            + (isUnavailable ? 'opacity:0.6;' : '');
+        var hoverCls = isUnavailable ? '' : 'hover:border-primary-400 hover:shadow-md';
+
+        return '<div'
+            + ' data-product-id="' + p.id + '"'
+            + ' data-name="' + p.name.replace(/"/g, '&quot;') + '"'
+            + ' data-price="' + p.price + '"'
+            + ' data-discount="' + p.discount + '"'
+            + ' data-discount_type="' + p.discount_type + '"'
+            + ' data-image="' + (p.image || '') + '"'
+            + ' data-category="' + (p.kategori_name || '').replace(/"/g, '&quot;') + '"'
+            + ' data-category-id="' + (p.kategori_product_id || '') + '"'
+            + ' data-unavailable="' + (isUnavailable ? '1' : '0') + '"'
+            + ' class="btn-open-product-modal group border border-neutral-200 dark:border-line-dark bg-white dark:bg-surface-dark transition-all cursor-pointer ' + hoverCls + '"'
+            + ' style="' + outerStyle + '">'
+
+            + '<div style="position:relative;width:100%;height:96px;flex-shrink:0;">'
+            + imageHtml + overlay + stockBadge
+            + '</div>'
+
+            + '<div style="display:flex;flex-direction:column;flex:1;padding:10px 10px 14px;">'
+            + '<p class="text-neutral-400 dark:text-ink-d3" style="font-size:10px;margin:0 0 2px;line-height:1.3;">' + (p.kategori_name || '-') + '</p>'
+            + '<h6 class="font-semibold text-sm text-ink dark:text-ink-d" style="margin:0 0 auto;line-height:1.3;">' + p.name + '</h6>'
+            + '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;gap:4px;">'
+            + '<span class="text-primary-600 font-bold text-sm tabular-nums">Rp ' + fmtRp(p.price) + '</span>'
+            + '<span class="bg-success-500 text-white" style="width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.1rem;font-weight:700;line-height:1;padding:0;user-select:none;">+</span>'
+            + '</div>'
+            + discountHtml
+            + '</div>'
+            + '</div>';
+    }
+
+    function renderPagination(page, lastPage) {
+        var el = document.getElementById('product-grid-pagination');
+        if (!el) return;
+        if (lastPage <= 1) { el.innerHTML = ''; return; }
+
+        var base = 'px-3 py-1 rounded border text-xs transition-colors duration-150';
+        var norm = base + ' border-neutral-200 dark:border-line-dark text-neutral-600 dark:text-ink-d2 hover:bg-neutral-100 dark:hover:bg-surface-dark-raised cursor-pointer';
+        var act  = base + ' bg-primary-500 border-primary-500 text-white font-semibold';
+        var dis  = base + ' border-neutral-200 dark:border-line-dark text-neutral-300 dark:text-ink-d3 opacity-40 cursor-not-allowed';
+
+        var parts = [];
+        parts.push('<button onclick="fetchProductGrid(' + (page - 1) + ')" '
+            + (page <= 1 ? 'disabled ' : '') + 'class="' + (page <= 1 ? dis : norm) + '">&laquo;</button>');
+
+        var start = Math.max(1, page - 2);
+        var end   = Math.min(lastPage, start + 4);
+        if (end - start < 4) start = Math.max(1, end - 4);
+
+        for (var i = start; i <= end; i++) {
+            parts.push('<button onclick="fetchProductGrid(' + i + ')" class="' + (i === page ? act : norm) + '">' + i + '</button>');
+        }
+        if (end < lastPage) {
+            parts.push('<span class="px-2 text-xs text-neutral-400 dark:text-ink-d3">...</span>');
+            parts.push('<button onclick="fetchProductGrid(' + lastPage + ')" class="' + norm + '">' + lastPage + '</button>');
+        }
+        parts.push('<button onclick="fetchProductGrid(' + (page + 1) + ')" '
+            + (page >= lastPage ? 'disabled ' : '') + 'class="' + (page >= lastPage ? dis : norm) + '">&raquo;</button>');
+
+        el.innerHTML = parts.join('');
+    }
+
+    window.fetchProductGrid = function (page) {
+        _page = page || 1;
+        var grid = document.getElementById('product-grid');
+        if (!grid) return;
+
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px 0;color:#9ca3af;font-size:14px;">Memuat produk...</div>';
+
+        var params = new URLSearchParams({ page: _page, search: _search, kategori: _kat });
+        fetch('{{ route("kasir.products.grid") }}?' + params.toString(), {
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(function (res) {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.json();
+        })
+        .then(function (data) {
+            if (!data.data || data.data.length === 0) {
+                grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px 0;color:#9ca3af;font-size:14px;">Tidak ada produk ditemukan.</div>';
+                renderPagination(1, 1);
+                return;
+            }
+            grid.innerHTML = data.data.map(renderCard).join('');
+            renderPagination(data.page, data.lastPage);
+        })
+        .catch(function (err) {
+            grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px 0;color:#dc2626;font-size:14px;">Gagal memuat produk.</div>';
+            console.error(err);
+        });
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Category pills → re-fetch server
+        document.querySelectorAll('.category-pill').forEach(function (pill) {
+            pill.addEventListener('click', function () {
+                document.querySelectorAll('.category-pill').forEach(function (p) {
+                    p.classList.remove('active', 'bg-primary-500', 'text-white');
+                    p.classList.add('bg-neutral-100', 'text-neutral-600', 'dark:bg-surface-dark-raised', 'dark:text-ink-d2');
+                });
+                this.classList.add('active', 'bg-primary-500', 'text-white');
+                this.classList.remove('bg-neutral-100', 'text-neutral-600', 'dark:bg-surface-dark-raised', 'dark:text-ink-d2');
+                _kat = this.dataset.category === 'all' ? '' : this.dataset.category;
+                _search = '';
+                var si = document.getElementById('product-search');
+                if (si) si.value = '';
+                fetchProductGrid(1);
+            });
+        });
+
+        // Search input → debounce → re-fetch server
+        var searchInput = document.getElementById('product-search');
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                clearTimeout(_searchTimer);
+                var val = this.value;
+                _searchTimer = setTimeout(function () {
+                    _search = val;
+                    fetchProductGrid(1);
+                }, 400);
+            });
+        }
+
+        // Initial load
+        fetchProductGrid(1);
+    });
+}());
+</script>
+@endsection

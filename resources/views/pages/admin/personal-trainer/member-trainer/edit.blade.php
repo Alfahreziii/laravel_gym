@@ -2,61 +2,29 @@
 @php
 $title = 'Detail Member Trainer';
 $subTitle = 'Detail Member Trainer';
-$script='<script src="' . asset('assets/js/data-table.js') . '"></script>';
 @endphp
 
 @section('content')
-<div class="grid grid-cols-12 mb-5">
-    <div class="col-span-12">
-        <div class="card border-0 overflow-hidden">
-            <div class="card-header flex items-center justify-between">
-                <h6 class="card-title mb-0 text-lg">Riwayat Pembayaran</h6>
-                @role('admin')
-                <button type="button" data-modal-target="popup-modal" data-modal-toggle="popup-modal" class="text-primary-600 focus:bg-primary-600 hover:bg-primary-700 border border-primary-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center dark:text-primary-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-primary-800">+ Tambah Data</button>
-                @endrole
-            </div>
-            <div class="card-body">
-                <table id="selection-table" class="border border-neutral-200 rounded-lg border-separate w-full">
-                    <thead>
-                        <tr>
-                            <th>S.L</th>
-                            <th>Tanggal Bayar</th>
-                            <th>Jumlah Bayar</th>
-                            <th>Metode Pembayaran</th>
-                            @role('admin')
-                            <th>Aksi</th>
-                            @endrole
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($memberTrainer->pembayaranMemberTrainers as $index => $pembayaran)
-                            <tr>
-                                <td class="whitespace-nowrap">{{ $index + 1 }}</td>
-                                <td class="whitespace-nowrap">{{ \Carbon\Carbon::parse($pembayaran->tgl_bayar)->format('d-m-Y') }}</td>
-                                <td class="whitespace-nowrap">Rp {{ number_format($pembayaran->jumlah_bayar, 0, ',', '.') }}</td>
-                                <td class="whitespace-nowrap">{{ ucfirst($pembayaran->metode_pembayaran) }}</td>
-                                @role('admin')
-                                <td class="whitespace-nowrap flex gap-2">
-                                    <form action="{{ route('pembayaran_trainer.destroy', $pembayaran->id) }}" method="POST" class="inline-block delete-form">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="button" class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center delete-btn">
-                                            <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
-                                        </button>
-                                    </form>
-                                </td>
-                                @endrole
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5" class="text-center">Belum ada pembayaran</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
+<div class="card border-0 overflow-hidden mb-5">
+    <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-200">
+        <span class="font-semibold text-base">Riwayat Pembayaran</span>
+        @role('admin')
+        <button type="button" onclick="openPopupModal()" class="btn btn-primary btn-sm">+ Tambah Data</button>
+        @endrole
     </div>
+    <x-data-table tableId="riwayatPembayaranMemberTrainer" :colspan="auth()->user()->hasRole('admin') ? 5 : 4" placeholder="Cari tanggal atau metode...">
+        <x-slot:header>
+            <tr>
+                <th>S.L</th>
+                <th>Tanggal Bayar</th>
+                <th>Jumlah Bayar</th>
+                <th>Metode Pembayaran</th>
+                @role('admin')
+                    <th>Aksi</th>
+                @endrole
+            </tr>
+        </x-slot:header>
+    </x-data-table>
 </div>
 
 <div class="grid grid-cols-12 ">
@@ -64,7 +32,7 @@ $script='<script src="' . asset('assets/js/data-table.js') . '"></script>';
         <div class="card border-0">
             <div class="card-header flex items-center justify-between">
                 <h6 class="card-title mb-0 text-lg">Detail Member Trainer</h6>
-                <a href="{{ route('membertrainer.index') }}" class="text-danger-600 focus:bg-danger-600 hover:bg-danger-700 border border-danger-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-danger-300 font-medium rounded-lg text-base px-6 py-3 text-center inline-flex items-center dark:text-danger-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-danger-800">Kembali</a>
+                <a href="{{ route('membertrainer.index') }}" class="btn btn-danger btn-sm">Kembali</a>
             </div>
             <div class="card-body">
                 <form action="{{ route('membertrainer.update', $memberTrainer->id) }}" method="POST">
@@ -153,131 +121,142 @@ $script='<script src="' . asset('assets/js/data-table.js') . '"></script>';
     </div>
 </div>
 
-<!-- Modal Add Riwayat Pembayaran -->
-<div id="popup-modal" tabindex="-1" class="hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0">
-    <div class="rounded-2xl bg-white max-w-[800px] w-full h-modal overflow-y-auto overflow-x-hidden">
-        <div class="py-4 px-6 border-b border-neutral-200 flex items-center justify-between">
-            <h1 class="text-xl">Tambah Pembayaran</h1>
-            <button data-modal-hide="popup-modal" type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
-                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"></path>
-                </svg>
-                <span class="sr-only">Close modal</span>
-            </button>
-        </div>
-        <div class="p-6">
-            <form action="{{ route('membertrainer.tambahPembayaran', $memberTrainer->id) }}" method="POST" id="form-pembayaran">
-            @csrf
-            @method('POST')
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                    {{-- Kode Transaksi (readonly) --}}
-                    <div class="col-span-12">
-                        <label class="form-label">Kode Transaksi</label>
-                        <input type="text" class="form-control" value="{{ $memberTrainer->kode_transaksi }}" readonly>
-                    </div>
+<x-modal id="popup-modal" title="Tambah Pembayaran" maxWidth="max-w-[800px]">
+    <x-slot:body>
+        <form action="{{ route('membertrainer.tambahPembayaran', $memberTrainer->id) }}" method="POST" id="form-pembayaran">
+        @csrf
+        @method('POST')
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                {{-- Kode Transaksi (readonly) --}}
+                <div class="col-span-12">
+                    <label class="form-label">Kode Transaksi</label>
+                    <input type="text" class="form-control" value="{{ $memberTrainer->kode_transaksi }}" readonly>
+                </div>
 
-                    {{-- Info Total Biaya --}}
-                    <div class="col-span-12 md:col-span-6">
-                        <label class="form-label">Total Biaya</label>
-                        <input type="text" id="modal_total_biaya" class="form-control bg-gray-50" 
-                            value="Rp {{ number_format($memberTrainer->total_biaya, 0, ',', '.') }}" readonly>
-                    </div>
+                {{-- Info Total Biaya --}}
+                <div class="col-span-12 md:col-span-6">
+                    <label class="form-label">Total Biaya</label>
+                    <input type="text" id="modal_total_biaya" class="form-control bg-gray-50"
+                        value="Rp {{ number_format($memberTrainer->total_biaya, 0, ',', '.') }}" readonly>
+                </div>
 
-                    {{-- Info Total Sudah Dibayar --}}
-                    <div class="col-span-12 md:col-span-6">
-                        <label class="form-label">Sudah Dibayar</label>
-                        <input type="text" id="modal_sudah_dibayar" class="form-control bg-gray-50" 
-                            value="Rp {{ number_format($memberTrainer->pembayaranMemberTrainers->sum('jumlah_bayar'), 0, ',', '.') }}" readonly>
-                    </div>
+                {{-- Info Total Sudah Dibayar --}}
+                <div class="col-span-12 md:col-span-6">
+                    <label class="form-label">Sudah Dibayar</label>
+                    <input type="text" id="modal_sudah_dibayar" class="form-control bg-gray-50"
+                        value="Rp {{ number_format($memberTrainer->pembayaranMemberTrainers->sum('jumlah_bayar'), 0, ',', '.') }}" readonly>
+                </div>
 
-                    {{-- Info Sisa Tagihan --}}
-                    <div class="col-span-12">
-                        <label class="form-label font-semibold text-danger-600">Sisa Tagihan</label>
-                        <input type="text" id="modal_sisa_tagihan" class="form-control bg-danger-50 border-danger-200 text-danger-600 font-bold text-lg" 
-                            value="Rp {{ number_format($memberTrainer->total_biaya - $memberTrainer->pembayaranMemberTrainers->sum('jumlah_bayar'), 0, ',', '.') }}" readonly>
-                        <input type="hidden" id="sisa_tagihan_value" value="{{ $memberTrainer->total_biaya - $memberTrainer->pembayaranMemberTrainers->sum('jumlah_bayar') }}">
-                    </div>
+                {{-- Info Sisa Tagihan --}}
+                <div class="col-span-12">
+                    <label class="form-label font-semibold text-danger-600">Sisa Tagihan</label>
+                    <input type="text" id="modal_sisa_tagihan" class="form-control bg-danger-50 border-danger-200 text-danger-600 font-bold text-lg"
+                        value="Rp {{ number_format($memberTrainer->total_biaya - $memberTrainer->pembayaranMemberTrainers->sum('jumlah_bayar'), 0, ',', '.') }}" readonly>
+                    <input type="hidden" id="sisa_tagihan_value" value="{{ $memberTrainer->total_biaya - $memberTrainer->pembayaranMemberTrainers->sum('jumlah_bayar') }}">
+                </div>
 
-                    <div class="col-span-12">
-                        <hr class="my-2">
-                    </div>
+                <div class="col-span-12">
+                    <hr class="my-2">
+                </div>
 
-                   {{-- Metode Pembayaran --}}
-                    <div class="col-span-12">
-                        <label class="form-label">Metode Pembayaran</label>
-                        <select name="metode_pembayaran" class="form-control" required>
-                            <option value="">-- Pilih Metode --</option>
-                            <option value="cash" {{ old('metode_pembayaran') == 'cash' ? 'selected' : '' }}>Cash</option>
-                            <option value="transfer" {{ old('metode_pembayaran') == 'transfer' ? 'selected' : '' }}>Transfer</option>
-                            <option value="qris" {{ old('metode_pembayaran') == 'qris' ? 'selected' : '' }}>QRIS</option>
-                            <option value="debit" {{ old('metode_pembayaran') == 'debit' ? 'selected' : '' }}>Debit Card</option>
-                            <option value="ewallet" {{ old('metode_pembayaran') == 'ewallet' ? 'selected' : '' }}>E-Wallet</option>
-                        </select>
-                    </div>
+               {{-- Metode Pembayaran --}}
+                <div class="col-span-12">
+                    <label class="form-label">Metode Pembayaran</label>
+                    <select name="metode_pembayaran" class="form-control" required>
+                        <option value="">-- Pilih Metode --</option>
+                        <option value="cash" {{ old('metode_pembayaran') == 'cash' ? 'selected' : '' }}>Cash</option>
+                        <option value="transfer" {{ old('metode_pembayaran') == 'transfer' ? 'selected' : '' }}>Transfer</option>
+                        <option value="qris" {{ old('metode_pembayaran') == 'qris' ? 'selected' : '' }}>QRIS</option>
+                        <option value="debit" {{ old('metode_pembayaran') == 'debit' ? 'selected' : '' }}>Debit Card</option>
+                        <option value="ewallet" {{ old('metode_pembayaran') == 'ewallet' ? 'selected' : '' }}>E-Wallet</option>
+                    </select>
+                </div>
 
-                    {{-- Tanggal Bayar --}}
-                    <div class="col-span-12">
-                        <label class="form-label">Tanggal Bayar</label>
-                        <input type="date" name="tgl_bayar" class="form-control" value="{{ old('tgl_bayar', date('Y-m-d')) }}" required>
-                    </div>
+                {{-- Tanggal Bayar --}}
+                <div class="col-span-12">
+                    <label class="form-label">Tanggal Bayar</label>
+                    <input type="date" name="tgl_bayar" class="form-control" value="{{ old('tgl_bayar', date('Y-m-d')) }}" required>
+                </div>
 
-                    {{-- Jumlah Bayar --}}
-                    <div class="col-span-12">
-                        <label class="form-label">Jumlah Dibayarkan</label>
-                        <input type="number" name="jumlah_bayar" id="modal_jumlah_bayar" class="form-control" value="0" min="0" required>
-                        <small class="text-muted" id="modal_warning_text" style="display: none; color: #dc3545; margin-top: 4px;"></small>
-                    </div>
+                {{-- Jumlah Bayar --}}
+                <div class="col-span-12">
+                    <label class="form-label">Jumlah Dibayarkan</label>
+                    <input type="number" name="jumlah_bayar" id="modal_jumlah_bayar" class="form-control" value="0" min="0" required>
+                    <small class="text-muted" id="modal_warning_text" style="display: none; color: #dc3545; margin-top: 4px;"></small>
+                </div>
 
-                    {{-- Sisa Setelah Pembayaran Ini --}}
-                    <div class="col-span-12">
-                        <label class="form-label">Sisa Setelah Pembayaran Ini</label>
-                        <input type="text" id="modal_sisa_setelah" class="form-control bg-success-50 border-success-200 text-success-600 font-semibold" readonly>
-                    </div>
+                {{-- Sisa Setelah Pembayaran Ini --}}
+                <div class="col-span-12">
+                    <label class="form-label">Sisa Setelah Pembayaran Ini</label>
+                    <input type="text" id="modal_sisa_setelah" class="form-control bg-success-50 border-success-200 text-success-600 font-semibold" readonly>
+                </div>
 
-                    <div class="flex items-center justify-start gap-3 mt-6">
-                        <button type="reset" data-modal-hide="popup-modal" class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
-                            Cancel
-                        </button>
-                        <button type="submit" id="btn-submit-pembayaran" class="btn btn-primary border border-primary-600 text-base px-6 py-3 whitespace-nowrap text-white rounded-lg">
-                            Simpan Pembayaran
-                        </button>
-                    </div>
-                </div>  
-            </form>
-        </div>
-    </div>
-</div>
+                <div class="flex items-center justify-start gap-3 mt-6">
+                    <button type="reset" data-close-modal="popup-modal" class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
+                        Cancel
+                    </button>
+                    <button type="submit" id="btn-submit-pembayaran" class="btn btn-primary border border-primary-600 text-base px-6 py-3 whitespace-nowrap text-white rounded-lg">
+                        Simpan Pembayaran
+                    </button>
+                </div>
+            </div>
+        </form>
+    </x-slot:body>
+</x-modal>
 
 @endsection
 
 @section('scripts')
+<script src="{{ asset('assets/js/ajax-table.js') }}"></script>
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    const deleteForms = document.querySelectorAll('.delete-form');
+    var isAdmin = {{ auth()->user()->hasRole('admin') ? 'true' : 'false' }};
 
-    // Delete confirmation
-    deleteForms.forEach(form => {
-        const btn = form.querySelector('.delete-btn');
-        btn.addEventListener('click', function (e) {
-            e.preventDefault();
-
-            Swal.fire({
-                title: 'Apakah kamu yakin?',
-                text: "Data pembayaran yang dihapus tidak bisa dikembalikan!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#e3342f',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Ya, hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
-        });
+    AjaxTable.init('riwayatPembayaranMemberTrainer', {
+        url: '{{ route('membertrainer.datatablePembayaran', $memberTrainer->id) }}',
+        colSpan: isAdmin ? 5 : 4,
+        renderRow: function(item) {
+            var aksiHtml = '';
+            if (isAdmin) {
+                aksiHtml = '<td class="whitespace-nowrap">' +
+                    '<button type="button" onclick="deletePembayaran(\'' + item.delete_url + '\')" ' +
+                    'class="btn-action btn-action-del">' +
+                    '<iconify-icon icon="mingcute:delete-2-line"></iconify-icon>' +
+                    '</button></td>';
+            }
+            return '<tr>' +
+                '<td class="whitespace-nowrap text-center">' + item.no + '</td>' +
+                '<td class="whitespace-nowrap">' + item.tgl_bayar + '</td>' +
+                '<td class="whitespace-nowrap">' + item.jumlah_bayar + '</td>' +
+                '<td class="whitespace-nowrap">' + item.metode_pembayaran + '</td>' +
+                aksiHtml +
+                '</tr>';
+        }
     });
 
+    window.deletePembayaran = function(url) {
+        Swal.fire({
+            title: 'Apakah kamu yakin?',
+            text: "Data pembayaran yang dihapus tidak bisa dikembalikan!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e3342f',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal'
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = url;
+                form.innerHTML = '<input type="hidden" name="_token" value="{{ csrf_token() }}">' +
+                    '<input type="hidden" name="_method" value="DELETE">';
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    };
+
+document.addEventListener("DOMContentLoaded", function() {
     // Modal Pembayaran Logic
     const modalJumlahBayar = document.getElementById('modal_jumlah_bayar');
     const modalSisaSetelah = document.getElementById('modal_sisa_setelah');
@@ -394,18 +373,17 @@ document.addEventListener("DOMContentLoaded", function() {
     // Set max attribute pada input
     modalJumlahBayar.setAttribute('max', sisaTagihanValue.value);
 
-    // Reset form saat modal dibuka
-    document.querySelector('[data-modal-target="popup-modal"]')?.addEventListener('click', function() {
+    window.openPopupModal = function() {
         // Cek apakah sudah lunas dari awal
         let sisaTagihan = parseInt(sisaTagihanValue.value) || 0;
-        
+
         if (sisaTagihan === 0) {
             // Jika sudah lunas, disable tombol dan tampilkan pesan
             btnSubmitPembayaran.disabled = true;
             btnSubmitPembayaran.textContent = '✓ SUDAH LUNAS';
             btnSubmitPembayaran.classList.remove('btn-primary', 'border-primary-600');
             btnSubmitPembayaran.classList.add('bg-success-600', 'border-success-600', 'cursor-not-allowed', 'opacity-60');
-            
+
             modalJumlahBayar.disabled = true;
             modalJumlahBayar.value = 0;
             modalSisaSetelah.value = formatRupiah(0) + " (SUDAH LUNAS)";
@@ -420,7 +398,9 @@ document.addEventListener("DOMContentLoaded", function() {
             btnSubmitPembayaran.classList.add('btn-primary', 'border-primary-600');
             updateSisaSetelahPembayaran();
         }
-    });
+
+        HexaModal.show('popup-modal');
+    };
 });
 </script>
 @endsection

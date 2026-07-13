@@ -1,516 +1,322 @@
 @extends('layout.layout')
 @php
-    $title='Pembayaran Gaji Trainer';
+    $title    = 'Pembayaran Gaji Trainer';
     $subTitle = 'Pembayaran Gaji Trainer';
-    $script='<script src="' . asset('assets/js/data-table.js') . '"></script>';
+    $colCount = 6;
 @endphp
 
 @section('content')
 
 @if(session('success'))
-    <div class="alert alert-success bg-success-50 dark:bg-success-600/25 
-        text-success-600 dark:text-success-400 border-success-50 
-        px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
-        <div class="flex items-center gap-4">
-            {{ session('success') }}
-        </div>
-        <button class="remove-button text-success-600 text-2xl"><iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
-        </button>
-    </div>
+    <x-alert type="success">{{ session('success') }}</x-alert>
 @endif
 @if(session('danger'))
-    <div class="alert alert-danger bg-danger-100 dark:bg-danger-600/25 
-        text-danger-600 dark:text-danger-400 border-danger-100 
-        px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
-        {{ session('danger') }}
-        <button class="remove-button text-danger-600 text-2xl"> 
-            <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
-        </button>
-    </div>
+    <x-alert type="danger">{{ session('danger') }}</x-alert>
 @endif
 
-<div class="grid grid-cols-12">
-    <div class="col-span-12">
-        <div class="card border-0 overflow-hidden">
-            <div class="card-header flex items-center justify-between">
-                <h6 class="card-title mb-0 text-lg">Data Pembayaran Gaji Trainer</h6>
+<x-page-table
+    title="Data Pembayaran Gaji Trainer"
+    subtitle="Proses pembayaran gaji trainer berdasarkan sesi yang sudah dijalani."
+>
+    <x-data-table
+        tableId="gajiTrainer"
+        :colspan="$colCount"
+        placeholder="Cari nama trainer...">
+        <x-slot:header>
+            <tr>
+                <th scope="col">No</th>
+                <th scope="col">Aksi</th>
+                <th scope="col">Nama Trainer</th>
+                <th scope="col">Terakhir Gajian</th>
+                <th scope="col">Sesi Belum Dibayar</th>
+                <th scope="col">Base Rate</th>
+            </tr>
+        </x-slot:header>
+    </x-data-table>
+</x-page-table>
+
+<x-modal id="bayar-gaji-modal" title="Form Pembayaran Gaji Trainer" maxWidth="max-w-2xl">
+    <x-slot:body>
+        <form id="bayarGajiForm">
+            @csrf
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                <div class="col-span-12">
+                    <label class="form-label">Nama Trainer</label>
+                    <input type="text" id="gajiNamaTrainer" class="form-control bg-gray-50" readonly>
+                </div>
+                <div class="col-span-12 md:col-span-6">
+                    <label class="form-label">Base Rate per Sesi</label>
+                    <input type="text" id="gajiBaseRateDisplay" class="form-control bg-gray-50" readonly>
+                </div>
+                <div class="col-span-12 md:col-span-6">
+                    <label class="form-label">Total Sesi Belum Dibayar</label>
+                    <input type="text" id="gajiSesiDisplay" class="form-control bg-gray-50" readonly>
+                </div>
+                <div class="col-span-12"><hr class="my-2"></div>
+                <div class="col-span-12 md:col-span-6">
+                    <label class="form-label">Tanggal Mulai Periode</label>
+                    <input type="date" name="tgl_mulai" id="gajiTglMulai" class="form-control" required>
+                </div>
+                <div class="col-span-12 md:col-span-6">
+                    <label class="form-label">Tanggal Selesai Periode</label>
+                    <input type="date" name="tgl_selesai" id="gajiTglSelesai" class="form-control" required>
+                </div>
+                <div class="col-span-12">
+                    <label class="form-label font-semibold text-primary-600">Jumlah Sesi dalam Periode Ini</label>
+                    <input type="text" id="gajiJumlahSesiDisplay" class="form-control bg-primary-50 border-primary-200 text-primary-600 font-bold text-lg" value="Menunggu input tanggal..." readonly>
+                </div>
+                <div class="col-span-12"><hr class="my-2"></div>
+                <div class="col-span-12">
+                    <label class="form-label">Tanggal Bayar</label>
+                    <input type="date" name="tgl_bayar" id="gajiTglBayar" class="form-control" value="{{ date('Y-m-d') }}" required>
+                </div>
+                <div class="col-span-12">
+                    <label class="form-label">Metode Pembayaran</label>
+                    <select name="metode_pembayaran" id="gajiMetode" class="form-control" required>
+                        <option value="">-- Pilih Metode --</option>
+                        <option value="cash">Cash</option>
+                        <option value="transfer">Transfer Bank</option>
+                        <option value="e-wallet">E-Wallet</option>
+                    </select>
+                </div>
+                <div class="col-span-12">
+                    <label class="form-label">Bonus (Opsional)</label>
+                    <input type="number" name="bonus" id="gajiBonus" class="form-control" value="0" min="0" step="1000">
+                </div>
+                <div class="col-span-12">
+                    <label class="form-label font-semibold text-success-600">Total Yang Akan Dibayarkan</label>
+                    <input type="text" id="gajiTotalDibayarkan" class="form-control bg-success-50 border-success-200 text-success-600 font-bold text-xl" value="Rp 0" readonly>
+                    <small class="text-muted">Base Rate × Jumlah Sesi + Bonus</small>
+                </div>
             </div>
-            <div class="card-body">
-                <table id="selection-table" class="border border-neutral-200 rounded-lg border-separate w-full">
-                    <thead>
-                        <tr>
-                            <th>S.L</th>
-                            <th>Aksi</th>
-                            <th>Nama Trainer</th>
-                            <th>Terakhir Gajian</th>
-                            <th>Sesi Belum Dibayar</th>
-                            <th>Base Rate</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($gajiTrainers as $index => $gaji)
-                        <tr>
-                            <td class="whitespace-nowrap">{{ $index + 1 }}</td>
-                            <td class="whitespace-nowrap flex gap-2">
-                                <button type="button" title="Bayar Gaji" 
-                                    data-modal-target="edit-popup-modal-{{ $gaji['id'] }}" 
-                                    data-modal-toggle="edit-popup-modal-{{ $gaji['id'] }}" 
-                                    class="w-8 h-8 {{ $gaji['sesi_belum_dibayar'] > 0 ? 'bg-success-100 text-success-600' : 'bg-gray-100 text-gray-400 cursor-not-allowed' }} rounded-full inline-flex items-center justify-center"
-                                    {{ $gaji['sesi_belum_dibayar'] <= 0 ? 'disabled' : '' }}>
-                                    <iconify-icon icon="hugeicons:money-send-square" class="menu-icon"></iconify-icon>
-                                </button>
-                                <a href="{{ route('riwayat-gaji-trainer.history', $gaji['id']) }}" 
-                                   title="Lihat History" 
-                                   class="w-8 h-8 bg-info-100 text-info-600 rounded-full inline-flex items-center justify-center hover:bg-info-200 transition-colors">
-                                    <iconify-icon icon="solar:clipboard-list-bold" class="menu-icon"></iconify-icon>
-                                </a>
-                            </td>
-                            <td class="whitespace-nowrap">{{ $gaji['nama'] }}</td>
-                            <td class="whitespace-nowrap">{{ $gaji['terakhir_gajian'] }}</td>
-                            <td class="whitespace-nowrap">
-                                <span class="{{ $gaji['sesi_belum_dibayar'] > 0 ? 'bg-warning-100 text-warning-600' : 'bg-success-100 text-success-600' }} px-4 py-1.5 rounded-full font-medium text-sm">
-                                    {{ $gaji['sesi_belum_dibayar'] }} Sesi
-                                </span>
-                            </td>
-                            <td class="whitespace-nowrap">Rp {{ number_format($gaji['base_rate'], 0, ',', '.') }}</td>
-                        </tr>
-                        
-                        <!-- Modal Pembayaran -->
-                        <div id="edit-popup-modal-{{ $gaji['id'] }}" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-                            <div class="rounded-2xl bg-white max-w-[800px] w-full">
-                                <div class="py-4 px-6 border-b border-neutral-200 flex items-center justify-between">
-                                    <h1 class="text-xl">Form Pembayaran Gaji Trainer</h1>
-                                    <button data-modal-hide="edit-popup-modal-{{ $gaji['id'] }}" type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
-                                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
-                                        </svg>
-                                        <span class="sr-only">Close modal</span>
-                                    </button>
-                                </div>
-                                <div class="p-6">
-                                    <form class="form-gaji-trainer" data-trainer-id="{{ $gaji['id'] }}" data-base-rate="{{ $gaji['base_rate'] }}">
-                                        @csrf
-                                        
-                                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                                            {{-- Nama Trainer (readonly) --}}
-                                            <div class="col-span-12">
-                                                <label class="form-label">Nama Trainer</label>
-                                                <input type="text" class="form-control bg-gray-50" value="{{ $gaji['nama'] }}" readonly>
-                                            </div>
-
-                                            {{-- Info Base Rate --}}
-                                            <div class="col-span-12 md:col-span-6">
-                                                <label class="form-label">Base Rate per Sesi</label>
-                                                <input type="text" class="form-control bg-gray-50" 
-                                                    value="Rp {{ number_format($gaji['base_rate'], 0, ',', '.') }}" readonly>
-                                            </div>
-
-                                            {{-- Info Sesi Belum Dibayar --}}
-                                            <div class="col-span-12 md:col-span-6">
-                                                <label class="form-label">Total Sesi Belum Dibayar</label>
-                                                <input type="text" class="form-control bg-gray-50" 
-                                                    value="{{ $gaji['sesi_belum_dibayar'] }} Sesi" readonly>
-                                            </div>
-
-                                            <div class="col-span-12">
-                                                <hr class="my-2">
-                                            </div>
-
-                                            {{-- Periode Pembayaran --}}
-                                            <div class="col-span-12 md:col-span-6">
-                                                <label class="form-label">Tanggal Mulai Periode</label>
-                                                <input type="date" name="tgl_mulai" class="form-control modal_tgl_mulai" required>
-                                            </div>
-
-                                            <div class="col-span-12 md:col-span-6">
-                                                <label class="form-label">Tanggal Selesai Periode</label>
-                                                <input type="date" name="tgl_selesai" class="form-control modal_tgl_selesai" required>
-                                            </div>
-
-                                            {{-- Info Jumlah Sesi dalam Periode --}}
-                                            <div class="col-span-12">
-                                                <label class="form-label font-semibold text-primary-600">Jumlah Sesi dalam Periode Ini</label>
-                                                <input type="text" class="modal_jumlah_sesi form-control bg-primary-50 border-primary-200 text-primary-600 font-bold text-lg" value="Menunggu input tanggal..." readonly>
-                                                <input type="hidden" class="jumlah_sesi_value" value="0">
-                                            </div>
-
-                                            <div class="col-span-12">
-                                                <hr class="my-2">
-                                            </div>
-
-                                            {{-- Tanggal Bayar --}}
-                                            <div class="col-span-12">
-                                                <label class="form-label">Tanggal Bayar</label>
-                                                <input type="date" name="tgl_bayar" class="form-control" value="{{ date('Y-m-d') }}" required>
-                                            </div>
-
-                                            {{-- Metode Pembayaran --}}
-                                            <div class="col-span-12">
-                                                <label class="form-label">Metode Pembayaran</label>
-                                                <select name="metode_pembayaran" class="form-control" required>
-                                                    <option value="">-- Pilih Metode --</option>
-                                                    <option value="cash">Cash</option>
-                                                    <option value="transfer">Transfer Bank</option>
-                                                    <option value="e-wallet">E-Wallet</option>
-                                                </select>
-                                            </div>
-
-                                            {{-- Bonus --}}
-                                            <div class="col-span-12">
-                                                <label class="form-label">Bonus (Opsional)</label>
-                                                <input type="number" name="bonus" class="modal_bonus form-control" value="0" min="0" step="1000">
-                                            </div>
-
-                                            {{-- Total Dibayarkan --}}
-                                            <div class="col-span-12">
-                                                <label class="form-label font-semibold text-success-600">Total Yang Akan Dibayarkan</label>
-                                                <input type="text" class="modal_total_dibayarkan form-control bg-success-50 border-success-200 text-success-600 font-bold text-xl" value="Rp 0" readonly>
-                                                <small class="text-muted">Base Rate × Jumlah Sesi + Bonus</small>
-                                            </div>
-
-                                            <div class="flex items-center justify-start gap-3 mt-6">
-                                                <button type="reset" data-modal-hide="edit-popup-modal-{{ $gaji['id'] }}" class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
-                                                    Cancel
-                                                </button>
-                                                <button type="submit" class="btn-submit-gaji btn btn-primary border border-primary-600 text-base px-6 py-3 whitespace-nowrap text-white rounded-lg">
-                                                    Simpan Pembayaran
-                                                </button>
-                                            </div>
-                                        </div>  
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
+        </form>
+    </x-slot:body>
+    <x-slot:footer>
+        <button type="button" data-close-modal="bayar-gaji-modal"
+            class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg transition-colors">
+            Cancel
+        </button>
+        <button id="gajiSubmitBtn" type="submit" form="bayarGajiForm"
+            class="btn btn-primary border border-primary-600 text-base px-6 py-3 whitespace-nowrap text-white rounded-lg">
+            Simpan Pembayaran
+        </button>
+    </x-slot:footer>
+</x-modal>
 
 @endsection
 
 @section('scripts')
+<script src="{{ asset('assets/js/ajax-table.js') }}"></script>
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    const modals = document.querySelectorAll('[id^="edit-popup-modal-"]');
+document.addEventListener('DOMContentLoaded', function () {
+    var currentTrainerId = null;
+    var currentBaseRate  = 0;
+    var currentJumlahSesi = 0;
+    var isFetching = false;
 
-    function formatRupiah(angka) {
-        return new Intl.NumberFormat('id-ID', {
-            style: 'currency',
-            currency: 'IDR',
-            minimumFractionDigits: 0
-        }).format(angka);
+    function htmlEsc(str) {
+        return String(str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
-    modals.forEach((modal) => {
-        const form = modal.querySelector('.form-gaji-trainer');
-        if (!form) return;
-        
-        const trainerId = form.dataset.trainerId;
-        const baseRateFromData = parseFloat(form.dataset.baseRate) || 0;
-        
-        const tglMulai = modal.querySelector('.modal_tgl_mulai');
-        const tglSelesai = modal.querySelector('.modal_tgl_selesai');
-        const jumlahSesiDisplay = modal.querySelector('.modal_jumlah_sesi');
-        const jumlahSesiValue = modal.querySelector('.jumlah_sesi_value');
-        const bonusInput = modal.querySelector('.modal_bonus');
-        const totalDibayarkanDisplay = modal.querySelector('.modal_total_dibayarkan');
-        const btnSubmit = modal.querySelector('.btn-submit-gaji');
+    function formatRupiah(angka) {
+        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
+    }
 
-        if (!tglMulai || !tglSelesai || !jumlahSesiDisplay || !totalDibayarkanDisplay) return;
+    var gajiJumlahSesiDisplay = document.getElementById('gajiJumlahSesiDisplay');
+    var gajiBonus             = document.getElementById('gajiBonus');
+    var gajiTotalDibayarkan   = document.getElementById('gajiTotalDibayarkan');
+    var gajiTglMulai          = document.getElementById('gajiTglMulai');
+    var gajiTglSelesai        = document.getElementById('gajiTglSelesai');
+    var gajiSubmitBtn         = document.getElementById('gajiSubmitBtn');
 
-        let baseRate = baseRateFromData;
-        let currentJumlahSesi = 0;
-        let isFetching = false;
+    function updateTotal() {
+        var bonus = gajiBonus ? (parseInt(gajiBonus.value) || 0) : 0;
+        var total = (currentBaseRate * currentJumlahSesi) + bonus;
+        if (gajiTotalDibayarkan) gajiTotalDibayarkan.value = formatRupiah(total);
+    }
 
-        async function fetchPaymentData() {
-            if (isFetching) return;
+    async function fetchPaymentData() {
+        if (isFetching || !currentTrainerId) return;
 
-            const tglMulaiVal = tglMulai.value;
-            const tglSelesaiVal = tglSelesai.value;
+        var tglMulaiVal   = gajiTglMulai ? gajiTglMulai.value : '';
+        var tglSelesaiVal = gajiTglSelesai ? gajiTglSelesai.value : '';
 
-            if (!tglMulaiVal || !tglSelesaiVal) {
-                jumlahSesiDisplay.value = 'Menunggu input tanggal...';
-                if (jumlahSesiValue) jumlahSesiValue.value = 0;
-                currentJumlahSesi = 0;
-                updateTotal();
-                return;
-            }
-
-            if (new Date(tglSelesaiVal) < new Date(tglMulaiVal)) {
-                jumlahSesiDisplay.value = 'Tanggal tidak valid';
-                if (jumlahSesiValue) jumlahSesiValue.value = 0;
-                currentJumlahSesi = 0;
-                updateTotal();
-                
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Tanggal Tidak Valid',
-                        text: 'Tanggal selesai harus lebih besar atau sama dengan tanggal mulai'
-                    });
-                }
-                return;
-            }
-
-            isFetching = true;
-            jumlahSesiDisplay.value = 'Mengambil data...';
-            if (btnSubmit) btnSubmit.disabled = true;
-
-            try {
-                const url = `/riwayat-gaji-trainer/payment-data/${trainerId}?tgl_mulai=${tglMulaiVal}&tgl_selesai=${tglSelesaiVal}`;
-
-                const csrfToken = document.querySelector('meta[name="csrf-token"]');
-                if (!csrfToken) {
-                    throw new Error('CSRF token not found');
-                }
-
-                const response = await fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken.content,
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    throw new Error('Server tidak mengembalikan JSON');
-                }
-
-                const result = await response.json();
-
-                if (result.success) {
-                    currentJumlahSesi = result.data.jumlah_sesi || 0;
-                    baseRate = result.data.base_rate || baseRateFromData;
-                    
-                    jumlahSesiDisplay.value = `${currentJumlahSesi} Sesi`;
-                    if (jumlahSesiValue) jumlahSesiValue.value = currentJumlahSesi;
-                    updateTotal();
-                    if (btnSubmit) btnSubmit.disabled = false;
-
-                    if (currentJumlahSesi === 0 && typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            icon: 'info',
-                            title: 'Tidak Ada Sesi',
-                            text: 'Tidak ada sesi yang perlu dibayar dalam periode ini'
-                        });
-                    }
-                } else {
-                    jumlahSesiDisplay.value = '0 Sesi';
-                    currentJumlahSesi = 0;
-                    if (jumlahSesiValue) jumlahSesiValue.value = 0;
-                    updateTotal();
-                    if (btnSubmit) btnSubmit.disabled = false;
-                    
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            icon: 'info',
-                            title: 'Tidak Ada Data',
-                            text: result.message || 'Tidak ada sesi yang perlu dibayar dalam periode ini'
-                        });
-                    }
-                }
-            } catch (error) {
-                jumlahSesiDisplay.value = '0 Sesi (Error)';
-                currentJumlahSesi = 0;
-                if (jumlahSesiValue) jumlahSesiValue.value = 0;
-                updateTotal();
-                if (btnSubmit) btnSubmit.disabled = false;
-                
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Terjadi Kesalahan',
-                        html: `
-                            <p>Gagal mengambil data pembayaran</p>
-                            <p class="text-sm text-gray-600 mt-2">${error.message}</p>
-                        `
-                    });
-                }
-            } finally {
-                isFetching = false;
-            }
+        if (!tglMulaiVal || !tglSelesaiVal) {
+            if (gajiJumlahSesiDisplay) gajiJumlahSesiDisplay.value = 'Menunggu input tanggal...';
+            currentJumlahSesi = 0;
+            updateTotal();
+            return;
         }
 
-        function updateTotal() {
-            const bonus = bonusInput ? (parseInt(bonusInput.value) || 0) : 0;
-            const total = (baseRate * currentJumlahSesi) + bonus;
-            
-            if (totalDibayarkanDisplay) {
-                totalDibayarkanDisplay.value = formatRupiah(total);
-            }
+        if (new Date(tglSelesaiVal) < new Date(tglMulaiVal)) {
+            if (gajiJumlahSesiDisplay) gajiJumlahSesiDisplay.value = 'Tanggal tidak valid';
+            currentJumlahSesi = 0;
+            updateTotal();
+            Swal.fire({ icon: 'warning', title: 'Tanggal Tidak Valid', text: 'Tanggal selesai harus lebih besar atau sama dengan tanggal mulai' });
+            return;
         }
 
-        let dateChangeTimeout;
-        
-        if (tglMulai) {
-            tglMulai.addEventListener('change', function() {
-                clearTimeout(dateChangeTimeout);
-                dateChangeTimeout = setTimeout(() => fetchPaymentData(), 300);
+        isFetching = true;
+        if (gajiJumlahSesiDisplay) gajiJumlahSesiDisplay.value = 'Mengambil data...';
+        if (gajiSubmitBtn) gajiSubmitBtn.disabled = true;
+
+        try {
+            var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+            var url = '/riwayat-gaji-trainer/payment-data/' + currentTrainerId + '?tgl_mulai=' + tglMulaiVal + '&tgl_selesai=' + tglSelesaiVal;
+            var response = await fetch(url, {
+                method: 'GET',
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrfMeta ? csrfMeta.content : '' }
             });
-        }
-        
-        if (tglSelesai) {
-            tglSelesai.addEventListener('change', function() {
-                clearTimeout(dateChangeTimeout);
-                dateChangeTimeout = setTimeout(() => fetchPaymentData(), 300);
-            });
-        }
-        
-        if (bonusInput) {
-            bonusInput.addEventListener('input', function() {
-                updateTotal();
-            });
-        }
 
-        form.addEventListener('submit', async function(e) {
+            if (!response.ok) throw new Error('HTTP error ' + response.status);
+
+            var result = await response.json();
+
+            if (result.success) {
+                currentJumlahSesi = result.data.jumlah_sesi || 0;
+                currentBaseRate   = result.data.base_rate   || currentBaseRate;
+                if (gajiJumlahSesiDisplay) gajiJumlahSesiDisplay.value = currentJumlahSesi + ' Sesi';
+                updateTotal();
+                if (gajiSubmitBtn) gajiSubmitBtn.disabled = false;
+                if (currentJumlahSesi === 0) {
+                    Swal.fire({ icon: 'info', title: 'Tidak Ada Sesi', text: 'Tidak ada sesi yang perlu dibayar dalam periode ini' });
+                }
+            } else {
+                currentJumlahSesi = 0;
+                if (gajiJumlahSesiDisplay) gajiJumlahSesiDisplay.value = '0 Sesi';
+                updateTotal();
+                if (gajiSubmitBtn) gajiSubmitBtn.disabled = false;
+                Swal.fire({ icon: 'info', title: 'Tidak Ada Data', text: result.message || 'Tidak ada sesi yang perlu dibayar dalam periode ini' });
+            }
+        } catch (error) {
+            currentJumlahSesi = 0;
+            if (gajiJumlahSesiDisplay) gajiJumlahSesiDisplay.value = '0 Sesi (Error)';
+            updateTotal();
+            if (gajiSubmitBtn) gajiSubmitBtn.disabled = false;
+            Swal.fire({ icon: 'error', title: 'Terjadi Kesalahan', html: '<p>Gagal mengambil data pembayaran</p><p class="text-sm text-gray-600 mt-2">' + error.message + '</p>' });
+        } finally {
+            isFetching = false;
+        }
+    }
+
+    var dateTimeout;
+    if (gajiTglMulai) gajiTglMulai.addEventListener('change', function () { clearTimeout(dateTimeout); dateTimeout = setTimeout(fetchPaymentData, 300); });
+    if (gajiTglSelesai) gajiTglSelesai.addEventListener('change', function () { clearTimeout(dateTimeout); dateTimeout = setTimeout(fetchPaymentData, 300); });
+    if (gajiBonus) gajiBonus.addEventListener('input', updateTotal);
+
+    var bayarGajiForm = document.getElementById('bayarGajiForm');
+    if (bayarGajiForm) {
+        bayarGajiForm.addEventListener('submit', async function (e) {
             e.preventDefault();
             e.stopPropagation();
 
             if (currentJumlahSesi <= 0) {
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Data Tidak Valid',
-                        text: 'Tidak ada sesi yang perlu dibayar dalam periode ini'
-                    });
-                } else {
-                    alert('Tidak ada sesi yang perlu dibayar dalam periode ini');
-                }
+                Swal.fire({ icon: 'error', title: 'Data Tidak Valid', text: 'Tidak ada sesi yang perlu dibayar dalam periode ini' });
                 return;
             }
 
-            const formData = new FormData(form);
-            const metodePembayaran = formData.get('metode_pembayaran');
-            
-            if (!metodePembayaran || metodePembayaran === '') {
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Data Tidak Lengkap',
-                        text: 'Silakan pilih metode pembayaran'
-                    });
-                } else {
-                    alert('Silakan pilih metode pembayaran');
-                }
+            var metode = document.getElementById('gajiMetode') ? document.getElementById('gajiMetode').value : '';
+            if (!metode) {
+                Swal.fire({ icon: 'warning', title: 'Data Tidak Lengkap', text: 'Silakan pilih metode pembayaran' });
                 return;
             }
 
-            const data = {
-                id_trainer: trainerId,
-                tgl_mulai: formData.get('tgl_mulai'),
-                tgl_selesai: formData.get('tgl_selesai'),
-                tgl_bayar: formData.get('tgl_bayar'),
-                metode_pembayaran: metodePembayaran,
-                bonus: formData.get('bonus') || 0
+            var data = {
+                id_trainer:         currentTrainerId,
+                tgl_mulai:          gajiTglMulai ? gajiTglMulai.value : '',
+                tgl_selesai:        gajiTglSelesai ? gajiTglSelesai.value : '',
+                tgl_bayar:          document.getElementById('gajiTglBayar') ? document.getElementById('gajiTglBayar').value : '',
+                metode_pembayaran:  metode,
+                bonus:              gajiBonus ? (gajiBonus.value || 0) : 0
             };
 
             try {
-                if (btnSubmit) {
-                    btnSubmit.disabled = true;
-                    btnSubmit.textContent = 'Menyimpan...';
-                }
-
-                const csrfToken = document.querySelector('meta[name="csrf-token"]');
-                if (!csrfToken) {
-                    throw new Error('CSRF token not found');
-                }
-
-                const response = await fetch('/riwayat-gaji-trainer', {
+                if (gajiSubmitBtn) { gajiSubmitBtn.disabled = true; gajiSubmitBtn.textContent = 'Menyimpan...'; }
+                var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                var response = await fetch('/riwayat-gaji-trainer', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken.content,
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrfMeta ? csrfMeta.content : '' },
                     body: JSON.stringify(data)
                 });
-
-                const result = await response.json();
+                var result = await response.json();
 
                 if (response.ok && result.success) {
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Berhasil',
-                            text: result.message,
-                            confirmButtonColor: '#3085d6',
-                        }).then(() => {
-                            location.reload();
-                        });
-                    } else {
-                        alert(result.message);
-                        location.reload();
-                    }
+                    Swal.fire({ icon: 'success', title: 'Berhasil', text: result.message, confirmButtonColor: '#3085d6' }).then(function () { location.reload(); });
                 } else {
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal',
-                            text: result.message || 'Terjadi kesalahan saat menyimpan'
-                        });
-                    } else {
-                        alert(result.message || 'Terjadi kesalahan saat menyimpan');
-                    }
-                    if (btnSubmit) {
-                        btnSubmit.disabled = false;
-                        btnSubmit.textContent = 'Simpan Pembayaran';
-                    }
+                    Swal.fire({ icon: 'error', title: 'Gagal', text: result.message || 'Terjadi kesalahan saat menyimpan' });
+                    if (gajiSubmitBtn) { gajiSubmitBtn.disabled = false; gajiSubmitBtn.textContent = 'Simpan Pembayaran'; }
                 }
             } catch (error) {
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Terjadi Kesalahan',
-                        html: `
-                            <p>Gagal menyimpan pembayaran</p>
-                            <p class="text-sm text-gray-600 mt-2">${error.message}</p>
-                        `
-                    });
-                } else {
-                    alert('Gagal menyimpan pembayaran: ' + error.message);
-                }
-                
-                if (btnSubmit) {
-                    btnSubmit.disabled = false;
-                    btnSubmit.textContent = 'Simpan Pembayaran';
-                }
+                Swal.fire({ icon: 'error', title: 'Terjadi Kesalahan', html: '<p>Gagal menyimpan pembayaran</p><p class="text-sm text-gray-600 mt-2">' + error.message + '</p>' });
+                if (gajiSubmitBtn) { gajiSubmitBtn.disabled = false; gajiSubmitBtn.textContent = 'Simpan Pembayaran'; }
             }
         });
+    }
 
-        const modalTrigger = document.querySelector(`[data-modal-target="edit-popup-modal-${trainerId}"]`);
-        
-        if (modalTrigger) {
-            modalTrigger.addEventListener('click', function(e) {
-                form.reset();
-                jumlahSesiDisplay.value = 'Menunggu input tanggal...';
-                if (jumlahSesiValue) jumlahSesiValue.value = 0;
-                currentJumlahSesi = 0;
-                totalDibayarkanDisplay.value = formatRupiah(0);
-                
-                if (btnSubmit) {
-                    btnSubmit.disabled = false;
-                    btnSubmit.textContent = 'Simpan Pembayaran';
-                }
-                
-                const tglBayarInput = form.querySelector('[name="tgl_bayar"]');
-                if (tglBayarInput && !tglBayarInput.value) {
-                    const today = new Date().toISOString().split('T')[0];
-                    tglBayarInput.value = today;
-                }
-            });
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.open-bayar-gaji');
+        if (btn) {
+            currentTrainerId  = btn.dataset.trainerId;
+            currentBaseRate   = parseFloat(btn.dataset.baseRate) || 0;
+            currentJumlahSesi = 0;
+
+            document.getElementById('gajiNamaTrainer').value    = btn.dataset.nama;
+            document.getElementById('gajiBaseRateDisplay').value = formatRupiah(currentBaseRate);
+            document.getElementById('gajiSesiDisplay').value    = btn.dataset.sesi + ' Sesi';
+            if (gajiJumlahSesiDisplay) gajiJumlahSesiDisplay.value = 'Menunggu input tanggal...';
+            if (gajiTglMulai) gajiTglMulai.value = '';
+            if (gajiTglSelesai) gajiTglSelesai.value = '';
+            if (gajiBonus) gajiBonus.value = 0;
+            if (gajiTotalDibayarkan) gajiTotalDibayarkan.value = formatRupiah(0);
+            if (gajiSubmitBtn) { gajiSubmitBtn.disabled = false; gajiSubmitBtn.textContent = 'Simpan Pembayaran'; }
+            var tglBayarEl = document.getElementById('gajiTglBayar');
+            if (tglBayarEl) tglBayarEl.value = new Date().toISOString().split('T')[0];
+            var metodeEl = document.getElementById('gajiMetode');
+            if (metodeEl) metodeEl.value = '';
+            HexaModal.show('bayar-gaji-modal');
         }
     });
+
+    AjaxTable.init('gajiTrainer', {
+        url: '{{ route('riwayat_gaji_trainer.datatable') }}',
+        colSpan: {{ $colCount }},
+        renderRow: function (item) {
+            var sesi          = item.sesi_belum_dibayar;
+            var sesilBadge    = sesi > 0
+                ? AjaxTable.badge('warning', sesi + ' Sesi')
+                : AjaxTable.badge('success', '0 Sesi');
+
+            var bayarBtn = '<button type="button"'
+                + ' class="open-bayar-gaji btn-action' + (sesi <= 0 ? ' opacity-50 cursor-not-allowed pointer-events-none' : '') + '"'
+                + ' title="Bayar Gaji"'
+                + ' data-trainer-id="' + item.id + '"'
+                + ' data-base-rate="' + item.base_rate + '"'
+                + ' data-sesi="' + sesi + '"'
+                + ' data-nama="' + htmlEsc(item.nama) + '"'
+                + (sesi <= 0 ? ' disabled' : '') + '>'
+                + '<iconify-icon icon="hugeicons:money-send-square"></iconify-icon></button>';
+
+            var historyBtn = '<a href="' + htmlEsc(item.history_url) + '" title="Lihat History"'
+                + ' class="btn-action">'
+                + '<iconify-icon icon="solar:clipboard-list-bold"></iconify-icon></a>';
+
+            return '<tr>'
+                + '<td class="whitespace-nowrap">' + item.no + '</td>'
+                + '<td class="whitespace-nowrap"><div class="flex gap-2">' + bayarBtn + historyBtn + '</div></td>'
+                + '<td class="whitespace-nowrap">' + htmlEsc(item.nama) + '</td>'
+                + '<td class="whitespace-nowrap">' + htmlEsc(item.terakhir_gajian) + '</td>'
+                + '<td class="whitespace-nowrap">' + sesilBadge + '</td>'
+                + '<td class="whitespace-nowrap">Rp ' + Number(item.base_rate).toLocaleString('id-ID') + '</td>'
+                + '</tr>';
+        }
+    });
+
+    @if(session('success'))
+    Swal.fire({ icon: 'success', title: 'Berhasil!', text: '{{ session('success') }}', timer: 3000 });
+    @endif
+    @if(session('danger'))
+    Swal.fire({ icon: 'error', title: 'Gagal!', text: '{{ session('danger') }}' });
+    @endif
 });
 </script>
 @endsection

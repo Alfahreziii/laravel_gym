@@ -10,13 +10,85 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class UsersController extends Controller
 {
     public function usersList()
     {
-        $users = User::latest()->get();
-        return view('users/usersList', compact('users'));
+        return view('users/usersList');
+    }
+
+    public function datatableUsers(Request $request)
+    {
+        $search  = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page    = (int) $request->get('page', 1);
+
+        $query = User::with('roles')->latest();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhereHas('roles', fn($q2) => $q2->where('name', 'like', "%{$search}%"));
+            });
+        }
+
+        $total = (clone $query)->count();
+        $data  = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        return response()->json([
+            'data' => $data->map(function ($item, $index) use ($page, $perPage) {
+                if ($item->last_activity) {
+                    $last          = Carbon::parse($item->last_activity)->setTimezone('Asia/Jakarta');
+                    $now           = now()->setTimezone('Asia/Jakarta');
+                    $diffInMinutes = abs($now->diffInMinutes($last));
+                    $isActive      = $last->diffInMinutes($now, false) <= 2;
+
+                    if ($isActive && $last <= $now) {
+                        $status      = 'Active';
+                        $statusClass = 'text-green-600 font-semibold';
+                        $timeInfo    = '(' . number_format($diffInMinutes, 0) . ' menit yang lalu)';
+                    } else {
+                        $status      = 'Offline';
+                        $statusClass = 'text-gray-400';
+                        if ($diffInMinutes < 60) {
+                            $timeInfo = '(' . number_format($diffInMinutes, 0) . ' menit yang lalu)';
+                        } elseif ($diffInMinutes < 1440) {
+                            $timeInfo = '(' . floor($diffInMinutes / 60) . ' jam yang lalu)';
+                        } else {
+                            $timeInfo = '(' . floor($diffInMinutes / 1440) . ' hari yang lalu)';
+                        }
+                    }
+                } else {
+                    $status      = 'Never Active';
+                    $statusClass = 'text-gray-300 italic';
+                    $timeInfo    = '';
+                }
+
+                $currentRole = $item->getRoleNames()->first();
+
+                return [
+                    'no'           => (($page - 1) * $perPage) + $index + 1,
+                    'id'           => $item->id,
+                    'foto'         => $item->foto ? asset('storage/' . $item->foto) : null,
+                    'name'         => $item->name,
+                    'email'        => $item->email,
+                    'role'         => $item->getRoleNames()->implode(', '),
+                    'current_role' => $currentRole,
+                    'status'       => $status,
+                    'status_class' => $statusClass,
+                    'time_info'    => $timeInfo,
+                    'can_edit_role' => !in_array($currentRole, ['member', 'trainer']),
+                    'update_url'   => route('role.update', $item->id),
+                ];
+            }),
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
     }
 
     /**

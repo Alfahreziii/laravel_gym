@@ -6,28 +6,10 @@
 
 @section('content')
     @if (session('success'))
-        <div
-            class="alert alert-success bg-success-50 dark:bg-success-600/25 
-        text-success-600 dark:text-success-400 border-success-50 
-        px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                {{ session('success') }}
-            </div>
-            <button class="remove-button text-success-600 text-2xl">
-                <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
-            </button>
-        </div>
+        <x-alert type="success">{{ session('success') }}</x-alert>
     @endif
     @if (session('error'))
-        <div
-            class="alert alert-danger bg-danger-100 dark:bg-danger-600/25 
-        text-danger-600 dark:text-danger-400 border-danger-100 
-        px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
-            {{ session('error') }}
-            <button class="remove-button text-danger-600 text-2xl">
-                <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
-            </button>
-        </div>
+        <x-alert type="danger">{{ session('error') }}</x-alert>
     @endif
 
     <div class="grid grid-cols-12 gap-5">
@@ -245,12 +227,16 @@
                             {{-- Foto --}}
                             <div class="col-span-12">
                                 <label class="form-label">Foto <span class="text-danger-600">*</span></label>
-                                <input
+                                <input id="photo-input"
                                     class="border border-neutral-200 w-full rounded-lg @error('photo') is-invalid @enderror"
                                     type="file" name="photo" accept="image/*" required>
                                 @error('photo')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
+                                <div id="photo-preview-wrap" class="hidden mt-2 flex items-center gap-3">
+                                    <img id="photo-preview" src="" alt="Preview" class="w-16 h-16 rounded-lg object-cover border border-neutral-200">
+                                    <span id="photo-size-info" class="text-xs text-neutral-500"></span>
+                                </div>
                             </div>
 
                             {{-- Tombol --}}
@@ -268,4 +254,77 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('scripts')
+<script>
+(function () {
+    const input    = document.getElementById('photo-input');
+    const preview  = document.getElementById('photo-preview');
+    const wrap     = document.getElementById('photo-preview-wrap');
+    const sizeInfo = document.getElementById('photo-size-info');
+
+    function fmtKB(bytes) { return (bytes / 1024).toFixed(0) + ' KB'; }
+
+    input.addEventListener('change', function () {
+        const file = this.files[0];
+        if (!file) { wrap.classList.add('hidden'); return; }
+
+        const origSize = file.size;
+        const ext      = file.name.split('.').pop().toLowerCase();
+        const noCanvas = ['heic', 'heif'].includes(ext);
+
+        if (noCanvas || origSize < 300 * 1024) {
+            // Tampilkan preview saja, skip kompresi
+            const url = URL.createObjectURL(file);
+            preview.src = url;
+            wrap.classList.remove('hidden');
+            sizeInfo.textContent = noCanvas
+                ? fmtKB(origSize) + ' (format HEIC, tidak dikompresi)'
+                : fmtKB(origSize) + ' (sudah kecil, tidak dikompresi)';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (ev) {
+            const img = new Image();
+            img.onload = function () {
+                const MAX_W  = 800;
+                const scale  = Math.min(1, MAX_W / img.width);
+                const canvas = document.createElement('canvas');
+                canvas.width  = Math.round(img.width  * scale);
+                canvas.height = Math.round(img.height * scale);
+
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                canvas.toBlob(function (blob) {
+                    if (!blob || blob.size >= origSize) {
+                        // Kompresi malah besar, pakai aslinya
+                        preview.src = URL.createObjectURL(file);
+                        wrap.classList.remove('hidden');
+                        sizeInfo.textContent = fmtKB(origSize) + ' (kompresi tidak efektif, pakai asli)';
+                        return;
+                    }
+
+                    const newName = file.name.replace(/\.[^.]+$/, '.jpg');
+                    const compressed = new File([blob], newName, { type: 'image/jpeg' });
+
+                    const dt = new DataTransfer();
+                    dt.items.add(compressed);
+                    input.files = dt.files;
+
+                    preview.src = URL.createObjectURL(blob);
+                    wrap.classList.remove('hidden');
+                    sizeInfo.textContent = fmtKB(origSize) + ' → ' + fmtKB(blob.size) + ' (dikompresi)';
+                }, 'image/jpeg', 0.65);
+            };
+            img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+})();
+</script>
 @endsection

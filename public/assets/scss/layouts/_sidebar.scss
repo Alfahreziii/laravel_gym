@@ -1,6 +1,6 @@
 /* === sidebar css start === */
 .sidebar {
-  @apply fixed start-[-105%] xl:start-0 top-0 w-[250px] xl:w-[220px] 2xl:w-[275px] 3xl:w-[312px] h-screen bg-white z-30 dark:bg-dark-2;
+  @apply fixed start-[-105%] xl:start-0 top-0 w-[250px] xl:w-[220px] 2xl:w-[275px] 3xl:w-[312px] h-screen bg-[#FAFAF9] z-30 dark:bg-surface-dark;
 }
 
 .sidebar-close-btn {
@@ -12,7 +12,7 @@
 }
 
 .sidebar.active {
-  @apply w-auto xl:hover:start-0 2xl:hover:w-[17.1875rem] 3xl:hover:w-[19.5rem];
+  @apply w-[5.375rem] xl:hover:start-0 xl:hover:w-[13.75rem] 2xl:hover:w-[17.1875rem] 3xl:hover:w-[19.5rem];
 }
 
 .sidebar.active:hover .sidebar-logo img.light-logo {
@@ -80,7 +80,11 @@
 }
 
 .sidebar-logo {
-  @apply h-[72px] px-[16px] py-[14px] border-e border-b border-neutral-200 flex items-center justify-start dark:border-neutral-700;
+  @apply h-[72px] px-[16px] py-[14px] flex items-center justify-start;
+  border-right: 1px solid #E2E0DB;
+}
+.dark .sidebar-logo {
+  border-right-color: #332D26;
 }
 
 .sidebar-logo img {
@@ -104,26 +108,31 @@
 }
 
 .sidebar-menu-area {
-  @apply h-[calc(100vh-72px)] px-[1rem] py-[0.75rem] overflow-y-scroll border-e border-neutral-200 dark:border-neutral-700;
+  @apply h-[calc(100vh-72px)] px-[1rem] py-[0.75rem] overflow-y-scroll;
+  border-right: 1px solid #E2E0DB;
+}
+.dark .sidebar-menu-area {
+  border-right-color: #332D26;
 }
 
 .sidebar-menu-area:hover::-webkit-scrollbar-thumb {
-  @apply bg-neutral-200 ;
+  @apply bg-neutral-200;
 }
 
 .sidebar-menu-area::-webkit-scrollbar {
-  @apply w-1.5 bg-white;
+  @apply w-1.5;
+  background: #FAFAF9;
 }
 
 .sidebar-menu-area::-webkit-scrollbar-thumb {
-  @apply bg-white;
+  background: #FAFAF9;
 }
 
 .dark .sidebar-menu-area::-webkit-scrollbar {
-  @apply bg-dark-2;
+  @apply bg-surface-dark;
 }
 .dark .sidebar-menu-area::-webkit-scrollbar-thumb {
-  @apply bg-dark-2;
+  @apply bg-surface-dark;
 }
 
 .dark .sidebar-menu-area:hover::-webkit-scrollbar-thumb {
@@ -131,18 +140,36 @@
 }
 
 .sidebar-menu li.dropdown > a {
-  @apply relative after:absolute after:content-["\ea6e"] after:font-[remixicon] after:top-1/2 after:end-[0.75rem] after:-translate-y-1/2 after:text-[1.125rem] 3xl:after:text-[1.375rem] after:transition dark:after:text-neutral-300;
+  @apply relative after:absolute after:content-["\ea6e"] after:font-[remixicon] after:top-1/2 after:end-[0.75rem] after:-translate-y-1/2 after:text-[1.125rem] 3xl:after:text-[1.375rem] after:transition dark:after:text-ink-d2;
 }
 
-.sidebar-menu li.dropdown.open > a, .sidebar-menu li.dropdown.dropdown-open > a {
-  @apply bg-primary-600 text-white;
+.sidebar-menu li.dropdown.open > a,
+.sidebar-menu li.dropdown.dropdown-open > a {
+  @apply relative bg-primary-100 text-primary-700 dark:bg-primary-600/15 dark:text-primary-400;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: -14px;
+    top: 6px;
+    bottom: 6px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: #F2622E;
+  }
+
+  .menu-icon {
+    @apply text-primary-600 dark:text-primary-400;
+  }
 }
 
-.sidebar-menu li.dropdown.open > a:hover, .sidebar-menu li.dropdown.dropdown-open > a:hover {
-  @apply text-white;
+.sidebar-menu li.dropdown.open > a:hover,
+.sidebar-menu li.dropdown.dropdown-open > a:hover {
+  @apply text-primary-700 dark:text-primary-400;
 }
 
-.sidebar-menu li.dropdown.open > a::after, .sidebar-menu li.dropdown.dropdown-open > a::after {
+.sidebar-menu li.dropdown.open > a::after,
+.sidebar-menu li.dropdown.dropdown-open > a::after {
   @apply -translate-y-1/2 rotate-90;
 }
 
@@ -151,15 +178,53 @@
 }
 
 .sidebar-menu li > a.active-page {
-  @apply bg-primary-600 text-white;
+  @apply relative bg-primary-100 text-primary-700 dark:bg-primary-600/15 dark:text-primary-400;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: -14px;
+    top: 6px;
+    bottom: 6px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: #F2622E;
+  }
+
+  .menu-icon {
+    @apply text-primary-600 dark:text-primary-400;
+  }
 }
 
 .sidebar-menu li > a.active-page:hover {
-  @apply text-white;
+  @apply text-primary-700 dark:text-primary-400;
+}
+
+.sidebar-menu li.active > a {
+  @apply relative bg-primary-100 text-primary-700 dark:bg-primary-600/15 dark:text-primary-400;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: -14px;
+    top: 6px;
+    bottom: 6px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: #F2622E;
+  }
+
+  .menu-icon {
+    @apply text-primary-600 dark:text-primary-400;
+  }
+}
+
+.sidebar-menu li.active > a:hover {
+  @apply text-primary-700 dark:text-primary-400;
 }
 
 .sidebar-menu li a {
-  @apply px-[0.75rem] py-[0.625rem] font-medium flex items-center text-neutral-600 transition rounded-lg text-[0.875rem] 3xl:text-[1rem];
+  @apply px-[0.75rem] py-[0.625rem] font-medium flex items-center text-neutral-600 dark:text-ink-d2 transition rounded-[10px] text-[0.875rem] 3xl:text-[1rem];
 }
 
 .sidebar-menu li a:hover {
@@ -167,7 +232,7 @@
 }
 
 .sidebar-menu li a .menu-icon {
-  @apply text-[1.125rem] 3xl:text-[1.375rem] me-[0.5rem] 3xl:me-[0.75rem] dark:text-neutral-300;
+  @apply text-[1.125rem] 3xl:text-[1.375rem] me-[0.5rem] 3xl:me-[0.75rem] dark:text-ink-d2;
 }
 
 .sidebar-menu li a i {
@@ -183,14 +248,25 @@
 }
 
 .sidebar-menu .sidebar-submenu li.active-page a {
-  @apply bg-primary-50 text-neutral-900 dark:bg-neutral-600;
+  @apply relative bg-primary-100 text-primary-700 dark:bg-primary-600/15 dark:text-primary-400;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: -24px;
+    top: 4px;
+    bottom: 4px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: #F2622E;
+  }
 }
 
 .sidebar-menu .sidebar-submenu li a {
-  @apply px-[0.75rem] py-[0.4375rem] dark:text-neutral-200;
+  @apply px-[0.75rem] py-[0.4375rem] dark:text-ink-d;
 }
 
 .sidebar-menu .sidebar-menu-group-title {
-  @apply text-neutral-500 font-semibold my-[8px] text-[0.875rem] 3xl:text-[1rem] dark:text-neutral-400;
+  @apply text-neutral-500 font-semibold my-[8px] text-[0.875rem] 3xl:text-[1rem] dark:text-ink-d3;
 }
 /* === sidebar css end === */

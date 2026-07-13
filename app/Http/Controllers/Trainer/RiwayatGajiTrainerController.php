@@ -53,6 +53,52 @@ class RiwayatGajiTrainerController extends Controller
         return view('pages.trainer.riwayat-gaji-trainer.index', compact('gajiTrainers'));
     }
 
+    public function datatable(Request $request)
+    {
+        $search  = $request->get('search', '');
+        $perPage = (int) $request->get('perPage', 10);
+        $page    = (int) $request->get('page', 1);
+
+        $query = Trainer::with(['riwayatGaji', 'settingGaji'])
+            ->where('status', Trainer::STATUS_AKTIF);
+
+        if ($search) {
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        $total    = (clone $query)->count();
+        $trainers = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        $data = $trainers->values()->map(function ($trainer, $index) use ($page, $perPage) {
+            $totalSesiKeseluruhan = MemberTrainer::where('id_trainer', $trainer->id)
+                ->join('paket_personal_trainers', 'member_trainers.id_paket_personal_trainer', '=', 'paket_personal_trainers.id')
+                ->sum('paket_personal_trainers.jumlah_sesi');
+
+            $totalSesiDibayar = RiwayatGajiTrainer::where('id_trainer', $trainer->id)
+                ->sum('jumlah_sesi');
+
+            $terakhirGajian = $trainer->riwayatGaji()->latest('tgl_bayar')->first();
+
+            return [
+                'no'                 => (($page - 1) * $perPage) + $index + 1,
+                'id'                 => $trainer->id,
+                'nama'               => $trainer->name,
+                'terakhir_gajian'    => $terakhirGajian ? $terakhirGajian->tgl_bayar->format('d F Y') : 'Belum Pernah',
+                'sesi_belum_dibayar' => $totalSesiKeseluruhan - $totalSesiDibayar,
+                'base_rate'          => $trainer->settingGaji->base_rate ?? 0,
+                'history_url'        => route('riwayat-gaji-trainer.history', $trainer->id),
+            ];
+        });
+
+        return response()->json([
+            'data'     => $data,
+            'total'    => $total,
+            'perPage'  => $perPage,
+            'page'     => $page,
+            'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
+    }
+
     /**
      * Get data for payment form
      */

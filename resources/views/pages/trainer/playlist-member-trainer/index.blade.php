@@ -7,17 +7,9 @@
 
 @section('content')
 
-    @if (session('error'))
-        <div
-            class="alert alert-danger bg-danger-100 dark:bg-danger-600/25 
-        text-danger-600 dark:text-danger-400 border-danger-100 
-        px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
-            {{ session('error') }}
-            <button class="remove-button text-danger-600 text-2xl">
-                <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
-            </button>
-        </div>
-    @endif
+@if(session('error'))
+    <x-alert type="danger">{{ session('error') }}</x-alert>
+@endif
 
     <div class="grid grid-cols-12 gap-6">
         <!-- Info Member -->
@@ -27,13 +19,13 @@
                     <h6 class="card-title mb-0 text-lg">Informasi Member</h6>
                     <div class="flex gap-2">
                         <a href="{{ route('trainer.member.history.export_pdf', $memberTrainer->id) }}"
-                            class="btn btn-primary border border-primary-600 text-sm px-5 py-2 rounded-lg inline-flex items-center">
-                            <iconify-icon icon="carbon:document-pdf" class="mr-2"></iconify-icon>
+                            class="btn btn-primary btn-sm">
+                            <iconify-icon icon="carbon:document-pdf" class="text-base"></iconify-icon>
                             Export PDF
                         </a>
                         <a href="{{ route('trainer.member.history.export_excel', $memberTrainer->id) }}"
-                            class="bg-success-600 hover:bg-success-700 text-white text-sm px-5 py-2 rounded-lg inline-flex items-center">
-                            <iconify-icon icon="carbon:document-export" class="mr-2"></iconify-icon>
+                            class="btn btn-secondary btn-sm">
+                            <iconify-icon icon="carbon:document-export" class="text-base"></iconify-icon>
                             Export Excel
                         </a>
                         <a href="{{ route('trainer.dashboard') }}"

@@ -13,6 +13,65 @@ use Illuminate\Support\Facades\Storage;
 
 class NoRoleController extends Controller
 {
+    // ─── AJAX endpoint untuk Scanner Drawer di halaman kehadiran-trainer ────
+
+    public function storetainerForLayout(Request $request)
+    {
+        $isAjax = $request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest';
+
+        try {
+            $request->validate([
+                'rfid' => 'required|string',
+                'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($isAjax) {
+                return response()->json(['success' => false, 'message' => 'Data tidak valid.'], 422);
+            }
+            throw $e;
+        }
+
+        $rfid    = strtoupper(trim($request->rfid, '0'));
+        $trainer = Trainer::whereRaw('UPPER(rfid) = ?', [$rfid])->first();
+
+        if (!$trainer) {
+            $msg = 'Kartu RFID ' . e($rfid) . ' tidak ditemukan!';
+            if ($isAjax) return response()->json(['success' => false, 'message' => $msg], 404);
+            return redirect()->route('absensi.trainer')->with('danger', $msg);
+        }
+
+        $today = now()->toDateString();
+        $last  = KehadiranTrainer::whereRaw('UPPER(rfid) = ?', [$rfid])
+            ->whereDate('created_at', $today)
+            ->orderByDesc('created_at')
+            ->first();
+
+        $status   = (!$last || $last->status === 'out') ? 'in' : 'out';
+        $fotoPath = null;
+        if ($request->hasFile('foto')) {
+            $fotoPath = $request->file('foto')->store('kehadiran_foto', 'public');
+        }
+
+        try {
+            KehadiranTrainer::create([
+                'rfid'   => $trainer->rfid,
+                'nama'   => $trainer->name,
+                'status' => $status,
+                'foto'   => $fotoPath,
+            ]);
+
+            $msg = 'Absensi ' . strtoupper($status) . ' untuk ' . e($trainer->name) . ' berhasil dicatat!';
+            if ($isAjax) return response()->json(['success' => true, 'message' => $msg]);
+            return redirect()->route('absensi.trainer')->with('success', $msg);
+        } catch (\Exception $e) {
+            $msg = 'Gagal menyimpan data absensi: ' . $e->getMessage();
+            if ($isAjax) return response()->json(['success' => false, 'message' => $msg], 500);
+            return redirect()->route('absensi.trainer')->with('danger', $msg);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+
     /**
      * Menampilkan halaman absensi member
      */

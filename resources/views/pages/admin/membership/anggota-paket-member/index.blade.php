@@ -1,170 +1,67 @@
 @extends('layout.layout')
 @php
-    $title = 'Anggota Membership';
-    $subTitle = 'Anggota Membership';
-    $script = '<script src="' . asset('assets/js/data-table.js') . '"></script>';
+    $title         = 'Anggota Membership';
+    $subTitle      = 'Anggota Membership';
     $isLaporanMode = request()->routeIs('laporan.membership');
+    $isAdmin       = (bool) auth()->user()?->hasRole('admin');
+    $colCount      = ($isAdmin && !$isLaporanMode) ? 11 : 10;
 @endphp
 
 @section('content')
     @if (session('success'))
-        <div
-            class="alert alert-success bg-success-50 dark:bg-success-600/25 
-        text-success-600 dark:text-success-400 border-success-50 
-        px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                {{ session('success') }}
-            </div>
-            <button class="remove-button text-success-600 text-2xl">
-                <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
-            </button>
-        </div>
+        <x-alert type="success">{{ session('success') }}</x-alert>
     @endif
     @if (session('danger'))
-        <div
-            class="alert alert-danger bg-danger-100 dark:bg-danger-600/25 
-        text-danger-600 dark:text-danger-400 border-danger-100 
-        px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
-            {{ session('danger') }}
-            <button class="remove-button text-danger-600 text-2xl">
-                <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
-            </button>
-        </div>
+        <x-alert type="danger">{{ session('danger') }}</x-alert>
     @endif
 
-    <div class="grid grid-cols-12">
-        <div class="col-span-12">
-            <div class="card border-0 overflow-hidden">
-                <div class="card-header flex items-center justify-between">
-                    <h6 class="card-title mb-0 text-lg">
-                        {{ $isLaporanMode ? 'Laporan Data Anggota Membership' : 'Data Anggota Membership' }}
-                    </h6>
-                    <div class="flex gap-2">
-                        <!-- Tombol Export PDF -->
-                        <button type="button" data-modal-target="export-pdf-modal" data-modal-toggle="export-pdf-modal"
-                            class="text-white bg-danger-600 hover:bg-danger-700 focus:ring-4 focus:outline-none focus:ring-danger-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center">
-                            <iconify-icon icon="carbon:export" class="mr-2 text-lg"></iconify-icon>
-                            Export Laporan
-                        </button>
+<x-page-table
+    title="{{ $isLaporanMode ? 'Laporan Data Anggota Membership' : 'Data Anggota Membership' }}"
+    subtitle="Kelola data transaksi dan keanggotaan aktif."
+>
+    <x-slot:actions>
+        <button type="button" onclick="HexaModal.show('export-pdf-modal')"
+            class="btn btn-secondary btn-sm">
+            <iconify-icon icon="carbon:export" class="text-base"></iconify-icon>
+            Export
+        </button>
+        @if (!$isLaporanMode)
+            @role('admin|spv')
+            <a href="{{ route('anggota_membership.create') }}" class="btn btn-primary btn-sm">
+                + Tambah Data
+            </a>
+            @endrole
+        @endif
+    </x-slot:actions>
+    <x-data-table
+        tableId="anggotaMembership"
+        :colspan="$colCount"
+        placeholder="Cari kode, anggota, paket, status...">
+        <x-slot:header>
+            <tr>
+                <th>S.L</th>
+                @if (!$isLaporanMode)
+                    @role('admin')
+                        <th>Aksi</th>
+                    @endrole
+                @endif
+                <th>Kode Transaksi</th>
+                <th>Nama Anggota</th>
+                <th>Paket</th>
+                <th>Tgl Bayar Awal</th>
+                <th>Metode Pembayaran</th>
+                <th>Tgl Mulai</th>
+                <th>Tgl Selesai</th>
+                <th>Status Pembayaran</th>
+                <th>Total Biaya</th>
+            </tr>
+        </x-slot:header>
+    </x-data-table>
+</x-page-table>
 
-                        {{-- Tombol Tambah Data hanya tampil jika BUKAN mode laporan --}}
-                        @if (!$isLaporanMode)
-                            @role('admin|spv')
-                                <a href="{{ route('anggota_membership.create') }}"
-                                    class="text-primary-600 focus:bg-primary-600 hover:bg-primary-700 border border-primary-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center dark:text-primary-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-primary-800">
-                                    + Tambah Data
-                                </a>
-                            @endrole
-                        @endif
-                    </div>
-                </div>
-                <div class="card-body">
-                    <table id="selection-table" class="border border-neutral-200 rounded-lg border-separate w-full">
-                        <thead>
-                            <tr>
-                                <th>S.L</th>
-                                @if (!$isLaporanMode)
-                                    @role('admin')
-                                        <th>Aksi</th>
-                                    @endrole
-                                @endif
-                                <th>Kode Transaksi</th>
-                                <th>Nama Anggota</th>
-                                <th>Paket</th>
-                                <th>Tgl Bayar Awal</th>
-                                <th>Metode Pembayaran</th>
-                                <th>Tgl Mulai</th>
-                                <th>Tgl Selesai</th>
-                                <th>Status Pembayaran</th>
-                                <th>Total Biaya</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($anggotaMemberships as $index => $item)
-                                <tr>
-                                    <td class="whitespace-nowrap">{{ $index + 1 }}</td>
-                                    @if (!$isLaporanMode)
-                                        @role('admin')
-                                            <td class="whitespace-nowrap flex gap-2">
-                                                <a href="{{ route('anggota_membership.edit', $item->id) }}" title="Edit Item"
-                                                    class="w-8 h-8 bg-success-100 text-success-600 rounded-full inline-flex items-center justify-center">
-                                                    <iconify-icon icon="lucide:edit"></iconify-icon>
-                                                </a>
-                                                <form action="{{ route('anggota_membership.destroy', $item->id) }}"
-                                                    method="POST" class="inline-block delete-form">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="button" title="Hapus Item"
-                                                        class="w-8 h-8 bg-danger-100 text-danger-600 rounded-full inline-flex items-center justify-center delete-btn">
-                                                        <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
-                                                    </button>
-                                                </form>
-                                            </td>
-                                        @endrole
-                                    @endif
-                                    <td class="whitespace-nowrap"><a class="text-primary-600"
-                                            href="{{ route('anggota_membership.edit', $item->id) }}">{{ $item->kode_transaksi }}</a>
-                                    </td>
-                                    <td class="whitespace-nowrap">{{ $item->anggota->name ?? '-' }}</td>
-                                    <td class="whitespace-nowrap">{{ $item->paketMembership->nama_paket ?? '-' }}</td>
-                                    <td class="whitespace-nowrap">
-                                        @php
-                                            $tanggalBayarAwal = $item->pembayaranMemberships->min('tgl_bayar');
-                                        @endphp
-                                        {{ $tanggalBayarAwal ? \Carbon\Carbon::parse($tanggalBayarAwal)->format('d M Y') : '-' }}
-                                    </td>
-                                    <td class="whitespace-nowrap">
-                                        @php
-                                            $metodePembayaran =
-                                                $item->pembayaranMemberships->first()->metode_pembayaran ?? '-';
-                                        @endphp
-                                        {{ $metodePembayaran ?? '-' }}
-                                    </td>
-                                    <td class="whitespace-nowrap">
-                                        {{ \Carbon\Carbon::parse($item->tgl_mulai)->format('d M Y') }}
-                                    </td>
-                                    <td class="whitespace-nowrap">
-                                        {{ \Carbon\Carbon::parse($item->tgl_selesai)->format('d M Y') }}
-                                    </td>
-                                    <td class="whitespace-nowrap">
-                                        @if ($item->status_pembayaran === 'Lunas')
-                                            <span
-                                                class="bg-success-100 text-success-600 px-4 py-1.5 rounded-full font-medium text-sm">Lunas</span>
-                                        @else
-                                            <span
-                                                class="bg-warning-100 text-warning-600 px-4 py-1.5 rounded-full font-medium text-sm">Belum
-                                                Lunas</span>
-                                        @endif
-                                    </td>
-                                    <td class="whitespace-nowrap">Rp {{ number_format($item->total_biaya, 0, ',', '.') }}
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Export PDF -->
-    <div id="export-pdf-modal" tabindex="-1"
-        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-        <div class="rounded-2xl bg-white max-w-[600px] w-full">
-            <div class="py-4 px-6 border-b border-neutral-200 flex items-center justify-between">
-                <h1 class="text-xl font-semibold">Filter Export Laporan</h1>
-                <button data-modal-hide="export-pdf-modal" type="button"
-                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
-                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                        viewBox="0 0 14 14">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                    </svg>
-                    <span class="sr-only">Close modal</span>
-                </button>
-            </div>
-            <div class="p-6">
-                <form action="{{ route('anggota_membership.export_pdf') }}" method="POST" id="export-pdf-form">
+    <x-modal id="export-pdf-modal" title="Filter Export Laporan">
+        <x-slot:body>
+            <form action="{{ route('anggota_membership.export_pdf') }}" method="POST" id="export-pdf-form">
                     @csrf
                     <div class="grid grid-cols-1 gap-6">
                         <!-- Filter Status Pembayaran -->
@@ -342,7 +239,7 @@
                         <!-- Tombol Aksi -->
                         <div class="col-span-12">
                             <div class="flex items-center justify-start gap-3 mt-6">
-                                <button type="button" data-modal-hide="export-pdf-modal"
+                                <button type="button" data-close-modal="export-pdf-modal"
                                     class="border border-danger-600 hover:bg-danger-100 text-danger-600 text-base px-10 py-[11px] rounded-lg">
                                     Cancel
                                 </button>
@@ -360,112 +257,129 @@
                         </div>
                     </div>
                 </form>
-            </div>
-        </div>
-    </div>
+        </x-slot:body>
+    </x-modal>
 @endsection
 
 @section('scripts')
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            // Delete confirmation
-            const deleteForms = document.querySelectorAll('.delete-form');
-            deleteForms.forEach(form => {
-                const btn = form.querySelector('.delete-btn');
-                btn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    Swal.fire({
-                        title: 'Apakah kamu yakin?',
-                        text: "Data anggota membership yang dihapus tidak bisa dikembalikan!",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#e3342f',
-                        cancelButtonColor: '#6c757d',
-                        confirmButtonText: 'Ya, hapus!',
-                        cancelButtonText: 'Batal'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            form.submit();
-                        }
-                    });
-                });
-            });
+<script src="{{ asset('assets/js/ajax-table.js') }}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const isAdmin       = {{ $isAdmin ? 'true' : 'false' }};
+    const isLaporanMode = {{ $isLaporanMode ? 'true' : 'false' }};
 
-            // Toggle filter sections
-            const filterRadios = document.querySelectorAll('input[name="filter_type"]');
-            const singleFilter = document.getElementById('single-filter');
-            const rangeFilter = document.getElementById('range-filter');
-            const dailyFilter = document.getElementById('daily-filter');
-
-            filterRadios.forEach(radio => {
-                radio.addEventListener('change', function() {
-                    singleFilter.classList.add('hidden');
-                    rangeFilter.classList.add('hidden');
-                    dailyFilter.classList.add('hidden');
-
-                    if (this.value === 'single') {
-                        singleFilter.classList.remove('hidden');
-                    } else if (this.value === 'range') {
-                        rangeFilter.classList.remove('hidden');
-                    } else if (this.value === 'daily') {
-                        dailyFilter.classList.remove('hidden');
-                    }
-                });
-            });
-
-            // Form validation
-            document.getElementById('export-pdf-form').addEventListener('submit', function(e) {
-                const filterType = document.querySelector('input[name="filter_type"]:checked').value;
-
-                if (filterType === 'single') {
-                    const bulan = document.getElementById('bulan').value;
-                    const tahun = document.getElementById('tahun').value;
-                    if (!bulan || !tahun) {
-                        e.preventDefault();
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
-                            text: 'Mohon pilih bulan dan tahun terlebih dahulu!'
-                        });
-                        return false;
-                    }
-                } else if (filterType === 'range') {
-                    const bulanDari = document.getElementById('bulan_dari').value;
-                    const tahunDari = document.getElementById('tahun_dari').value;
-                    const bulanSampai = document.getElementById('bulan_sampai').value;
-                    const tahunSampai = document.getElementById('tahun_sampai').value;
-                    if (!bulanDari || !tahunDari || !bulanSampai || !tahunSampai) {
-                        e.preventDefault();
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
-                            text: 'Mohon lengkapi range bulan dan tahun!'
-                        });
-                        return false;
-                    }
-                } else if (filterType === 'daily') {
-                    const tglDari = document.getElementById('tgl_dari').value;
-                    const tglSampai = document.getElementById('tgl_sampai').value;
-                    if (!tglDari || !tglSampai) {
-                        e.preventDefault();
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
-                            text: 'Mohon lengkapi tanggal dari dan sampai!'
-                        });
-                        return false;
-                    }
-                    if (tglDari > tglSampai) {
-                        e.preventDefault();
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
-                            text: 'Tanggal "dari" tidak boleh lebih besar dari tanggal "sampai"!'
-                        });
-                        return false;
-                    }
-                }
-            });
+    window.confirmDelete = function(url) {
+        Swal.fire({
+            title: 'Apakah kamu yakin?',
+            text: "Data anggota membership yang dihapus tidak bisa dikembalikan!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e3342f',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = url;
+                form.innerHTML = `@csrf<input type="hidden" name="_method" value="DELETE">`;
+                document.body.appendChild(form);
+                form.submit();
+            }
         });
-    </script>
+    }
+
+    AjaxTable.init('anggotaMembership', {
+        url: '{{ route('anggota_membership.datatable') }}',
+        colSpan: {{ $colCount }},
+        renderRow: function (item) {
+            const actionCol = (isAdmin && !isLaporanMode)
+                ? `<td class="whitespace-nowrap">
+                       <div class="flex gap-2">
+                           <a href="${item.edit_url}" title="Edit Item"
+                              class="btn-action">
+                               <iconify-icon icon="lucide:edit"></iconify-icon>
+                           </a>
+                           <button onclick="confirmDelete('${item.delete_url}')" title="Hapus Item" type="button"
+                               class="btn-action btn-action-del">
+                               <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
+                           </button>
+                       </div>
+                   </td>`
+                : '';
+
+            return `<tr>
+                <td class="whitespace-nowrap">${item.no}</td>
+                ${actionCol}
+                <td class="whitespace-nowrap"><a class="text-primary-600" href="${item.edit_url}">${item.kode_transaksi}</a></td>
+                <td class="whitespace-nowrap">${item.nama_anggota}</td>
+                <td class="whitespace-nowrap">${item.nama_paket}</td>
+                <td class="whitespace-nowrap">${item.tgl_bayar_awal}</td>
+                <td class="whitespace-nowrap">${item.metode_pembayaran}</td>
+                <td class="whitespace-nowrap">${item.tgl_mulai}</td>
+                <td class="whitespace-nowrap">${item.tgl_selesai}</td>
+                <td class="whitespace-nowrap">${AjaxTable.badge(item.status_pembayaran === 'Lunas' ? 'success' : 'warning', item.status_pembayaran)}</td>
+                <td class="whitespace-nowrap">${item.total_biaya}</td>
+            </tr>`;
+        }
+    });
+
+    // Toggle filter sections
+    const filterRadios = document.querySelectorAll('input[name="filter_type"]');
+    const singleFilter = document.getElementById('single-filter');
+    const rangeFilter  = document.getElementById('range-filter');
+    const dailyFilter  = document.getElementById('daily-filter');
+
+    filterRadios.forEach(radio => {
+        radio.addEventListener('change', function () {
+            singleFilter.classList.add('hidden');
+            rangeFilter.classList.add('hidden');
+            dailyFilter.classList.add('hidden');
+
+            if (this.value === 'single') singleFilter.classList.remove('hidden');
+            else if (this.value === 'range') rangeFilter.classList.remove('hidden');
+            else if (this.value === 'daily') dailyFilter.classList.remove('hidden');
+        });
+    });
+
+    // Form validation
+    document.getElementById('export-pdf-form').addEventListener('submit', function (e) {
+        const filterType = document.querySelector('input[name="filter_type"]:checked').value;
+
+        if (filterType === 'single') {
+            const bulan = document.getElementById('bulan').value;
+            const tahun = document.getElementById('tahun').value;
+            if (!bulan || !tahun) {
+                e.preventDefault();
+                Swal.fire({ icon: 'error', title: 'Oops...', text: 'Mohon pilih bulan dan tahun terlebih dahulu!' });
+                return false;
+            }
+        } else if (filterType === 'range') {
+            const bulanDari   = document.getElementById('bulan_dari').value;
+            const tahunDari   = document.getElementById('tahun_dari').value;
+            const bulanSampai = document.getElementById('bulan_sampai').value;
+            const tahunSampai = document.getElementById('tahun_sampai').value;
+            if (!bulanDari || !tahunDari || !bulanSampai || !tahunSampai) {
+                e.preventDefault();
+                Swal.fire({ icon: 'error', title: 'Oops...', text: 'Mohon lengkapi range bulan dan tahun!' });
+                return false;
+            }
+        } else if (filterType === 'daily') {
+            const tglDari   = document.getElementById('tgl_dari').value;
+            const tglSampai = document.getElementById('tgl_sampai').value;
+            if (!tglDari || !tglSampai) {
+                e.preventDefault();
+                Swal.fire({ icon: 'error', title: 'Oops...', text: 'Mohon lengkapi tanggal dari dan sampai!' });
+                return false;
+            }
+            if (tglDari > tglSampai) {
+                e.preventDefault();
+                Swal.fire({ icon: 'error', title: 'Oops...', text: 'Tanggal "dari" tidak boleh lebih besar dari tanggal "sampai"!' });
+                return false;
+            }
+        }
+    });
+});
+</script>
 @endsection

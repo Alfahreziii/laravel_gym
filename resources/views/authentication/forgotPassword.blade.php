@@ -1,92 +1,125 @@
 <!-- meta tags and other links -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 
-<x-head />  
+<x-head />
 
-<body class="dark:bg-neutral-800 bg-neutral-100">
+<body class="bg-white dark:bg-neutral-900">
 
-    <section class="bg-white flex flex-wrap min-h-[100vh]">
-        <div class="lg:w-1/2 lg:block hidden">
-            <div class="flex items-center flex-col h-full justify-center">
-                <img src="{{ asset('assets/images/auth/forgot-pass-img.png') }}" alt="" class="h-full">
-            </div>
-        </div>
-        <div class="lg:w-1/2 py-8 px-6 flex flex-col justify-center">
-            <div class="lg:max-w-[464px] mx-auto w-full">
-                <div>
-                    <h4 class="mb-3">Forgot Password</h4>
-                    <p class="mb-8 text-secondary-light text-lg">Enter the email address associated with your account and we will send you a link to reset your password.</p>
-                </div>
-                <form method="POST" action="{{ route('password.email') }}">
-                    @csrf
-                    <div class="icon-field mb-6 relative">
-                        <span class="absolute start-4 top-1/2 -translate-y-1/2 pointer-events-none flex text-xl">
-                            <iconify-icon icon="mage:email"></iconify-icon>
-                        </span>
-                        <input type="email" name="email" required class="form-control h-[56px] ps-11 border-neutral-300 bg-neutral-50 rounded-xl" placeholder="Email">
-                    </div>
-                    <button type="submit" class="btn btn-primary justify-center text-sm btn-sm px-3 py-4 w-full rounded-xl">
-                        Continue
-                    </button>
+<div class="flex min-h-screen">
 
-                    <div class="text-center">
-                        <a href="{{ route('login') }}" class="text-primary-600 font-bold mt-6 hover:underline">Back to Sign In</a>
-                    </div>
+    {{-- ──────────────────── PANEL KIRI ──────────────────── --}}
+    <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden flex-col flex-shrink-0">
 
-                    <div class="mt-10 md:mt-[60px] lg:mt-[100px] xl:mt-[120px] text-center text-sm">
-                        <p class="mb-0">Already have an account?  <a href="{{ route('login') }}" class="text-primary-600 font-semibold hover:underline">Sign In</a></p>
-                    </div>
+        <img src="{{ asset('assets/images/auth/forgot-pass-img.png') }}"
+             alt="Gym HexaGym"
+             class="absolute inset-0 w-full h-full object-cover">
 
-                </form>
-            </div>
-        </div>
-    </section>
+        <div class="absolute inset-0 bg-gradient-to-br from-primary-600/85 via-primary-700/80 to-primary-900/90"></div>
 
-    <x-script/>
+        <div class="relative z-10 flex flex-col h-full px-11 py-11">
 
-    <div id="popup-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-        <div class="relative p-10 w-full max-w-[496px] max-h-full rounded-2xl bg-white">
-            <button type="button" class="absolute top-4 end-4 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="popup-modal">
-                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+            <div class="flex items-center gap-3">
+                <svg viewBox="0 0 40 40" fill="none" class="w-[42px] h-[42px] flex-shrink-0">
+                    <path d="M20 2 35.3 11v18L20 38 4.7 29V11Z" fill="#fff"/>
+                    <g stroke="#F2622E" stroke-width="2.6" stroke-linecap="round">
+                        <path d="M13 20h14"/>
+                        <path d="M13 16.5v7M27 16.5v7"/>
+                        <path d="M10.5 18v4M29.5 18v4"/>
+                    </g>
                 </svg>
-                <span class="sr-only">Close modal</span>
-            </button>
-            <div class="p-2.5 text-center">
-                <h6 class="mb-3">Verify your Email</h6>
-                <p class="text-secondary-light text-sm mb-0">Thank you, check your email for instructions to reset your password</p>
-                <button type="button" data-modal-hide="popup-modal" class="btn btn-primary justify-center text-sm btn-sm px-3 py-4 w-full rounded-xl mt-8">Skip</button>
+                <div>
+                    <div class="font-display font-bold text-[26px] leading-none text-white">HexaGym</div>
+                    <div class="text-[11px] text-white/85 font-medium tracking-[0.04em] mt-0.5">Gym Management System</div>
+                </div>
             </div>
+
+            <div class="mt-auto max-w-[420px]">
+                <div class="text-[11px] font-bold tracking-[0.14em] uppercase text-white/80">Pemulihan Akun</div>
+                <h1 class="font-display font-bold text-[44px] leading-[1.04] text-white mt-3"
+                    style="text-wrap: balance">
+                    Kami bantu pulihkan aksesnya.
+                </h1>
+                <p class="mt-4 text-sm leading-relaxed text-white/90">
+                    Lupa kata sandi bukan masalah — masukkan email dan kami kirimkan tautan reset langsung ke kotak masuk Anda.
+                </p>
+            </div>
+
+            <div class="mt-9 text-[11px] text-white/70">© 2026 HexaGym · Cabang Depok</div>
+
         </div>
     </div>
+
+    {{-- ──────────────────── PANEL KANAN ──────────────────── --}}
+    <div class="flex-1 flex items-center justify-center px-6 py-12 bg-white dark:bg-neutral-800">
+        <div class="w-full max-w-[384px]">
+
+            <h2 class="font-display font-bold text-[34px] leading-[1.05] text-ink dark:text-ink-d">
+                Lupa kata sandi? 🔑
+            </h2>
+            <p class="mt-2 text-sm text-ink-2 dark:text-ink-d2">
+                Masukkan email terdaftar untuk menerima tautan reset kata sandi.
+            </p>
+
+            <form method="POST" action="{{ route('password.email') }}" class="mt-7">
+                @csrf
+
+                <div class="flex flex-col gap-2 mb-5">
+                    <label for="email" class="text-xs font-semibold text-ink-2 dark:text-ink-d2">Email</label>
+                    <div class="relative flex items-center">
+                        <iconify-icon icon="mage:email"
+                            class="absolute start-3 text-lg text-neutral-400 pointer-events-none z-10"></iconify-icon>
+                        <input type="email" name="email" id="email" required autofocus
+                            class="form-control h-[48px] ps-10 border-neutral-200 bg-neutral-50 dark:bg-neutral-700 dark:border-neutral-600 rounded-xl w-full"
+                            placeholder="email@contoh.com">
+                    </div>
+                </div>
+
+                <button type="submit"
+                    class="btn btn-primary w-full justify-center py-[13px] rounded-xl font-bold text-[15px]"
+                    style="box-shadow: 0 8px 20px -8px rgba(242, 98, 46, 0.6)">
+                    Kirim Tautan Reset
+                    <iconify-icon icon="lucide:send" class="text-lg"></iconify-icon>
+                </button>
+
+            </form>
+
+            <div class="mt-5 text-center text-sm text-ink-2 dark:text-ink-d2">
+                <a href="{{ route('login') }}" class="font-semibold text-primary-600 hover:underline">
+                    ← Kembali ke halaman masuk
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<x-script/>
+
+{{-- Modal konfirmasi email terkirim --}}
+<x-modal id="popup-modal" title="Email Terkirim">
+    <x-slot:body>
+        <div class="text-center py-2">
+            <iconify-icon icon="lucide:mail-check" class="text-5xl text-success-500 mb-3"></iconify-icon>
+            <p class="text-sm text-ink-2 dark:text-ink-d2 mb-0">
+                Tautan reset kata sandi telah dikirim ke email Anda. Silakan cek kotak masuk atau folder spam.
+            </p>
+            <button type="button" data-close-modal="popup-modal"
+                class="btn btn-primary w-full justify-center py-[13px] rounded-xl font-bold mt-6">
+                Tutup
+            </button>
+        </div>
+    </x-slot:body>
+</x-modal>
+
 @if (session('status'))
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const modal = document.getElementById('popup-modal');
-
-        // Jika kamu pakai Flowbite
-        if (window.Flowbite && typeof Flowbite.Modal === 'function') {
-            const modalInstance = new Flowbite.Modal(modal);
-            modalInstance.show();
-        } else {
-            // Kalau gak pakai Flowbite, tampilkan manual
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        // ✅ Tambahkan event listener agar bisa ditutup manual
-        const closeButtons = modal.querySelectorAll('[data-modal-hide="popup-modal"]');
-        closeButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            });
-        });
+    document.addEventListener("DOMContentLoaded", function() {
+        HexaModal.show('popup-modal');
     });
 </script>
 @endif
-
 
 </body>
 </html>

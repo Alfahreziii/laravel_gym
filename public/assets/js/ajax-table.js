@@ -21,9 +21,11 @@ window.AjaxTable = (function () {
         paginationId,
         infoId,
         searchId,
+        perPageId = null,
         perPage = 10,
         colSpan = 6,
         renderRow = null,
+        extraParams = null,
     }) {
         let currentPage = 1;
         let currentSearch = '';
@@ -41,7 +43,23 @@ window.AjaxTable = (function () {
                 Loading...
             </td></tr>`;
 
-            fetch(`${url}?page=${currentPage}&search=${encodeURIComponent(currentSearch)}&perPage=${perPage}`, {
+            const _params = new URLSearchParams({
+                page: currentPage,
+                search: currentSearch,
+                perPage: perPage,
+            });
+            if (extraParams && typeof extraParams === 'function') {
+                const _extra = extraParams();
+                if (_extra && typeof _extra === 'object') {
+                    Object.keys(_extra).forEach(k => {
+                        if (_extra[k] !== undefined && _extra[k] !== null) {
+                            _params.set(k, _extra[k]);
+                        }
+                    });
+                }
+            }
+
+            fetch(`${url}?${_params.toString()}`, {
                 headers: {
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
@@ -85,7 +103,7 @@ window.AjaxTable = (function () {
                 tbody.innerHTML = res.data.map(item => defaultRenderRow(item, colSpan)).join('');
             }
 
-            const showing = `Showing ${start + 1} to ${Math.min(start + res.perPage, res.total)} of ${res.total} entries`;
+            const showing = `Menampilkan ${start + 1}–${Math.min(start + res.perPage, res.total)} dari ${res.total} data`;
             if (info) info.textContent = showing;
         };
 
@@ -120,12 +138,15 @@ window.AjaxTable = (function () {
             const container = document.getElementById(paginationId);
             if (!container) return;
 
-            const btnClass = 'px-3 py-1 rounded border text-sm';
+            const btnBase = 'px-3 py-1.5 rounded-lg border text-sm transition-colors duration-150';
+            const btnNormal = btnBase + ' border-line-light dark:border-line-dark text-ink-2 dark:text-ink-d2 hover:bg-canvas-light dark:hover:bg-canvas-dark';
+            const btnActive = btnBase + ' bg-primary-500 border-primary-500 text-white font-semibold';
+            const btnDisabled = btnBase + ' border-line-light dark:border-line-dark text-ink-3 dark:text-ink-d3 opacity-40 cursor-not-allowed';
             let pages = [];
 
-            pages.push(`<button onclick="window._ajaxTables['${tbodyId}'].goTo(${res.page - 1})" 
+            pages.push(`<button onclick="window._ajaxTables['${tbodyId}'].goTo(${res.page - 1})"
                 ${res.page <= 1 ? 'disabled' : ''}
-                class="${btnClass} ${res.page <= 1 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-gray-100'}">&laquo;</button>`);
+                class="${res.page <= 1 ? btnDisabled : btnNormal}">&laquo;</button>`);
 
             let start = Math.max(1, res.page - 2);
             let end = Math.min(res.lastPage, start + 4);
@@ -133,18 +154,18 @@ window.AjaxTable = (function () {
 
             for (let i = start; i <= end; i++) {
                 pages.push(`<button onclick="window._ajaxTables['${tbodyId}'].goTo(${i})"
-                    class="${btnClass} ${i === res.page ? 'bg-primary-600 text-white border-primary-600' : 'hover:bg-gray-100'}">${i}</button>`);
+                    class="${i === res.page ? btnActive : btnNormal}">${i}</button>`);
             }
 
             if (end < res.lastPage) {
-                pages.push(`<span class="px-2 py-1 text-sm text-gray-400">...</span>`);
+                pages.push(`<span class="px-2 py-1 text-sm text-ink-3 dark:text-ink-d3">...</span>`);
                 pages.push(`<button onclick="window._ajaxTables['${tbodyId}'].goTo(${res.lastPage})"
-                    class="${btnClass} hover:bg-gray-100">${res.lastPage}</button>`);
+                    class="${btnNormal}">${res.lastPage}</button>`);
             }
 
             pages.push(`<button onclick="window._ajaxTables['${tbodyId}'].goTo(${res.page + 1})"
                 ${res.page >= res.lastPage ? 'disabled' : ''}
-                class="${btnClass} ${res.page >= res.lastPage ? 'opacity-40 cursor-not-allowed' : 'hover:bg-gray-100'}">&raquo;</button>`);
+                class="${res.page >= res.lastPage ? btnDisabled : btnNormal}">&raquo;</button>`);
 
             container.innerHTML = pages.join('');
         };
@@ -159,6 +180,17 @@ window.AjaxTable = (function () {
                     currentPage = 1;
                     fetchData();
                 }, 400);
+            });
+        }
+
+        // Dropdown entries per page
+        const perPageEl = perPageId ? document.getElementById(perPageId) : null;
+        if (perPageEl) {
+            perPage = parseInt(perPageEl.value) || perPage;
+            perPageEl.addEventListener('change', function () {
+                perPage = parseInt(this.value) || 10;
+                currentPage = 1;
+                fetchData();
             });
         }
 
@@ -190,6 +222,44 @@ window.AjaxTable = (function () {
         fetchData();
     }
 
-    return { create };
+    // Konvensi ID untuk x-data-table: tbody/pagination/info/search + ucfirst(tableId)
+    function init(tableId, options) {
+        const cap = tableId.charAt(0).toUpperCase() + tableId.slice(1);
+        return create({
+            url:          options.url,
+            tbodyId:      'tbody'      + cap,
+            paginationId: 'pagination' + cap,
+            infoId:       'info'       + cap,
+            searchId:     'search'     + cap,
+            perPageId:    'perPage'    + cap,
+            perPage:      options.perPage      || 10,
+            colSpan:      options.colSpan      || 5,
+            renderRow:    options.renderRow    || null,
+            extraParams:  options.extraParams  || null,
+        });
+    }
+
+    // Badge helper — mirrors <x-badge> design system (dot + tint bg + correct padding)
+    function badge(type, text, withDot) {
+        if (withDot === undefined) withDot = true;
+        const colors = {
+            success: 'bg-success-50 text-success-700 dark:bg-success-600/20 dark:text-success-400',
+            danger:  'bg-danger-50 text-danger-700 dark:bg-danger-600/20 dark:text-danger-400',
+            warning: 'bg-warning-50 text-warning-700 dark:bg-warning-600/20 dark:text-warning-400',
+            info:    'bg-info-50 text-info-700 dark:bg-info-600/20 dark:text-info-400',
+            primary: 'bg-primary-50 text-primary-700 dark:bg-primary-600/20 dark:text-primary-400',
+            neutral: 'bg-neutral-100 text-neutral-600 dark:bg-neutral-700 dark:text-neutral-300',
+        };
+        const dotColors = {
+            success: 'bg-success-500', danger: 'bg-danger-500', warning: 'bg-warning-500',
+            info: 'bg-info-500', primary: 'bg-primary-500', neutral: 'bg-neutral-400',
+        };
+        const cls    = colors[type] || colors['neutral'];
+        const dotCls = dotColors[type] || dotColors['neutral'];
+        const dot    = withDot ? `<span class="w-1.5 h-1.5 rounded-full ${dotCls} flex-shrink-0"></span>` : '';
+        return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${cls}">${dot}${text}</span>`;
+    }
+
+    return { create, init, badge };
 
 })();
