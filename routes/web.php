@@ -38,6 +38,7 @@ use App\Http\Controllers\Trainer\RiwayatGajiTrainerController;
 use App\Http\Controllers\MemberProfileController;
 use App\Http\Controllers\Keuangan\TransaksiKeuanganController;
 
+
 Route::get('/register/trainer', [TrainerRegisterController::class, 'showForm'])->name('register.trainer');
 Route::post('/register/trainer', [TrainerRegisterController::class, 'register'])->name('register.trainer.submit');
 // Member Route
@@ -69,7 +70,7 @@ Route::controller(NoRoleController::class)->group(function () {
 });
 
 // Trainer Route
-Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddleware::class . ':trainer'])->group(function () {
+Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddleware::class . ':trainer', 'module:trainer'])->group(function () {
     Route::get('/trainer/waiting-approval', [TrainerDashboardController::class, 'waiting'])
         ->name('trainer.waiting.approval');
 
@@ -156,8 +157,10 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::get('/neraca', [NeracaController::class, 'index'])->middleware(RoleMiddleware::class . ':admin')->name('neraca.index');
-    Route::post('/neraca/tambah-kas', [NeracaController::class, 'tambahKas'])->middleware(RoleMiddleware::class . ':admin')->name('neraca.tambah-kas');
+    Route::middleware('module:keuangan')->group(function () {
+        Route::get('/neraca', [NeracaController::class, 'index'])->middleware(RoleMiddleware::class . ':admin')->name('neraca.index');
+        Route::post('/neraca/tambah-kas', [NeracaController::class, 'tambahKas'])->middleware(RoleMiddleware::class . ':admin')->name('neraca.tambah-kas');
+    });
 
     Route::get('/dashboard/kehadiran', [DashboardController::class, 'kehadiranDatatable'])->name('dashboard.kehadiran');
     Route::get('/dashboard/member-in-room', [DashboardController::class, 'memberInRoomDatatable'])->name('dashboard.memberInRoom');
@@ -174,7 +177,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
         Route::get('/dashboard', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('index');
     });
 
-    Route::prefix('keuangan/transaksi')->middleware(RoleMiddleware::class . ':admin|spv')->name('keuangan.transaksi.')->group(function () {
+    Route::prefix('keuangan/transaksi')->middleware([RoleMiddleware::class . ':admin|spv', 'module:keuangan'])->name('keuangan.transaksi.')->group(function () {
         Route::get('/',          [TransaksiKeuanganController::class, 'index'])->name('index');
         Route::get('/datatable', [TransaksiKeuanganController::class, 'datatable'])->name('datatable');
         Route::get('/export-pdf', [TransaksiKeuanganController::class, 'exportPdf'])->name('exportPdf');
@@ -182,7 +185,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     });
 
     // Route untuk Produk
-    Route::controller(ProductController::class)->group(function () {
+    Route::controller(ProductController::class)->middleware('module:pos')->group(function () {
         // Route index bisa diakses oleh admin & spv
         Route::get('/products', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('products.index');
         Route::get('/laporan/products', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('laporan.products');
@@ -203,7 +206,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     });
 
     // Route untuk Kategori Produk
-    Route::controller(KategoriProductController::class)->group(function () {
+    Route::controller(KategoriProductController::class)->middleware('module:pos')->group(function () {
         Route::get('/kategori-products', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('kategori_products.index');
         Route::get('/kategori-products/datatable', 'datatable')->middleware(RoleMiddleware::class . ':admin|spv')->name('kategori_products.datatable');
 
@@ -279,7 +282,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     });
 
     // Route untuk Spesialisasi Trainer
-    Route::controller(SpecialisasiController::class)->group(function () {
+    Route::controller(SpecialisasiController::class)->middleware('module:trainer')->group(function () {
         Route::get('/specialisasi', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('specialisasi.index');
         Route::get('/specialisasi/datatable', 'datatable')->middleware(RoleMiddleware::class . ':admin|spv')->name('specialisasi.datatable');
 
@@ -291,7 +294,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     });
 
     // Route untuk Paket Personal Trainer
-    Route::controller(PaketPersonalTrainerController::class)->group(function () {
+    Route::controller(PaketPersonalTrainerController::class)->middleware('module:trainer')->group(function () {
         Route::get('/paket-personal-trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('paket_personal_trainer.index');
         Route::get('/paket-personal-trainer/datatable', 'datatable')->middleware(RoleMiddleware::class . ':admin|spv')->name('paket_personal_trainer.datatable');
 
@@ -305,7 +308,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     });
 
     // Route untuk Trainer
-    Route::controller(TrainerController::class)->group(function () {
+    Route::controller(TrainerController::class)->middleware('module:trainer')->group(function () {
         Route::get('/trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('trainer.index');
         Route::get('/trainer/datatable', 'datatable')->middleware(RoleMiddleware::class . ':admin|spv')->name('trainer.datatable');
         Route::get('/laporan/trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('laporan.trainer');
@@ -323,7 +326,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     });
 
     // Route untuk Trainer Member
-    Route::controller(MemberTrainerController::class)->group(function () {
+    Route::controller(MemberTrainerController::class)->middleware('module:trainer')->group(function () {
         Route::get('/member-trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('membertrainer.index');
         Route::get('/member-trainer/datatable', 'datatable')->middleware(RoleMiddleware::class . ':admin|spv')->name('membertrainer.datatable');
         Route::get('/laporan/member-trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('laporan.membertrainer');
@@ -366,7 +369,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
         Route::get('/pembayaran-membership/nota-pdf/{id}', 'exportNotaPDF')->middleware(RoleMiddleware::class . ':admin|spv')->name('pembayaran_membership.notaPDF');
     });
 
-    Route::controller(PembayaranTrainerController::class)->group(function () {
+    Route::controller(PembayaranTrainerController::class)->middleware('module:trainer')->group(function () {
         Route::get('/pembayaran-trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('pembayaran_trainer.index');
         Route::get('/pembayaran-trainer/datatable', 'datatable')->middleware(RoleMiddleware::class . ':admin|spv')->name('pembayaran_trainer.datatable');
         Route::get('/pembayaran-trainer/nota-pdf/{id}', 'exportNotaPDF')->middleware(RoleMiddleware::class . ':admin|spv')->name('pembayaran_trainer.notaPDF');
@@ -401,7 +404,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
         });
     });
     // Route untuk Level Trainer
-    Route::controller(LevelTrainerController::class)->group(function () {
+    Route::controller(LevelTrainerController::class)->middleware('module:trainer')->group(function () {
         Route::get('/level-trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('level_trainer.index');
         Route::get('/level-trainer/datatable', 'datatable')->middleware(RoleMiddleware::class . ':admin|spv')->name('level_trainer.datatable');
 
@@ -413,7 +416,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
     });
 
     // Route untuk Gaji Trainer
-    Route::controller(GajiTrainerController::class)->group(function () {
+    Route::controller(GajiTrainerController::class)->middleware('module:trainer')->group(function () {
         Route::get('/gaji-trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('gaji_trainer.index');
         Route::get('/gaji-trainer/datatable', 'datatable')->middleware(RoleMiddleware::class . ':admin|spv')->name('gaji_trainer.datatable');
         Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
@@ -424,8 +427,8 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
             Route::delete('/gaji-trainer/{id}', 'destroy')->name('gaji_trainer.destroy');
         });
     });
-    // Route untuk Gaji Trainer
-    Route::controller(RiwayatGajiTrainerController::class)->group(function () {
+    // Route untuk Riwayat Gaji Trainer
+    Route::controller(RiwayatGajiTrainerController::class)->middleware('module:trainer')->group(function () {
         Route::get('/riwayat-gaji-trainer', 'index')->middleware(RoleMiddleware::class . ':admin')->name('riwayat_gaji_trainer.index');
         Route::middleware(RoleMiddleware::class . ':admin')->group(function () {
             Route::get('/riwayat-gaji-trainer/datatable', 'datatable')->name('riwayat_gaji_trainer.datatable');
@@ -440,7 +443,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
 // SPV Route
 Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddleware::class . ':admin|spv'])->group(function () {
 
-    Route::controller(KasirController::class)->group(function () {
+    Route::controller(KasirController::class)->middleware('module:pos')->group(function () {
         Route::post('/kasir/export-pdf', 'exportPdf')->name('kasir.export_pdf');
         Route::post('/kasir/export-csv', 'exportCsv')->name('kasir.export_csv');
         Route::get('/kasir', 'index')->name('kasir.index');

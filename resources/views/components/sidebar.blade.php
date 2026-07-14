@@ -61,6 +61,7 @@
                 </li>
             @endhasanyrole
 
+            @if(tenant_module('trainer'))
             @hasanyrole('spv|admin')
                 <li
                     class="dropdown {{ request()->routeIs('specialisasi.*') || request()->routeIs('paket_personal_trainer.*') || (request()->routeIs('trainer.*') && !request()->routeIs('laporan.trainer') && !request()->routeIs('trainer.dashboard') && !request()->routeIs('trainer.waiting.approval')) || (request()->routeIs('membertrainer.*') && !request()->routeIs('laporan.membertrainer')) ? 'open' : '' }}">
@@ -96,6 +97,7 @@
                     </ul>
                 </li>
             @endhasanyrole
+            @endif
 
             @hasanyrole('spv|admin')
                 <li
@@ -214,6 +216,7 @@
                 </li>
             @endhasanyrole
 
+            @if(tenant_module('pos'))
             @hasanyrole('spv|admin')
                 <li class="sidebar-menu-group-title">POS</li>
                 <li
@@ -262,6 +265,7 @@
                     </ul>
                 </li>
             @endhasanyrole
+            @endif
 
             @hasanyrole('spv|admin')
                 <li class="sidebar-menu-group-title">Parameter</li>
@@ -282,6 +286,7 @@
                 </li>
             @endhasanyrole
 
+            @if(tenant_module('trainer'))
             @hasanyrole('admin')
                 <li class="sidebar-menu-group-title">Payroll</li>
 
@@ -312,6 +317,11 @@
                         </li>
                     </ul>
                 </li>
+            @endhasanyrole
+            @endif
+
+            @if(tenant_module('keuangan'))
+            @hasanyrole('admin')
                 <li class="sidebar-menu-group-title">Keuangan</li>
 
                 <li
@@ -336,6 +346,7 @@
                     </ul>
                 </li>
             @endhasanyrole
+            @endif
 
             @hasanyrole('trainer')
                 <li class="sidebar-menu-group-title">Trainer Dashboard</li>

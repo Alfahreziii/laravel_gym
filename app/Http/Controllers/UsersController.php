@@ -217,7 +217,7 @@ class UsersController extends Controller
                 }
 
                 // Upload foto baru
-                $userData['photo'] = $request->file('photo')->store('users/photos', 'public');
+                $userData['photo'] = $request->file('photo')->store(tenant_storage_path('users/photos'), 'public');
             }
 
             $user->update($userData);
@@ -342,7 +342,7 @@ class UsersController extends Controller
                 }
                 
                 // Upload foto baru ke folder trainers
-                $userData['photo'] = $request->file('photo')->store('trainers', 'public');
+                $userData['photo'] = $request->file('photo')->store(tenant_storage_path('trainers'), 'public');
             }
             
             $user->update($userData);

@@ -49,7 +49,7 @@ class NoRoleController extends Controller
         $status   = (!$last || $last->status === 'out') ? 'in' : 'out';
         $fotoPath = null;
         if ($request->hasFile('foto')) {
-            $fotoPath = $request->file('foto')->store('kehadiran_foto', 'public');
+            $fotoPath = $request->file('foto')->store(tenant_storage_path('kehadiran_foto'), 'public');
         }
 
         try {
@@ -165,7 +165,7 @@ class NoRoleController extends Controller
 
         $fotoPath = null;
         if ($request->hasFile('foto')) {
-            $fotoPath = $request->file('foto')->store('kehadiran_foto', 'public');
+            $fotoPath = $request->file('foto')->store(tenant_storage_path('kehadiran_foto'), 'public');
         }
 
         try {
@@ -325,7 +325,7 @@ class NoRoleController extends Controller
 
         $fotoPath = null;
         if ($request->hasFile('foto')) {
-            $fotoPath = $request->file('foto')->store('kehadiran_foto', 'public');
+            $fotoPath = $request->file('foto')->store(tenant_storage_path('kehadiran_foto'), 'public');
         }
 
         try {

@@ -265,7 +265,7 @@ class TrainerController extends Controller
 
         DB::beginTransaction();
         try {
-            $photoPath = $request->file('photo')->store('trainers', 'public');
+            $photoPath = $request->file('photo')->store(tenant_storage_path('trainers'), 'public');
 
             $trainer = Trainer::create([
                 'id_specialisasi'     => $request->id_specialisasi,
@@ -399,7 +399,7 @@ class TrainerController extends Controller
                 if ($trainer->user->photo && Storage::disk('public')->exists($trainer->user->photo)) {
                     Storage::disk('public')->delete($trainer->user->photo);
                 }
-                $userData['photo'] = $request->file('photo')->store('trainers', 'public');
+                $userData['photo'] = $request->file('photo')->store(tenant_storage_path('trainers'), 'public');
             }
 
             $trainer->user->update($userData);

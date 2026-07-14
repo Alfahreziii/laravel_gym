@@ -237,7 +237,7 @@ class ProductController extends Controller
             $data = $validated;
 
             if ($request->hasFile('image')) {
-                $data['image'] = $request->file('image')->store('products', 'public');
+                $data['image'] = $request->file('image')->store(tenant_storage_path('products'), 'public');
             }
 
             $product = Product::create($data);
@@ -300,7 +300,7 @@ class ProductController extends Controller
                 if ($product->image && Storage::disk('public')->exists($product->image)) {
                     Storage::disk('public')->delete($product->image);
                 }
-                $data['image'] = $request->file('image')->store('products', 'public');
+                $data['image'] = $request->file('image')->store(tenant_storage_path('products'), 'public');
             }
 
             $product->update($data);

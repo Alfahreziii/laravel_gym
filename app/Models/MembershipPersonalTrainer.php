@@ -3,9 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 
-class MembershipPersonalTrainer extends Model
+class MembershipPersonalTrainer extends TenantModel
 {
     use HasFactory;
 

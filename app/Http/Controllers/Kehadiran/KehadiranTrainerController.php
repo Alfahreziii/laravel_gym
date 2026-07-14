@@ -258,7 +258,7 @@ class KehadiranTrainerController extends Controller
 
         $fotoPath = null;
         if ($request->hasFile('foto')) {
-            $fotoPath = $request->file('foto')->store('kehadiran_foto', 'public');
+            $fotoPath = $request->file('foto')->store(tenant_storage_path('kehadiran_foto'), 'public');
         }
 
         try {

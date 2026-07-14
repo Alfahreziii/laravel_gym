@@ -338,7 +338,7 @@ class GateController extends Controller
 
             $image    = base64_decode($data);
             $filename = 'gate_' . uniqid() . '.png';
-            $path     = 'kehadiran_foto/' . $filename;
+            $path     = tenant_storage_path('kehadiran_foto') . '/' . $filename;
 
             Storage::disk('public')->put($path, $image);
 

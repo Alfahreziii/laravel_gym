@@ -279,7 +279,7 @@ class AnggotaController extends Controller
 
         DB::beginTransaction();
         try {
-            $photoPath = $request->file('photo')->store('anggotas', 'public');
+            $photoPath = $request->file('photo')->store(tenant_storage_path('anggotas'), 'public');
 
             $anggota = Anggota::create([
                 'id_kartu'          => $request->id_kartu,
@@ -392,7 +392,7 @@ class AnggotaController extends Controller
                 if ($anggota->user->photo && Storage::disk('public')->exists($anggota->user->photo)) {
                     Storage::disk('public')->delete($anggota->user->photo);
                 }
-                $userData['photo'] = $request->file('photo')->store('anggotas', 'public');
+                $userData['photo'] = $request->file('photo')->store(tenant_storage_path('anggotas'), 'public');
             }
 
             $anggota->user->update($userData);

@@ -60,6 +60,48 @@ return [
             ]) : [],
         ],
 
+        // ── MASTER DB — menyimpan data tenant, pool, packages ─────────────
+        'mysql_master' => [
+            'timezone' => '+07:00',
+            'driver'   => 'mysql',
+            'host'     => env('DB_MASTER_HOST', '127.0.0.1'),
+            'port'     => env('DB_MASTER_PORT', '3306'),
+            'database' => env('DB_MASTER_DATABASE', ''),
+            'username' => env('DB_MASTER_USERNAME', 'root'),
+            'password' => env('DB_MASTER_PASSWORD', ''),
+            'unix_socket'    => '',
+            'charset'        => 'utf8mb4',
+            'collation'      => 'utf8mb4_unicode_ci',
+            'prefix'         => '',
+            'prefix_indexes' => true,
+            'strict'         => true,
+            'engine'         => null,
+            'options'        => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
+        // ── TENANT DB — koneksi placeholder, diisi runtime oleh ResolveTenant
+        'tenant' => [
+            'timezone' => '+07:00',
+            'driver'   => 'mysql',
+            'host'     => env('DB_TENANT_HOST', '127.0.0.1'),
+            'port'     => env('DB_TENANT_PORT', '3306'),
+            'database' => '',          // diisi runtime
+            'username' => env('DB_TENANT_USERNAME', 'root'),
+            'password' => env('DB_TENANT_PASSWORD', ''),
+            'unix_socket'    => '',
+            'charset'        => 'utf8mb4',
+            'collation'      => 'utf8mb4_unicode_ci',
+            'prefix'         => '',
+            'prefix_indexes' => true,
+            'strict'         => true,
+            'engine'         => null,
+            'options'        => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),

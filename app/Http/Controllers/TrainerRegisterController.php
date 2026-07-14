@@ -51,7 +51,7 @@ class TrainerRegisterController extends Controller
         DB::beginTransaction();
         try {
             // 1️⃣ Upload foto
-            $photoPath = $request->file('photo')->store('trainers', 'public');
+            $photoPath = $request->file('photo')->store(tenant_storage_path('trainers'), 'public');
 
             // 2️⃣ Buat Trainer dengan status 'pending'
             $trainer = Trainer::create([

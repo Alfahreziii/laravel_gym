@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 
-class KehadiranMember extends Model
+class KehadiranMember extends TenantModel
 {
     protected $fillable = ['rfid', 'nama', 'status', 'foto'];
 }

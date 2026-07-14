@@ -3,10 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 
-class Anggota extends Model
+class Anggota extends TenantModel
 {
     use HasFactory;
 
