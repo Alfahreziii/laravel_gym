@@ -156,6 +156,30 @@
 @media (max-width: 640px) {
     .sa-paket-grid { grid-template-columns: 1fr; }
 }
+
+/* ── Dark mode overrides ────────────────────────────── */
+html.dark .sa-paket-card         { background: var(--sa-card-bg); }
+html.dark .sa-paket-card-head    { background: #28231D; }
+html.dark .sa-readonly-badge     { background: rgba(255,255,255,.06); }
+
+html.dark .sa-mod-section-core .sa-mod-section-title { color: #4ADE80; }
+html.dark .sa-mod-section-core .sa-mod-section-tag {
+    background: rgba(34,197,94,.12); color: #4ADE80; border-color: rgba(34,197,94,.3);
+}
+html.dark .sa-mod-section-toggle .sa-mod-section-title { color: #FDBA74; }
+html.dark .sa-mod-section-toggle .sa-mod-section-tag {
+    background: rgba(249,115,22,.12); color: #FDBA74; border-color: rgba(249,115,22,.3);
+}
+
+html.dark .sa-mod-item:hover     { background: rgba(255,255,255,.04); }
+html.dark .sa-mod-item-off       { color: var(--sa-text-3); }
+
+html.dark .sa-mod-icon-on        { background: rgba(34,197,94,.15); }
+html.dark .sa-mod-icon-off       { background: rgba(255,255,255,.06); }
+html.dark .sa-mod-icon-on  svg   { color: #4ADE80; }
+html.dark .sa-mod-icon-off svg   { color: var(--sa-text-3); }
+
+html.dark .sa-paket-legend       { background: rgba(255,255,255,.03); }
 </style>
 
 {{-- ── Intro ─────────────────────────────────────────────── --}}

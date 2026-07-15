@@ -7,6 +7,9 @@
 
 <body>
 
+    {{-- Mobile sidebar overlay (di luar aside supaya stacking context benar) --}}
+    <div class="sa-sidebar-overlay" id="sa-sidebar-overlay"></div>
+
     <x-superadmin.sidebar />
 
     <div class="sa-main">
@@ -49,6 +52,11 @@
             @yield('content')
 
         </main>
+
+        <footer class="sa-footer">
+            <p>© 2025 HEXA DEVELOPMENT. All Rights Reserved.</p>
+            <p>Made by <span class="sa-footer-credit">Al Fahrezi</span></p>
+        </footer>
 
     </div>
 

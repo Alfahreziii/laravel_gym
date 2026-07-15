@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class ConfigDatabaseController extends Controller
 {
@@ -54,7 +55,8 @@ class ConfigDatabaseController extends Controller
 
     // ──────────────────────────────────────────────────────────────────────
     // POST /config-database/{pool}/clear
-    // Truncate selective + hapus tenant dari master + pool kembali available.
+    // Truncate selective + archive tenant di master + pool kembali available.
+    // Tenant TIDAK dihapus — diarsipkan agar riwayat gym tetap terlihat.
     // ──────────────────────────────────────────────────────────────────────
     public function clear(DatabasePool $pool): RedirectResponse
     {
@@ -72,6 +74,13 @@ class ConfigDatabaseController extends Controller
         if ($tenant->status === 'aktif') {
             return back()->withErrors([
                 '_clear' => "Gym «{$tenant->nama_gym}» masih berstatus Aktif. Jalankan Backup & Nonaktifkan terlebih dahulu.",
+            ]);
+        }
+
+        // Guard 2b: sudah diarsipkan (database sudah pernah di-clear)
+        if ($tenant->status === 'archived') {
+            return back()->withErrors([
+                '_clear' => "Gym «{$tenant->nama_gym}» sudah diarsipkan. Database sudah pernah di-clear sebelumnya.",
             ]);
         }
 
@@ -113,13 +122,33 @@ class ConfigDatabaseController extends Controller
 
         DB::purge('tenant'); // WAJIB setelah selesai
 
-        // ── 3. Update master: hapus tenant + bebaskan pool ────────────
-        // Catatan: $tenant->delete() men-cascade ke tenant_modules dan
-        // tenant_backups (DB records). File SQL di storage/app/backups/ TIDAK terhapus.
+        // ── 2b. Hapus folder storage tenant ──────────────────────────
+        // Foto/file gym sudah diarsipkan di ZIP backup sebelumnya.
+        // Setelah clear, gym tidak aktif — storage tidak diperlukan lagi.
+        try {
+            $storagePath = "tenants/{$tenant->subdomain}";
+            if (Storage::disk('public')->exists($storagePath)) {
+                Storage::disk('public')->deleteDirectory($storagePath);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Clear DB: gagal hapus folder storage tenant', [
+                'tenant' => $tenant->subdomain,
+                'path'   => "tenants/{$tenant->subdomain}",
+                'error'  => $e->getMessage(),
+            ]);
+            // Non-fatal — lanjut ke archive tenant
+        }
+
+        // ── 3. Archive tenant + bebaskan pool ────────────────────────
+        // Tenant TIDAK dihapus — status → 'archived', database_pool_id → NULL.
+        // tenant_modules + tenant_backups tetap ada sebagai riwayat.
         try {
             DB::connection('mysql_master')->transaction(function () use ($pool, $tenant) {
-                $tenant->delete();                        // cascade: modules + backup records
-                $pool->update(['status' => 'available']); // pool siap dipakai gym baru
+                $tenant->update([
+                    'status'           => 'archived',
+                    'database_pool_id' => null,       // lepas pool agar bisa dipakai gym baru
+                ]);
+                $pool->update(['status' => 'available']);
             });
         } catch (\Throwable $e) {
             Log::error('Clear DB: master update gagal setelah truncate berhasil', [
@@ -134,7 +163,7 @@ class ConfigDatabaseController extends Controller
 
         return redirect()->route('super_admin.config_database')->with(
             'success',
-            "Database «{$pool->db_name}» selesai di-clear. Pool kembali tersedia untuk gym baru."
+            "Database «{$pool->db_name}» selesai di-clear. Tenant «{$tenant->nama_gym}» diarsipkan. Pool kembali tersedia."
         );
     }
 

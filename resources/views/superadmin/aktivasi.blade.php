@@ -192,6 +192,37 @@
     .sa-act-layout { grid-template-columns: 1fr; }
     .sa-form-2col { grid-template-columns: 1fr; }
 }
+
+/* ── Dark mode overrides ────────────────────────────── */
+html.dark .sa-form-section    { background: var(--sa-card-bg); }
+html.dark .sa-form-section-head { background: rgba(255,255,255,.03); }
+
+html.dark .sa-form-textarea {
+    background: #28231D; color: var(--sa-text);
+    border-color: var(--sa-border); color-scheme: dark;
+}
+html.dark .sa-form-textarea:focus { background: #1F1B17; }
+
+html.dark .sa-subdomain-suffix { background: #28231D; color: var(--sa-text-2); }
+
+html.dark .sa-file-btn {
+    background: #28231D; color: var(--sa-text-2); border-color: var(--sa-border);
+}
+html.dark .sa-file-btn:hover { background: rgba(242,98,46,.1); }
+
+html.dark .sa-pkg-card { background: var(--sa-card-bg); }
+html.dark .sa-pkg-label:has(input:checked) .sa-pkg-card {
+    border-color: var(--sa-primary); background: rgba(242,98,46,.08);
+}
+
+html.dark .sa-mod-on  { background: rgba(34,197,94,.12);  color: #4ADE80; border-color: rgba(34,197,94,.3); }
+html.dark .sa-mod-off { background: rgba(255,255,255,.06); color: #6E685F; border-color: rgba(255,255,255,.1); }
+
+html.dark .sa-act-actions { background: var(--sa-card-bg); }
+
+html.dark .sa-act-note {
+    background: rgba(249,115,22,.1); border-color: rgba(249,115,22,.3); color: #FDBA74;
+}
 </style>
 
 <form method="POST"

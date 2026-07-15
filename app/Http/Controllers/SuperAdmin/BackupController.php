@@ -47,12 +47,12 @@ class BackupController extends Controller
 
         // ── 2. Generate SQL dump via PHP murni ────────────────────────
         $sqlPath = null;
+        $timestamp = now()->format('Ymd_His');
         try {
             $sqlContent = $this->generateSqlDump($pool->db_name, $tenant->subdomain);
 
             // Simpan ke storage/app/backups/ (private, tidak public)
-            $timestamp = now()->format('Ymd_His');
-            $sqlPath   = "backups/{$tenant->subdomain}_{$timestamp}.sql";
+            $sqlPath = "backups/{$tenant->subdomain}_{$timestamp}.sql";
 
             Storage::disk('local')->put($sqlPath, $sqlContent);
             unset($sqlContent); // bebaskan memori
@@ -64,14 +64,34 @@ class BackupController extends Controller
             ]);
         }
 
-        // ── 3. Tulis master: TenantBackup + ubah status ───────────────
-        // Storage ZIP dilewati — isolasi folder tenant belum ada (Fase 7).
+        // ── 2b. ZIP folder storage tenant (non-fatal) ─────────────────
+        // Sumber : storage/app/public/tenants/{subdomain}/
+        // Tujuan : storage/app/backups/{subdomain}_{timestamp}.zip
+        // Kalau folder tak ada / kosong → $zipPath = null (bukan error).
+        // Kalau ZipArchive gagal → log warning, zip_path null, SQL tetap sukses.
+        $zipPath    = null;
+        $zipWarning = null;
+
         try {
-            DB::connection('mysql_master')->transaction(function () use ($tenant, $sqlPath) {
+            $zipPath = $this->zipTenantStorage($tenant->subdomain, $timestamp);
+        } catch (\Throwable $e) {
+            $zipWarning = $e->getMessage();
+            Log::warning('Backup tenant: ZIP storage gagal', [
+                'tenant'    => $tenant->subdomain,
+                'timestamp' => $timestamp,
+                'error'     => $e->getMessage(),
+            ]);
+        }
+
+        // ── 3. Tulis master: TenantBackup + ubah status ───────────────
+        try {
+            DB::connection('mysql_master')->transaction(function () use ($tenant, $sqlPath, $zipPath) {
                 TenantBackup::create([
                     'tenant_id'        => $tenant->id,
+                    'nama_gym'         => $tenant->nama_gym,
+                    'subdomain'        => $tenant->subdomain,
                     'sql_path'         => $sqlPath,
-                    'storage_zip_path' => null,   // Fase 7
+                    'storage_zip_path' => $zipPath,
                     'tgl_backup'       => today(),
                     'downloaded'       => false,
                 ]);
@@ -80,14 +100,14 @@ class BackupController extends Controller
             });
         } catch (\Throwable $e) {
             // Master gagal → hapus file yang sudah dibuat, jangan tinggalkan orphan
-            if ($sqlPath) {
-                Storage::disk('local')->delete($sqlPath);
-            }
+            if ($sqlPath) Storage::disk('local')->delete($sqlPath);
+            if ($zipPath) Storage::disk('local')->delete($zipPath);
             DB::purge('tenant');
 
             Log::error('Backup tenant: master write gagal', [
                 'tenant'   => $tenant->subdomain,
                 'sql_path' => $sqlPath,
+                'zip_path' => $zipPath,
                 'error'    => $e->getMessage(),
             ]);
 
@@ -99,10 +119,18 @@ class BackupController extends Controller
         // ── 4. Reset koneksi tenant — WAJIB ──────────────────────────
         DB::purge('tenant');
 
-        return redirect()->route('super_admin.dashboard')->with(
-            'success',
-            "Backup «{$tenant->nama_gym}» selesai. Status diubah ke Non-aktif. Silakan download file SQL dari halaman ini."
-        );
+        $successMsg = "Backup «{$tenant->nama_gym}» selesai. Status diubah ke Non-aktif. "
+            . ($zipPath
+                ? "SQL + Storage ZIP tersedia untuk download di Arsip Backup."
+                : "SQL backup tersedia. (Folder storage kosong / tidak ada — ZIP tidak dibuat.)");
+
+        $response = redirect()->route('super_admin.dashboard')->with('success', $successMsg);
+
+        if ($zipWarning) {
+            $response = $response->with('info', "ZIP storage tidak dibuat: {$zipWarning}. SQL backup tetap tersedia.");
+        }
+
+        return $response;
     }
 
     // ──────────────────────────────────────────────────────────────────
@@ -123,6 +151,68 @@ class BackupController extends Controller
         }
 
         return Storage::disk('local')->download($path, basename($path));
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // ZIP folder storage tenant — PHP native ZipArchive, tanpa exec/shell
+    // Portable untuk shared hosting manapun.
+    //
+    // Return: path relatif ke disk 'local' (backups/xxx.zip), atau null
+    //         jika folder tidak ada / kosong (bukan error).
+    // Throw : RuntimeException jika ZipArchive gagal buka/tulis file.
+    //
+    // Catatan: untuk gym dengan ribuan foto besar, proses ini bisa memakan
+    //          waktu & memori. Jika perlu, set PHP time_limit / memory_limit
+    //          lebih besar di php.ini, atau pindahkan ke queue job.
+    // ──────────────────────────────────────────────────────────────────
+    private function zipTenantStorage(string $subdomain, string $timestamp): ?string
+    {
+        $sourcePath = Storage::disk('public')->path("tenants/{$subdomain}");
+
+        // Folder tak ada → skip (tenant belum pernah upload apapun)
+        if (! is_dir($sourcePath)) {
+            return null;
+        }
+
+        // Kumpulkan semua file secara rekursif
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($sourcePath, \RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::LEAVES_ONLY
+        );
+
+        $files = [];
+        foreach ($iterator as $file) {
+            if ($file->isFile()) {
+                $files[] = $file;
+            }
+        }
+
+        // Folder kosong → skip (tidak ada yang perlu di-zip)
+        if (empty($files)) {
+            return null;
+        }
+
+        $zipRelPath = "backups/{$subdomain}_{$timestamp}.zip";
+        $zipAbsPath = Storage::disk('local')->path($zipRelPath);
+
+        $zip = new \ZipArchive();
+        $result = $zip->open($zipAbsPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+
+        if ($result !== true) {
+            throw new \RuntimeException(
+                "ZipArchive tidak dapat membuat file ZIP (kode error: {$result})."
+            );
+        }
+
+        foreach ($files as $file) {
+            $filePath  = $file->getRealPath();
+            // Normalise separator → forward slash agar path dalam ZIP konsisten lintas OS
+            $entryName = str_replace('\\', '/', substr($filePath, strlen($sourcePath) + 1));
+            $zip->addFile($filePath, $entryName);
+        }
+
+        $zip->close();
+        return $zipRelPath;
     }
 
     // ──────────────────────────────────────────────────────────────────

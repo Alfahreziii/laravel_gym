@@ -12,6 +12,8 @@ class TenantBackup extends Model
 
     protected $fillable = [
         'tenant_id',
+        'nama_gym',
+        'subdomain',
         'sql_path',
         'storage_zip_path',
         'tgl_backup',

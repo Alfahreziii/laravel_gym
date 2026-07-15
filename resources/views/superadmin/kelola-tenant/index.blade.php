@@ -1,38 +1,10 @@
 @extends('superadmin.layouts.app')
 
-@section('title', 'Dashboard')
+@section('title', 'Kelola Tenant')
 
 @section('content')
 <style>
-/* ── Dashboard overrides ────────────────────────────────── */
-.sa-stat-grid { grid-template-columns: repeat(4, 1fr); }
-.sa-icon-info { background: #EFF6FF; color: #2563EB; }
-
-/* Expired tenant banner */
-.sa-expired-banner {
-    display: flex; gap: .875rem; align-items: flex-start;
-    background: #FFF1F2; border: 1px solid #FECDD3;
-    border-radius: 12px; padding: 1rem 1.25rem;
-    margin-bottom: 1.75rem;
-}
-.sa-expired-icon {
-    width: 36px; height: 36px; flex-shrink: 0;
-    background: #FFE4E6; border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-}
-.sa-expired-icon svg { width: 18px; height: 18px; color: #E11D48; }
-.sa-expired-title {
-    font-family: var(--sa-ff-display);
-    font-size: 15px; font-weight: 700; color: #9F1239; margin-bottom: .375rem;
-}
-.sa-expired-pills { display: flex; flex-wrap: wrap; gap: .5rem; }
-.sa-expired-pills span {
-    background: rgba(255,255,255,.7); border: 1px solid #FECDD3;
-    border-radius: 6px; padding: 2px 10px;
-    font-size: 12.5px; color: #BE185D; font-weight: 500;
-}
-
-/* Status badges */
+/* Status badges (sama dengan dashboard) */
 .sa-sts {
     display: inline-flex; align-items: center; gap: 5px;
     padding: 3px 9px; border-radius: 999px;
@@ -61,6 +33,15 @@
     font-family: var(--sa-ff-display);
 }
 
+/* Module chips */
+.sa-mod-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+.sa-mod-chip {
+    display: inline-flex; align-items: center; gap: 3px;
+    padding: 2px 7px; border-radius: 5px; font-size: 11px; font-weight: 600;
+}
+.sa-mod-chip-on  { background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; }
+.sa-mod-chip-off { background: #F5F6FA; color: #9CA3AF; border: 1px solid #E5E7EB; }
+
 /* Search */
 .sa-table-header-r { display: flex; align-items: center; gap: .75rem; }
 .sa-search-wrap { position: relative; }
@@ -81,13 +62,14 @@
 }
 .sa-search-input::placeholder { color: #C4C0BA; }
 
-/* Table action icon buttons */
+/* Table action icon buttons (same as dashboard) */
 .sa-tbl-acts { display: flex; align-items: center; gap: 4px; }
 .sa-btn-tbl {
     width: 30px; height: 28px;
     display: inline-flex; align-items: center; justify-content: center;
     border-radius: 7px; border: 1.5px solid var(--sa-border);
     background: none; cursor: pointer; color: var(--sa-text-2);
+    text-decoration: none;
     transition: border-color .13s, background .13s, color .13s;
 }
 .sa-btn-tbl:hover { border-color: var(--sa-primary); color: var(--sa-primary); background: #fff5f1; }
@@ -138,20 +120,7 @@ html.dark .sa-tab:hover { background: rgba(255,255,255,.05); color: var(--sa-tex
     color: #E11D48;
 }
 
-/* Backup history inline */
-.sa-backup-list { list-style:none; display:flex; flex-direction:column; gap:4px; margin-top:6px; }
-.sa-backup-item { display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--sa-text-2); }
-.sa-backup-dl-link {
-    display:inline-flex; align-items:center; gap:3px;
-    font-size:11px; font-weight:600; color:var(--sa-primary);
-    text-decoration:none; padding:1px 7px;
-    border:1px solid rgba(242,98,46,.3); border-radius:5px; background:rgba(242,98,46,.05);
-}
-.sa-backup-dl-link:hover { background:rgba(242,98,46,.12); }
-
 /* ── Dark mode overrides ────────────────────────────── */
-html.dark .sa-icon-info { background: rgba(37,99,235,.2); color: #93C5FD; }
-
 html.dark .sa-sts-aktif    { background: rgba(34,197,94,.12);  color: #4ADE80; border-color: rgba(34,197,94,.3); }
 html.dark .sa-sts-aktif    .sa-sts-dot { background: #4ADE80; }
 html.dark .sa-sts-nonaktif { background: rgba(255,255,255,.06); color: #A8A29A; border-color: rgba(255,255,255,.12); }
@@ -163,108 +132,21 @@ html.dark .sa-sts-expired  .sa-sts-dot { background: #F43F5E; }
 html.dark .sa-sts-archived { background: rgba(255,255,255,.05); color: #A8A29A; border-color: rgba(255,255,255,.1); }
 html.dark .sa-sts-archived .sa-sts-dot { background: #6E685F; }
 
-html.dark .sa-expired-banner {
-    background: rgba(244,63,94,.1); border-color: rgba(244,63,94,.3);
-}
-html.dark .sa-expired-icon   { background: rgba(225,29,72,.2); }
-html.dark .sa-expired-title  { color: #FB7185; }
-html.dark .sa-expired-pills span {
-    background: rgba(255,255,255,.06); border-color: rgba(244,63,94,.3); color: #FB7185;
-}
+html.dark .sa-mod-chip-on  { background: rgba(37,99,235,.15);  color: #93C5FD; border-color: rgba(37,99,235,.3); }
+html.dark .sa-mod-chip-off { background: rgba(255,255,255,.06); color: #6E685F; border-color: rgba(255,255,255,.1); }
 
 html.dark .sa-search-input       { background: #28231D; }
 html.dark .sa-search-input:focus { background: #1F1B17; }
 html.dark .sa-btn-tbl:hover      { background: rgba(242,98,46,.12); }
+html.dark .sa-btn-tbl.sa-btn-tbl-danger             { color: #F87171; border-color: rgba(220,38,38,.4); }
+html.dark .sa-btn-tbl.sa-btn-tbl-danger:hover       { background: rgba(220,38,38,.15); border-color: rgba(220,38,38,.6); }
 </style>
 
-{{-- ── Stat cards ──────────────────────────────────────────── --}}
-<div class="sa-stat-grid">
-
-    <div class="sa-stat-card">
-        <div class="sa-stat-icon sa-icon-primary">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                      d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016 2.993 2.993 0 0 0 2.25-1.016 3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z"/>
-            </svg>
-        </div>
-        <div>
-            <div class="sa-stat-label">Total Tenant</div>
-            <div class="sa-stat-value">{{ $stats['total'] }}</div>
-        </div>
-    </div>
-
-    <div class="sa-stat-card">
-        <div class="sa-stat-icon sa-icon-success">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                      d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
-            </svg>
-        </div>
-        <div>
-            <div class="sa-stat-label">Tenant Aktif</div>
-            <div class="sa-stat-value" style="color:#15803D">{{ $stats['aktif'] }}</div>
-        </div>
-    </div>
-
-    <div class="sa-stat-card">
-        <div class="sa-stat-icon sa-icon-neutral">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                      d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/>
-            </svg>
-        </div>
-        <div>
-            <div class="sa-stat-label">Non-aktif / Suspend</div>
-            <div class="sa-stat-value" style="color:#6B7280">{{ $stats['nonaktif'] }}</div>
-        </div>
-    </div>
-
-    <div class="sa-stat-card">
-        <div class="sa-stat-icon sa-icon-info">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                      d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75"/>
-            </svg>
-        </div>
-        <div>
-            <div class="sa-stat-label">DB Pool Tersisa</div>
-            <div class="sa-stat-value" style="color:#2563EB">{{ $stats['db_tersisa'] }}</div>
-        </div>
-    </div>
-
-</div>
-
-{{-- ── Banner tenant lewat tanggal ────────────────────────── --}}
-@if ($lewatTanggal->isNotEmpty())
-<div class="sa-expired-banner">
-    <div class="sa-expired-icon">
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
-        </svg>
-    </div>
-    <div>
-        <div class="sa-expired-title">
-            {{ $lewatTanggal->count() }} Gym Lewat Tanggal Langganan
-        </div>
-        <div class="sa-expired-pills">
-            @foreach ($lewatTanggal as $t)
-                <span>
-                    {{ $t->nama_gym }}
-                    <span style="opacity:.65">— {{ $t->tgl_selesai->diffForHumans() }}</span>
-                </span>
-            @endforeach
-        </div>
-    </div>
-</div>
-@endif
-
-{{-- ── Tabel tenant ─────────────────────────────────────────── --}}
 <div class="sa-table-card">
     <div class="sa-table-header">
         <div>
-            <div class="sa-table-title">Daftar Gym Terdaftar</div>
-            <div class="sa-table-sub">{{ $stats['total'] }} gym dalam sistem</div>
+            <div class="sa-table-title">Kelola Tenant</div>
+            <div class="sa-table-sub">{{ $tenants->count() }} gym terdaftar</div>
         </div>
         <div class="sa-table-header-r">
             <div class="sa-search-wrap">
@@ -327,18 +209,16 @@ html.dark .sa-btn-tbl:hover      { background: rgba(242,98,46,.12); }
         <table class="sa-table" id="tenant-table">
             <thead>
                 <tr>
-                    <th style="width:100px">Aksi</th>
+                    <th style="width:110px">Aksi</th>
                     <th>Nama Gym</th>
                     <th>Subdomain</th>
                     <th style="width:76px;text-align:center">Paket</th>
-                    <th style="width:148px">Status</th>
-                    <th style="width:108px">Tgl Mulai</th>
-                    <th style="width:130px">Tgl Selesai</th>
-                    <th>Backup Tersedia</th>
+                    <th style="width:140px">Status</th>
+                    <th style="width:120px">Tgl Selesai</th>
+                    <th>Modul Aktif</th>
                 </tr>
             </thead>
             <tbody>
-
                 @forelse ($tenants as $tenant)
                 @php
                     $today   = now()->startOfDay();
@@ -359,8 +239,7 @@ html.dark .sa-btn-tbl:hover      { background: rgba(242,98,46,.12); }
                         $tenant->status === 'archived'    => 'Arsip',
                         default                           => ucfirst($tenant->status),
                     };
-
-                    // Clear DB: hanya aktif jika nonaktif + punya pool + sudah download backup
+                    $mod            = $tenant->module;
                     $poolId         = $tenant->databasePool?->id;
                     $hasDownloaded  = $tenant->backups->where('downloaded', true)->isNotEmpty();
                     $canClear       = $tenant->status === 'nonaktif' && $poolId && $hasDownloaded;
@@ -417,11 +296,6 @@ html.dark .sa-btn-tbl:hover      { background: rgba(242,98,46,.12); }
                         </span>
                     </td>
 
-                    {{-- Tgl Mulai --}}
-                    <td style="font-size:13px;color:var(--sa-text-2)">
-                        {{ $tenant->tgl_mulai?->format('d M Y') ?? '—' }}
-                    </td>
-
                     {{-- Tgl Selesai --}}
                     <td>
                         @if ($tenant->tgl_selesai)
@@ -436,59 +310,48 @@ html.dark .sa-btn-tbl:hover      { background: rgba(242,98,46,.12); }
                         @endif
                     </td>
 
-                    {{-- Backup tersedia --}}
+                    {{-- Modul --}}
                     <td>
-                        @if ($tenant->backups->isEmpty())
-                            <span style="color:var(--sa-text-3);font-size:12.5px">Belum ada</span>
+                        @if ($mod)
+                            <div class="sa-mod-chips">
+                                <span class="sa-mod-chip {{ $mod->trainer ? 'sa-mod-chip-on' : 'sa-mod-chip-off' }}">
+                                    Trainer
+                                </span>
+                                <span class="sa-mod-chip {{ $mod->pos ? 'sa-mod-chip-on' : 'sa-mod-chip-off' }}">
+                                    POS
+                                </span>
+                                <span class="sa-mod-chip {{ $mod->keuangan ? 'sa-mod-chip-on' : 'sa-mod-chip-off' }}">
+                                    Keuangan
+                                </span>
+                            </div>
                         @else
-                            <ul class="sa-backup-list">
-                                @foreach ($tenant->backups->sortByDesc('tgl_backup')->take(3) as $bk)
-                                    <li class="sa-backup-item">
-                                        <span style="color:var(--sa-text-3)">{{ $bk->tgl_backup->format('d M Y') }}</span>
-                                        @if ($bk->sql_path)
-                                            <a href="{{ route('super_admin.backup.download', [$bk->id, 'sql']) }}"
-                                               class="sa-backup-dl-link">
-                                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:10px;height:10px">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/>
-                                                </svg>
-                                                .sql{{ $bk->downloaded ? ' ✓' : '' }}
-                                            </a>
-                                        @endif
-                                    </li>
-                                @endforeach
-                            </ul>
+                            <span style="color:var(--sa-text-3);font-size:12.5px">—</span>
                         @endif
                     </td>
 
                 </tr>
                 @empty
                 <tr class="sa-empty">
-                    <td colspan="8">
+                    <td colspan="7">
                         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"
                              style="width:32px;height:32px;margin:0 auto .75rem;display:block;color:var(--sa-text-3)">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                   d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016 2.993 2.993 0 0 0 2.25-1.016 3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z"/>
                         </svg>
                         Belum ada gym yang diaktifkan.
-                        <a href="{{ route('super_admin.aktivasi') }}"
-                           style="color:var(--sa-primary);font-weight:600;text-decoration:none">
-                            Aktivasi gym pertama →
-                        </a>
                     </td>
                 </tr>
                 @endforelse
 
                 @if ($tenants->isNotEmpty())
                 <tr id="sa-no-results" class="sa-empty">
-                    <td colspan="8">Tidak ada gym yang cocok dengan pencarian.</td>
+                    <td colspan="7">Tidak ada gym yang cocok dengan pencarian.</td>
                 </tr>
                 @endif
-
             </tbody>
         </table>
     </div>
 </div>
-
 @endsection
 
 @section('modals')

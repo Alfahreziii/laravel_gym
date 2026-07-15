@@ -61,42 +61,42 @@
                 </li>
             @endhasanyrole
 
-            @if(tenant_module('trainer'))
-            @hasanyrole('spv|admin')
-                <li
-                    class="dropdown {{ request()->routeIs('specialisasi.*') || request()->routeIs('paket_personal_trainer.*') || (request()->routeIs('trainer.*') && !request()->routeIs('laporan.trainer') && !request()->routeIs('trainer.dashboard') && !request()->routeIs('trainer.waiting.approval')) || (request()->routeIs('membertrainer.*') && !request()->routeIs('laporan.membertrainer')) ? 'open' : '' }}">
-                    <a href="javascript:void(0)">
-                        <x-icon.personal-trainer class="menu-icon" />
-                        <span>Personal Trainer</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a class="sidebar-menu-text {{ request()->routeIs('specialisasi.*') ? 'active-page' : '' }}"
-                                href="{{ route('specialisasi.index') }}">
-                                Specialisasi
-                            </a>
-                        </li>
-                        <li>
-                            <a class="sidebar-menu-text {{ request()->routeIs('paket_personal_trainer.*') ? 'active-page' : '' }}"
-                                href="{{ route('paket_personal_trainer.index') }}">
-                                Paket Trainer
-                            </a>
-                        </li>
-                        <li>
-                            <a class="sidebar-menu-text {{ request()->routeIs('trainer.*') && !request()->routeIs('laporan.trainer') && !request()->routeIs('trainer.dashboard') && !request()->routeIs('trainer.waiting.approval') ? 'active-page' : '' }}"
-                                href="{{ route('trainer.index') }}">
-                                Trainers
-                            </a>
-                        </li>
-                        <li>
-                            <a class="sidebar-menu-text {{ request()->routeIs('membertrainer.*') && !request()->routeIs('laporan.membertrainer') ? 'active-page' : '' }}"
-                                href="{{ route('membertrainer.index') }}">
-                                Member Trainer
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-            @endhasanyrole
+            @if (tenant_module('trainer'))
+                @hasanyrole('spv|admin')
+                    <li
+                        class="dropdown {{ request()->routeIs('specialisasi.*') || request()->routeIs('paket_personal_trainer.*') || (request()->routeIs('trainer.*') && !request()->routeIs('laporan.trainer') && !request()->routeIs('trainer.dashboard') && !request()->routeIs('trainer.waiting.approval')) || (request()->routeIs('membertrainer.*') && !request()->routeIs('laporan.membertrainer')) ? 'open' : '' }}">
+                        <a href="javascript:void(0)">
+                            <x-icon.personal-trainer class="menu-icon" />
+                            <span>Personal Trainer</span>
+                        </a>
+                        <ul class="sidebar-submenu">
+                            <li>
+                                <a class="sidebar-menu-text {{ request()->routeIs('specialisasi.*') ? 'active-page' : '' }}"
+                                    href="{{ route('specialisasi.index') }}">
+                                    Specialisasi
+                                </a>
+                            </li>
+                            <li>
+                                <a class="sidebar-menu-text {{ request()->routeIs('paket_personal_trainer.*') ? 'active-page' : '' }}"
+                                    href="{{ route('paket_personal_trainer.index') }}">
+                                    Paket Trainer
+                                </a>
+                            </li>
+                            <li>
+                                <a class="sidebar-menu-text {{ request()->routeIs('trainer.*') && !request()->routeIs('laporan.trainer') && !request()->routeIs('trainer.dashboard') && !request()->routeIs('trainer.waiting.approval') ? 'active-page' : '' }}"
+                                    href="{{ route('trainer.index') }}">
+                                    Trainers
+                                </a>
+                            </li>
+                            <li>
+                                <a class="sidebar-menu-text {{ request()->routeIs('membertrainer.*') && !request()->routeIs('laporan.membertrainer') ? 'active-page' : '' }}"
+                                    href="{{ route('membertrainer.index') }}">
+                                    Member Trainer
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endhasanyrole
             @endif
 
             @hasanyrole('spv|admin')
@@ -216,55 +216,55 @@
                 </li>
             @endhasanyrole
 
-            @if(tenant_module('pos'))
-            @hasanyrole('spv|admin')
-                <li class="sidebar-menu-group-title">POS</li>
-                <li
-                    class="dropdown {{ request()->routeIs('kasir.*') && !request()->routeIs('laporan.penjualan') ? 'open' : '' }}">
-                    <a href="javascript:void(0)">
-                        <x-icon.mesin-kasir class="menu-icon" />
-                        <span>Mesin Kasir</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a class="sidebar-menu-text {{ request()->routeIs('kasir.index') ? 'active-page' : '' }}"
-                                href="{{ route('kasir.index') }}">
-                                POS
-                            </a>
-                        </li>
-                        <li>
-                            <a class="sidebar-menu-text {{ request()->routeIs('kasir.riwayat') && !request()->routeIs('laporan.penjualan') ? 'active-page' : '' }}"
-                                href="{{ route('kasir.riwayat') }}">
-                                Penjualan
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-            @endhasanyrole
+            @if (tenant_module('pos'))
+                @hasanyrole('spv|admin')
+                    <li class="sidebar-menu-group-title">POS</li>
+                    <li
+                        class="dropdown {{ request()->routeIs('kasir.*') && !request()->routeIs('laporan.penjualan') ? 'open' : '' }}">
+                        <a href="javascript:void(0)">
+                            <x-icon.mesin-kasir class="menu-icon" />
+                            <span>Mesin Kasir</span>
+                        </a>
+                        <ul class="sidebar-submenu">
+                            <li>
+                                <a class="sidebar-menu-text {{ request()->routeIs('kasir.index') ? 'active-page' : '' }}"
+                                    href="{{ route('kasir.index') }}">
+                                    POS
+                                </a>
+                            </li>
+                            <li>
+                                <a class="sidebar-menu-text {{ request()->routeIs('kasir.riwayat') && !request()->routeIs('laporan.penjualan') ? 'active-page' : '' }}"
+                                    href="{{ route('kasir.riwayat') }}">
+                                    Penjualan
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endhasanyrole
 
-            @hasanyrole('spv|admin')
-                <li
-                    class="dropdown {{ request()->routeIs('kategori_products.*') || (request()->routeIs('products.*') && !request()->routeIs('laporan.products')) ? 'open' : '' }}">
-                    <a href="javascript:void(0)">
-                        <x-icon.product class="menu-icon" />
-                        <span>Product</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a class="sidebar-menu-text {{ request()->routeIs('kategori_products.*') ? 'active-page' : '' }}"
-                                href="{{ route('kategori_products.index') }}">
-                                Kategori
-                            </a>
-                        </li>
-                        <li>
-                            <a class="sidebar-menu-text {{ request()->routeIs('products.*') && !request()->routeIs('laporan.products') ? 'active-page' : '' }}"
-                                href="{{ route('products.index') }}">
-                                Product
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-            @endhasanyrole
+                @hasanyrole('spv|admin')
+                    <li
+                        class="dropdown {{ request()->routeIs('kategori_products.*') || (request()->routeIs('products.*') && !request()->routeIs('laporan.products')) ? 'open' : '' }}">
+                        <a href="javascript:void(0)">
+                            <x-icon.product class="menu-icon" />
+                            <span>Product</span>
+                        </a>
+                        <ul class="sidebar-submenu">
+                            <li>
+                                <a class="sidebar-menu-text {{ request()->routeIs('kategori_products.*') ? 'active-page' : '' }}"
+                                    href="{{ route('kategori_products.index') }}">
+                                    Kategori
+                                </a>
+                            </li>
+                            <li>
+                                <a class="sidebar-menu-text {{ request()->routeIs('products.*') && !request()->routeIs('laporan.products') ? 'active-page' : '' }}"
+                                    href="{{ route('products.index') }}">
+                                    Product
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endhasanyrole
             @endif
 
             @hasanyrole('spv|admin')
@@ -286,66 +286,66 @@
                 </li>
             @endhasanyrole
 
-            @if(tenant_module('trainer'))
-            @hasanyrole('admin')
-                <li class="sidebar-menu-group-title">Payroll</li>
+            @if (tenant_module('trainer'))
+                @hasanyrole('admin')
+                    <li class="sidebar-menu-group-title">Payroll</li>
 
-                <li
-                    class="dropdown {{ request()->routeIs('gaji_trainer.*') || request()->routeIs('level_trainer.*') ? 'open' : '' }}">
-                    <a href="javascript:void(0)">
-                        <x-icon.gaji-trainer class="menu-icon" />
-                        <span>Gaji Trainer</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a class="sidebar-menu-text {{ request()->routeIs('level_trainer') ? 'active-page' : '' }}"
-                                href="{{ route('level_trainer.index') }}">
-                                Level Trainer
-                            </a>
-                        </li>
-                        <li>
-                            <a class="sidebar-menu-text {{ request()->routeIs('gaji_trainer') ? 'active-page' : '' }}"
-                                href="{{ route('gaji_trainer.index') }}">
-                                Parameter Gaji
-                            </a>
-                        </li>
-                        <li>
-                            <a class="sidebar-menu-text {{ request()->routeIs('riwayat_gaji_trainer') ? 'active-page' : '' }}"
-                                href="{{ route('riwayat_gaji_trainer.index') }}">
-                                Riwayat Gaji
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-            @endhasanyrole
+                    <li
+                        class="dropdown {{ request()->routeIs('gaji_trainer.*') || request()->routeIs('level_trainer.*') ? 'open' : '' }}">
+                        <a href="javascript:void(0)">
+                            <x-icon.gaji-trainer class="menu-icon" />
+                            <span>Gaji Trainer</span>
+                        </a>
+                        <ul class="sidebar-submenu">
+                            <li>
+                                <a class="sidebar-menu-text {{ request()->routeIs('level_trainer') ? 'active-page' : '' }}"
+                                    href="{{ route('level_trainer.index') }}">
+                                    Level Trainer
+                                </a>
+                            </li>
+                            <li>
+                                <a class="sidebar-menu-text {{ request()->routeIs('gaji_trainer') ? 'active-page' : '' }}"
+                                    href="{{ route('gaji_trainer.index') }}">
+                                    Parameter Gaji
+                                </a>
+                            </li>
+                            <li>
+                                <a class="sidebar-menu-text {{ request()->routeIs('riwayat_gaji_trainer') ? 'active-page' : '' }}"
+                                    href="{{ route('riwayat_gaji_trainer.index') }}">
+                                    Riwayat Gaji
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endhasanyrole
             @endif
 
-            @if(tenant_module('keuangan'))
-            @hasanyrole('admin')
-                <li class="sidebar-menu-group-title">Keuangan</li>
+            @if (tenant_module('keuangan'))
+                @hasanyrole('admin')
+                    <li class="sidebar-menu-group-title">Keuangan</li>
 
-                <li
-                    class="dropdown {{ request()->routeIs('neraca.*') || request()->routeIs('keuangan.transaksi.*') ? 'open' : '' }}">
-                    <a href="javascript:void(0)">
-                        <x-icon.neraca class="menu-icon" />
-                        <span>Neraca</span>
-                    </a>
-                    <ul class="sidebar-submenu">
-                        <li>
-                            <a class="sidebar-menu-text {{ request()->routeIs('neraca.*') ? 'active-page' : '' }}"
-                                href="{{ route('neraca.index') }}">
-                                Neraca
-                            </a>
-                        </li>
-                        <li>
-                            <a class="sidebar-menu-text {{ request()->routeIs('keuangan.transaksi.*') ? 'active-page' : '' }}"
-                                href="{{ route('keuangan.transaksi.index') }}">
-                                Transaksi Keuangan
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-            @endhasanyrole
+                    <li
+                        class="dropdown {{ request()->routeIs('neraca.*') || request()->routeIs('keuangan.transaksi.*') ? 'open' : '' }}">
+                        <a href="javascript:void(0)">
+                            <x-icon.neraca class="menu-icon" />
+                            <span>Neraca</span>
+                        </a>
+                        <ul class="sidebar-submenu">
+                            <li>
+                                <a class="sidebar-menu-text {{ request()->routeIs('neraca.*') ? 'active-page' : '' }}"
+                                    href="{{ route('neraca.index') }}">
+                                    Neraca
+                                </a>
+                            </li>
+                            <li>
+                                <a class="sidebar-menu-text {{ request()->routeIs('keuangan.transaksi.*') ? 'active-page' : '' }}"
+                                    href="{{ route('keuangan.transaksi.index') }}">
+                                    Transaksi Keuangan
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endhasanyrole
             @endif
 
             @hasanyrole('trainer')
