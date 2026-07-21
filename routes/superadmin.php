@@ -7,6 +7,7 @@ use App\Http\Controllers\SuperAdmin\ConfigDatabaseController;
 use App\Http\Controllers\SuperAdmin\DashboardController;
 use App\Http\Controllers\SuperAdmin\KelolaTenantController;
 use App\Http\Controllers\SuperAdmin\PaketController;
+use App\Http\Controllers\SuperAdmin\ReaktivasiController;
 use App\Http\Controllers\SuperAdmin\SuperAdminAuthController;
 use Illuminate\Support\Facades\Route;
 
@@ -41,6 +42,12 @@ Route::middleware('auth:super_admin')->group(function () {
         ->name('super_admin.kelola_tenant.update');
     Route::patch('/kelola-tenant/{tenant}/modules', [KelolaTenantController::class, 'updateModules'])
         ->name('super_admin.kelola_tenant.update_modules');
+
+    // Aktifkan Kembali (tenant archived → aktif lagi)
+    Route::get('/kelola-tenant/{tenant}/reaktivasi', [ReaktivasiController::class, 'create'])
+        ->name('super_admin.reaktivasi');
+    Route::post('/kelola-tenant/{tenant}/reaktivasi', [ReaktivasiController::class, 'store'])
+        ->name('super_admin.reaktivasi.store');
 
     // Aktivasi Gym (tenant baru)
     Route::get('/aktivasi', [AktivasiController::class, 'create'])

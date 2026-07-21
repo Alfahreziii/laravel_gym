@@ -228,7 +228,7 @@ class BackupController extends Controller
         $out .= "-- Database : {$dbName}\n";
         $out .= "-- Waktu    : {$now}\n";
         $out .= "-- Generator: HexaGym Super Admin (PHP native)\n";
-        $out .= str_repeat('-', 60) . "\n\n";
+        $out .= '-- ' . str_repeat('-', 60) . "\n\n";
         $out .= "SET FOREIGN_KEY_CHECKS = 0;\n";
         $out .= "SET SQL_MODE = 'NO_AUTO_VALUE_ON_ZERO';\n";
         $out .= "SET NAMES utf8mb4;\n\n";

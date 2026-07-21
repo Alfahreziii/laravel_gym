@@ -251,6 +251,36 @@ html.dark .sa-sts-archived .sa-sts-dot { background: #6E685F; }
     $logoExists = $tenant->logo && file_exists(public_path('storage/' . $tenant->logo));
 @endphp
 
+{{-- Instruksi pasca-reaktivasi (muncul sekali setelah "Aktifkan Kembali") --}}
+@if (session('reaktivasi_info'))
+    @php $ri = session('reaktivasi_info'); @endphp
+    <div class="kt-archived-notice" style="border-color:#FCD34D;background:#FFFBEB">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="color:#B45309">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/>
+        </svg>
+        <div>
+            <div class="kt-archived-notice-title">Langkah selanjutnya sebelum gym bisa diakses</div>
+            <div class="kt-archived-notice-desc">
+                Pool «{{ $ri['db_name'] }}» sudah dialokasikan{{ $ri['zip_restored'] ? ' & foto sudah di-restore' : '' }}.
+                @if ($ri['zip_warning'])
+                    <br>Catatan: ekstrak ZIP foto gagal ({{ $ri['zip_warning'] }}) — bisa di-extract manual nanti.
+                @endif
+                <br><br>
+                <strong>LANGKAH SELANJUTNYA:</strong><br>
+                1. Import file SQL arsip ke database «{{ $ri['db_name'] }}» via phpMyAdmin
+                @if ($ri['sql_download_url'])
+                    (<a href="{{ $ri['sql_download_url'] }}">download SQL</a>)
+                @endif
+                <br>
+                2. Pastikan subdomain {{ $ri['subdomain'] }}.{{ $ri['base_domain'] }} aktif di cPanel + SSL<br>
+                3. Setelah SQL ter-import, ubah status gym ke <strong>AKTIF</strong> di halaman ini<br><br>
+                Status sekarang: <strong>NON-AKTIF</strong> (gym belum bisa diakses).
+            </div>
+        </div>
+    </div>
+@endif
+
 {{-- Archived notice --}}
 @if ($isArchived)
 <div class="kt-archived-notice">
