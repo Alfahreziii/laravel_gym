@@ -6,6 +6,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UsersController;
+use App\Http\Controllers\GymProfileController;
 use App\Http\Controllers\Membership\AnggotaController;
 use App\Http\Controllers\Membership\KategoriPaketController;
 use App\Http\Controllers\Membership\PaketMembershipController;
@@ -409,6 +410,15 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
             });
         });
     });
+
+    // Route untuk Profil Gym (identitas bisnis tenant, owner-only)
+    Route::controller(GymProfileController::class)
+        ->middleware(RoleMiddleware::class . ':admin')
+        ->group(function () {
+            Route::get('/pengaturan/profil-gym', 'index')->name('gym_profile.index');
+            Route::patch('/pengaturan/profil-gym', 'update')->name('gym_profile.update');
+        });
+
     // Route untuk Level Trainer
     Route::controller(LevelTrainerController::class)->middleware('module:trainer')->group(function () {
         Route::get('/level-trainer', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('level_trainer.index');

@@ -294,6 +294,16 @@
                 </li>
             @endhasanyrole
 
+            @hasanyrole('admin')
+                <li class="sidebar-menu-group-title">Pengaturan</li>
+                <li class="{{ request()->routeIs('gym_profile.index') ? 'active' : '' }}">
+                    <a href="{{ route('gym_profile.index') }}">
+                        <x-icon.store class="menu-icon" />
+                        <span>Profil Gym</span>
+                    </a>
+                </li>
+            @endhasanyrole
+
             @if (tenant_module('trainer'))
                 @hasanyrole('admin')
                     <li class="sidebar-menu-group-title">Payroll</li>
