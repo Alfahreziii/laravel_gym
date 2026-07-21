@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 
-<x-head />
+<x-head :title="$title ?? null" />
 
 <body class="bg-canvas-light dark:bg-canvas-dark text-ink dark:text-ink-d font-sans antialiased">
 

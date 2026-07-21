@@ -4,9 +4,15 @@
     </button>
     <div>
         <a href="{{ route('index') }}" class="sidebar-logo">
-            <img src="{{ asset('assets/images/logo.png') }}" alt="site logo" class="light-logo">
-            <img src="{{ asset('assets/images/logo-light.png') }}" alt="site logo" class="dark-logo">
-            <img src="{{ asset('assets/images/logo-icon.png') }}" alt="site logo" class="logo-icon">
+            @if (app()->bound('tenant') && app('tenant')->logo)
+                <img src="{{ asset('storage/' . app('tenant')->logo) }}" alt="{{ app('tenant')->nama_gym }}" class="light-logo">
+                <img src="{{ asset('storage/' . app('tenant')->logo) }}" alt="{{ app('tenant')->nama_gym }}" class="dark-logo">
+                <img src="{{ asset('storage/' . app('tenant')->logo) }}" alt="{{ app('tenant')->nama_gym }}" class="logo-icon">
+            @else
+                <img src="{{ asset('assets/images/logo.png') }}" alt="site logo" class="light-logo">
+                <img src="{{ asset('assets/images/logo-light.png') }}" alt="site logo" class="dark-logo">
+                <img src="{{ asset('assets/images/logo-icon.png') }}" alt="site logo" class="logo-icon">
+            @endif
         </a>
     </div>
     <div class="sidebar-menu-area">

@@ -1,9 +1,17 @@
 <head>
+    @props(['title' => null])
+    @php
+        $tenant     = app()->bound('tenant') ? app('tenant') : null;
+        $gymName    = $tenant->nama_gym ?? 'HexaGym';
+        $faviconUrl = $tenant && $tenant->logo
+            ? asset('storage/' . $tenant->logo)
+            : asset('assets/images/favicon.png');
+    @endphp
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>HexaGym</title>
-    <link rel="icon" type="image/png') }}" href="{{ asset('assets/images/favicon.png') }}" sizes="16x16">
+    <title>{{ $title ? $title . ' - ' . $gymName : $gymName }}</title>
+    <link rel="icon" type="image/png" href="{{ $faviconUrl }}" sizes="16x16">
     <!-- google fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
