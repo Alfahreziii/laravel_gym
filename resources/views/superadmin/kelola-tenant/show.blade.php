@@ -116,6 +116,11 @@ html.dark .kt-archived-notice-desc  { color: var(--sa-text-2); }
     outline: none; transition: border-color .13s, box-shadow .13s;
     appearance: none; -webkit-appearance: none;
 }
+/* input[type=date] butuh appearance native — appearance:none bikin ikon
+   kalender & layout dd/mm/yyyy rusak di Chrome/Edge */
+input[type="date"].kt-input {
+    appearance: auto; -webkit-appearance: auto;
+}
 .kt-input:focus, .kt-select:focus {
     border-color: var(--sa-primary); background: #fff;
     box-shadow: 0 0 0 3px rgba(242,98,46,.1);
@@ -143,7 +148,7 @@ html.dark .kt-archived-notice-desc  { color: var(--sa-text-2); }
     border-top: 5px solid var(--sa-text-3); pointer-events: none;
 }
 .kt-input-error { font-size: 11.5px; color: #EF4444; margin-top: 4px; display: block; }
-.kt-date-row    { display: grid; grid-template-columns: 1fr 1fr; gap: .625rem; }
+.kt-date-row    { display: grid; grid-template-columns: 1fr; gap: .75rem; }
 .kt-date-label  { font-size: 11.5px; font-weight: 600; color: var(--sa-text-3); margin-bottom: 4px; }
 
 /* ── Toggle switch ──────────────────────────────────── */
@@ -248,7 +253,11 @@ html.dark .sa-sts-archived .sa-sts-dot { background: #6E685F; }
     $expired    = $tenant->status === 'aktif' && $tenant->tgl_selesai?->lt($today);
     $mod        = $tenant->module;
     $isArchived = $tenant->status === 'archived';
-    $logoExists = $tenant->logo && file_exists(public_path('storage/' . $tenant->logo));
+    // Tidak pakai file_exists(public_path(...)) — di sebagian hosting, PHP
+    // (mis. karena open_basedir) gagal traverse symlink public/storage
+    // walau webserver bisa serve filenya langsung. Cukup percaya path di DB,
+    // sama seperti render foto anggota/trainer di tempat lain.
+    $logoExists = (bool) $tenant->logo;
 @endphp
 
 {{-- Instruksi pasca-reaktivasi (muncul sekali setelah "Aktifkan Kembali") --}}
@@ -459,9 +468,9 @@ html.dark .sa-sts-archived .sa-sts-dot { background: #6E685F; }
 
             <div class="kt-field-row">
                 <div class="kt-field-label" style="padding-top:0">Periode</div>
-                <div style="flex:1">
+                <div style="flex:1;min-width:0">
                     @if ($isArchived)
-                        <div style="display:flex;gap:1.5rem;margin-top:2px">
+                        <div style="display:flex;flex-direction:column;gap:.75rem;margin-top:2px">
                             <div>
                                 <div class="kt-date-label">Mulai</div>
                                 <div class="kt-field-value">{{ $tenant->tgl_mulai?->format('d M Y') ?? '—' }}</div>
