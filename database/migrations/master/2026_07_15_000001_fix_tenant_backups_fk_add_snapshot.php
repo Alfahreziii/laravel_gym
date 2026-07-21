@@ -32,25 +32,40 @@ return new class extends Migration
             $table->unsignedBigInteger('tenant_id')->nullable()->change();
         });
 
-        // ── 2. Drop index lama (bukan FK constraint) jika masih ada ──────
-        $indexExists = $db->select(
-            "SHOW INDEX FROM tenant_backups WHERE Key_name = 'tenant_backups_tenant_id_foreign'"
-        );
-        if (! empty($indexExists)) {
-            $db->statement('ALTER TABLE tenant_backups DROP INDEX `tenant_backups_tenant_id_foreign`');
-        }
-
-        // ── 3. Tambah FK constraint nullOnDelete jika belum ada ───────────
-        $fkExists = $db->select("
-            SELECT 1
-            FROM information_schema.KEY_COLUMN_USAGE
-            WHERE TABLE_SCHEMA        = DATABASE()
-              AND TABLE_NAME          = 'tenant_backups'
-              AND CONSTRAINT_NAME     = 'tenant_backups_tenant_id_foreign'
-              AND REFERENCED_TABLE_NAME IS NOT NULL
+        // ── 2. Pastikan FK constraint tenant_id → tenants pakai nullOnDelete ──
+        // Cek dulu apakah sudah ada FK constraint (bukan cuma index) dengan
+        // nama ini, dan aturan ON DELETE-nya. Dua skenario yang mesti dihandle:
+        //   a) DB lama: cuma ada index (tanpa FK) → tinggal drop index, buat FK baru.
+        //   b) DB baru (fresh migrate): FK sudah ada dari create_tenant_backups_table
+        //      dengan cascadeOnDelete() → FK itu harus di-drop dulu (otomatis
+        //      drop index bawaannya juga) sebelum dibuat ulang sebagai nullOnDelete.
+        $fkDeleteRule = $db->select("
+            SELECT rc.DELETE_RULE
+            FROM information_schema.REFERENTIAL_CONSTRAINTS rc
+            WHERE rc.CONSTRAINT_SCHEMA = DATABASE()
+              AND rc.TABLE_NAME        = 'tenant_backups'
+              AND rc.CONSTRAINT_NAME   = 'tenant_backups_tenant_id_foreign'
             LIMIT 1
         ");
-        if (empty($fkExists)) {
+
+        $needsRecreate = empty($fkDeleteRule) || strtoupper($fkDeleteRule[0]->DELETE_RULE) !== 'SET NULL';
+
+        if ($needsRecreate) {
+            if (! empty($fkDeleteRule)) {
+                // FK constraint sudah ada (mis. cascadeOnDelete bawaan create table) → drop dulu.
+                Schema::connection('mysql_master')->table('tenant_backups', function (Blueprint $table) {
+                    $table->dropForeign(['tenant_id']);
+                });
+            } else {
+                // Tidak ada FK constraint — mungkin masih ada index lama tanpa FK.
+                $indexExists = $db->select(
+                    "SHOW INDEX FROM tenant_backups WHERE Key_name = 'tenant_backups_tenant_id_foreign'"
+                );
+                if (! empty($indexExists)) {
+                    $db->statement('ALTER TABLE tenant_backups DROP INDEX `tenant_backups_tenant_id_foreign`');
+                }
+            }
+
             Schema::connection('mysql_master')->table('tenant_backups', function (Blueprint $table) {
                 $table->foreign('tenant_id')
                       ->references('id')->on('tenants')
