@@ -13,7 +13,7 @@
         <div class="sticky top-0 h-screen relative overflow-hidden flex flex-col">
 
             <img src="{{ asset('assets/images/auth/auth-img.png') }}"
-                 alt="Gym HexaGym"
+                 alt="Gym TradeFitness"
                  class="absolute inset-0 w-full h-full object-cover">
 
             <div class="absolute inset-0 bg-gradient-to-br from-primary-600/85 via-primary-700/80 to-primary-900/90"></div>
@@ -21,16 +21,8 @@
             <div class="relative z-10 flex flex-col h-full px-10 py-10">
 
                 <div class="flex items-center gap-3">
-                    <svg viewBox="0 0 40 40" fill="none" class="w-[42px] h-[42px] flex-shrink-0">
-                        <path d="M20 2 35.3 11v18L20 38 4.7 29V11Z" fill="#fff"/>
-                        <g stroke="#F2622E" stroke-width="2.6" stroke-linecap="round">
-                            <path d="M13 20h14"/>
-                            <path d="M13 16.5v7M27 16.5v7"/>
-                            <path d="M10.5 18v4M29.5 18v4"/>
-                        </g>
-                    </svg>
                     <div>
-                        <div class="font-display font-bold text-[26px] leading-none text-white">HexaGym</div>
+                        <div class="font-display font-bold text-[26px] leading-none text-white">TradeFitness</div>
                         <div class="text-[11px] text-white/85 font-medium tracking-[0.04em] mt-0.5">Gym Management System</div>
                     </div>
                 </div>
@@ -46,7 +38,7 @@
                     </p>
                 </div>
 
-                <div class="mt-9 text-[11px] text-white/70">© 2026 HexaGym · Cabang Depok</div>
+                <div class="mt-9 text-[11px] text-white/70">© 2026 HexaMultiDigital</div>
 
             </div>
         </div>
@@ -60,7 +52,7 @@
                 Pendaftaran Trainer 🏋️
             </h2>
             <p class="mt-1.5 text-sm text-ink-2 dark:text-ink-d2 mb-6">
-                Lengkapi data berikut untuk mendaftar sebagai personal trainer HexaGym.
+                Lengkapi data berikut untuk mendaftar sebagai personal trainer TradeFitness.
             </p>
 
             @if(session('error'))
