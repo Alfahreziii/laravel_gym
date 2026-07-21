@@ -20,6 +20,7 @@ class DashboardController extends Controller
             'total'      => $tenants->count(),
             'aktif'      => $tenants->where('status', 'aktif')->count(),
             'nonaktif'   => $tenants->whereIn('status', ['nonaktif', 'suspend'])->count(),
+            'archived'   => $tenants->where('status', 'archived')->count(),
             'db_tersisa' => DatabasePool::where('status', 'available')->count(),
         ];
 

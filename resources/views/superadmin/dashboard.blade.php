@@ -5,8 +5,9 @@
 @section('content')
 <style>
 /* ── Dashboard overrides ────────────────────────────────── */
-.sa-stat-grid { grid-template-columns: repeat(4, 1fr); }
+.sa-stat-grid { grid-template-columns: repeat(3, 1fr); }
 .sa-icon-info { background: #EFF6FF; color: #2563EB; }
+.sa-icon-archive { background: #F3F4F6; color: #4B5563; }
 
 /* Expired tenant banner */
 .sa-expired-banner {
@@ -150,7 +151,8 @@ html.dark .sa-tab:hover { background: rgba(255,255,255,.05); color: var(--sa-tex
 .sa-backup-dl-link:hover { background:rgba(242,98,46,.12); }
 
 /* ── Dark mode overrides ────────────────────────────── */
-html.dark .sa-icon-info { background: rgba(37,99,235,.2); color: #93C5FD; }
+html.dark .sa-icon-info    { background: rgba(37,99,235,.2);   color: #93C5FD; }
+html.dark .sa-icon-archive { background: rgba(255,255,255,.06); color: #A8A29A; }
 
 html.dark .sa-sts-aktif    { background: rgba(34,197,94,.12);  color: #4ADE80; border-color: rgba(34,197,94,.3); }
 html.dark .sa-sts-aktif    .sa-sts-dot { background: #4ADE80; }
@@ -216,6 +218,19 @@ html.dark .sa-btn-tbl:hover      { background: rgba(242,98,46,.12); }
         <div>
             <div class="sa-stat-label">Non-aktif / Suspend</div>
             <div class="sa-stat-value" style="color:#6B7280">{{ $stats['nonaktif'] }}</div>
+        </div>
+    </div>
+
+    <div class="sa-stat-card">
+        <div class="sa-stat-icon sa-icon-archive">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M20.25 7.5v11.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V7.5M3.75 3h16.5a1.5 1.5 0 0 1 1.5 1.5v1.5a1.5 1.5 0 0 1-1.5 1.5H3.75a1.5 1.5 0 0 1-1.5-1.5v-1.5a1.5 1.5 0 0 1 1.5-1.5ZM9.75 12h4.5"/>
+            </svg>
+        </div>
+        <div>
+            <div class="sa-stat-label">Arsip</div>
+            <div class="sa-stat-value" style="color:#4B5563">{{ $stats['archived'] }}</div>
         </div>
     </div>
 
