@@ -123,12 +123,14 @@
                                 Member
                             </a>
                         </li>
+                        @if (tenant_module('trainer'))
                         <li>
                             <a class="sidebar-menu-text {{ request()->routeIs('kehadirantrainer.*') ? 'active-page' : '' }}"
                                 href="{{ route('kehadirantrainer.index') }}">
                                 Trainer
                             </a>
                         </li>
+                        @endif
                     </ul>
                 </li>
             @endhasanyrole
@@ -356,6 +358,13 @@
                     <a href="{{ route('trainer.dashboard') }}">
                         <x-icon.dashboard class="menu-icon" />
                         <span>Dashboard</span>
+                    </a>
+                </li>
+
+                <li class="{{ request()->routeIs('trainer.profile') ? 'active' : '' }}">
+                    <a href="{{ route('trainer.profile') }}">
+                        <x-icon.users class="menu-icon" />
+                        <span>Profil Saya</span>
                     </a>
                 </li>
 

@@ -36,6 +36,7 @@ use App\Http\Controllers\Trainer\GajiTrainerController;
 use App\Http\Controllers\Trainer\LevelTrainerController;
 use App\Http\Controllers\Trainer\RiwayatGajiTrainerController;
 use App\Http\Controllers\MemberProfileController;
+use App\Http\Controllers\Trainer\TrainerProfileController;
 use App\Http\Controllers\Keuangan\TransaksiKeuanganController;
 
 
@@ -61,7 +62,7 @@ Route::controller(NoRoleController::class)->group(function () {
     Route::delete('/absen/{kehadiranmember}', 'destroy')->name('absen.destroy');
 });
 
-Route::controller(NoRoleController::class)->group(function () {
+Route::controller(NoRoleController::class)->middleware('module:trainer')->group(function () {
     Route::get('/absen-trainer', 'indextrainer')->name('absentrainer.index');
     Route::get('/absen-trainer/create', 'createtrainer')->name('absentrainer.create');
     Route::post('/absen-trainer', 'storetrainer')->name('absentrainer.store');
@@ -73,6 +74,11 @@ Route::controller(NoRoleController::class)->group(function () {
 Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddleware::class . ':trainer', 'module:trainer'])->group(function () {
     Route::get('/trainer/waiting-approval', [TrainerDashboardController::class, 'waiting'])
         ->name('trainer.waiting.approval');
+
+    Route::controller(TrainerProfileController::class)->group(function () {
+        Route::get('/trainer/profile', 'index')->name('trainer.profile');
+        Route::get('/trainer/profile/download-card', 'downloadCard')->name('trainer.profile.download-card');
+    });
 
     Route::get('/trainer/dashboard', [TrainerDashboardController::class, 'index'])
         ->name('trainer.dashboard');
@@ -139,7 +145,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddle
     // Polling notif absen - accessible by guest & admin
     Route::get('/absen-notif/poll', [AbsenNotifController::class, 'latest'])->name('absen_notif.poll');
 
-    Route::controller(KehadiranTrainerController::class)->group(function () {
+    Route::controller(KehadiranTrainerController::class)->middleware('module:trainer')->group(function () {
         Route::post('kehadirantrainer/export-pdf', 'exportPdf')->name('kehadirantrainer.export_pdf');
         Route::post('kehadirantrainer/export-excel', 'exportExcel')->name('kehadirantrainer.export_excel');
         Route::get('kehadirantrainer/datatable', 'datatable')->name('kehadirantrainer.datatable');
@@ -167,7 +173,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
 
     // Scanner Absensi Trainer — AJAX endpoint untuk drawer di kehadiran-trainer
     Route::post('/absensi/trainer', [NoRoleController::class, 'storetainerForLayout'])
-        ->middleware(RoleMiddleware::class . ':admin|spv')
+        ->middleware([RoleMiddleware::class . ':admin|spv', 'module:trainer'])
         ->name('absensi.trainer.store');
 
     Route::controller(DashboardController::class)->group(function () {
