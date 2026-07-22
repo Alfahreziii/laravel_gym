@@ -13,6 +13,12 @@ use Illuminate\Support\Facades\Storage;
 
 class NoRoleController extends Controller
 {
+    /**
+     * Jeda minimum (detik) sebelum RFID yang sama boleh absen lagi.
+     * Mencegah duplikat saat kartu/QR masih terbaca kamera berkali-kali.
+     */
+    private const ATTENDANCE_COOLDOWN_SECONDS = 60;
+
     // ─── AJAX endpoint untuk Scanner Drawer di halaman kehadiran-trainer ────
 
     public function storetainerForLayout(Request $request)
@@ -45,6 +51,13 @@ class NoRoleController extends Controller
             ->whereDate('created_at', $today)
             ->orderByDesc('created_at')
             ->first();
+
+        if ($last && $last->created_at->diffInSeconds(now()) < self::ATTENDANCE_COOLDOWN_SECONDS) {
+            $sisaDetik = self::ATTENDANCE_COOLDOWN_SECONDS - $last->created_at->diffInSeconds(now());
+            $msg = 'Absensi untuk ' . e($trainer->name) . ' baru saja tercatat. Tunggu ' . $sisaDetik . ' detik sebelum scan ulang.';
+            if ($isAjax) return response()->json(['success' => false, 'message' => $msg]);
+            return redirect()->route('absensi.trainer')->with('danger', $msg);
+        }
 
         $status   = (!$last || $last->status === 'out') ? 'in' : 'out';
         $fotoPath = null;
@@ -160,6 +173,15 @@ class NoRoleController extends Controller
             ->whereDate('created_at', $today)
             ->orderByDesc('created_at')
             ->first();
+
+        if ($lastAttendance && $lastAttendance->created_at->diffInSeconds(now()) < self::ATTENDANCE_COOLDOWN_SECONDS) {
+            $sisaDetik = self::ATTENDANCE_COOLDOWN_SECONDS - $lastAttendance->created_at->diffInSeconds(now());
+            $msg = 'Absensi untuk ' . e($anggota->name) . ' baru saja tercatat. Tunggu ' . $sisaDetik . ' detik sebelum scan ulang.';
+            if ($isAjax) {
+                return response()->json(['success' => false, 'message' => $msg]);
+            }
+            return redirect()->route('absen.index')->with('danger', $msg);
+        }
 
         $status = (!$lastAttendance || $lastAttendance->status === 'out') ? 'in' : 'out';
 
@@ -320,6 +342,12 @@ class NoRoleController extends Controller
             ->whereDate('created_at', $today)
             ->orderByDesc('created_at')
             ->first();
+
+        if ($lastAttendance && $lastAttendance->created_at->diffInSeconds(now()) < self::ATTENDANCE_COOLDOWN_SECONDS) {
+            $sisaDetik = self::ATTENDANCE_COOLDOWN_SECONDS - $lastAttendance->created_at->diffInSeconds(now());
+            return redirect()->route('absentrainer.index')
+                ->with('danger', 'Absensi untuk ' . e($trainer->name) . ' baru saja tercatat. Tunggu ' . $sisaDetik . ' detik sebelum scan ulang.');
+        }
 
         $status = (!$lastAttendance || $lastAttendance->status === 'out') ? 'in' : 'out';
 

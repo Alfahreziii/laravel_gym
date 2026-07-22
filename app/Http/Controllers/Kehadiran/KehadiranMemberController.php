@@ -18,6 +18,12 @@ class KehadiranMemberController extends Controller
     use ExportsExcel;
 
     /**
+     * Jeda minimum (detik) sebelum RFID yang sama boleh absen lagi.
+     * Mencegah duplikat saat kartu/QR masih terbaca kamera berkali-kali.
+     */
+    private const ATTENDANCE_COOLDOWN_SECONDS = 60;
+
+    /**
      * Export PDF dengan filter range tanggal
      */
     public function exportPdf(Request $request)
@@ -252,6 +258,12 @@ class KehadiranMemberController extends Controller
             ->whereDate('created_at', $today)
             ->orderByDesc('created_at')
             ->first();
+
+        if ($lastAttendance && $lastAttendance->created_at->diffInSeconds(now()) < self::ATTENDANCE_COOLDOWN_SECONDS) {
+            $sisaDetik = self::ATTENDANCE_COOLDOWN_SECONDS - $lastAttendance->created_at->diffInSeconds(now());
+            return redirect()->route('kehadiranmember.index')
+                ->with('danger', 'Absensi untuk ' . e($anggota->name) . ' baru saja tercatat. Tunggu ' . $sisaDetik . ' detik sebelum scan ulang.');
+        }
 
         $status = (!$lastAttendance || $lastAttendance->status === 'out') ? 'in' : 'out';
 
