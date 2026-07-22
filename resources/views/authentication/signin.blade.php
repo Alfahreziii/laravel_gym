@@ -6,6 +6,12 @@
 
 <body class="bg-white dark:bg-neutral-900">
 
+    {{-- Dark mode toggle --}}
+    <button type="button" id="theme-toggle" class="navbar-ctrl-btn fixed top-5 right-5 z-30" title="Ganti tema">
+        <x-icon.moon id="theme-toggle-dark-icon" class="text-[19px]" />
+        <iconify-icon id="theme-toggle-light-icon" icon="ph:sun-bold" class="text-[19px] hidden"></iconify-icon>
+    </button>
+
     <div class="flex min-h-screen">
 
         {{-- ──────────────────── PANEL KIRI ──────────────────── --}}

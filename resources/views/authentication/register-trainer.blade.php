@@ -6,6 +6,12 @@
 
 <body class="bg-white dark:bg-neutral-900">
 
+{{-- Dark mode toggle --}}
+<button type="button" id="theme-toggle" class="navbar-ctrl-btn fixed top-5 right-5 z-30" title="Ganti tema">
+    <x-icon.moon id="theme-toggle-dark-icon" class="text-[19px]" />
+    <iconify-icon id="theme-toggle-light-icon" icon="ph:sun-bold" class="text-[19px] hidden"></iconify-icon>
+</button>
+
 <div class="flex min-h-screen">
 
     {{-- ──────────────────── PANEL KIRI (sticky) ──────────────────── --}}
@@ -77,7 +83,7 @@
                         <iconify-icon icon="f7:person"
                             class="absolute start-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 pointer-events-none z-10"></iconify-icon>
                         <input name="name" value="{{ old('name') }}" required type="text"
-                            class="form-control h-[48px] ps-10 border-neutral-200 bg-neutral-50 rounded-xl w-full @error('name') border-danger-600 @enderror"
+                            class="form-control h-[48px] ps-10 border-neutral-200 bg-neutral-50 dark:bg-neutral-700 dark:border-neutral-600 rounded-xl w-full @error('name') border-danger-600 @enderror"
                             placeholder="Nama Lengkap">
                         @error('name')
                             <span class="text-danger-600 text-xs mt-1 block">{{ $message }}</span>
@@ -89,7 +95,7 @@
                         <iconify-icon icon="mage:email"
                             class="absolute start-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 pointer-events-none z-10"></iconify-icon>
                         <input type="email" name="email" required value="{{ old('email') }}"
-                            class="form-control h-[48px] ps-10 border-neutral-200 bg-neutral-50 rounded-xl w-full @error('email') border-danger-600 @enderror"
+                            class="form-control h-[48px] ps-10 border-neutral-200 bg-neutral-50 dark:bg-neutral-700 dark:border-neutral-600 rounded-xl w-full @error('email') border-danger-600 @enderror"
                             placeholder="Email">
                         @error('email')
                             <span class="text-danger-600 text-xs mt-1 block">{{ $message }}</span>
@@ -102,7 +108,7 @@
                             <iconify-icon icon="solar:lock-password-outline"
                                 class="absolute start-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 pointer-events-none z-10"></iconify-icon>
                             <input type="password" name="password" required
-                                class="form-control h-[48px] ps-10 pe-10 border-neutral-200 bg-neutral-50 rounded-xl w-full @error('password') border-danger-600 @enderror"
+                                class="form-control h-[48px] ps-10 pe-10 border-neutral-200 bg-neutral-50 dark:bg-neutral-700 dark:border-neutral-600 rounded-xl w-full @error('password') border-danger-600 @enderror"
                                 id="password" placeholder="Password (min. 8 karakter)">
                             <span class="toggle-password ri-eye-line cursor-pointer absolute end-3 top-1/2 -translate-y-1/2 text-xl text-neutral-400 hover:text-neutral-600"
                                 data-toggle="#password"></span>
@@ -118,7 +124,7 @@
                             <iconify-icon icon="solar:lock-password-outline"
                                 class="absolute start-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 pointer-events-none z-10"></iconify-icon>
                             <input type="password" name="password_confirmation" required
-                                class="form-control h-[48px] ps-10 pe-10 border-neutral-200 bg-neutral-50 rounded-xl w-full"
+                                class="form-control h-[48px] ps-10 pe-10 border-neutral-200 bg-neutral-50 dark:bg-neutral-700 dark:border-neutral-600 rounded-xl w-full"
                                 id="password_confirmation" placeholder="Konfirmasi Password">
                             <span class="toggle-password ri-eye-line cursor-pointer absolute end-3 top-1/2 -translate-y-1/2 text-xl text-neutral-400 hover:text-neutral-600"
                                 data-toggle="#password_confirmation"></span>
@@ -138,7 +144,7 @@
                         <iconify-icon icon="mdi:card-account-details"
                             class="absolute start-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 pointer-events-none z-10"></iconify-icon>
                         <input type="text" name="rfid" value="{{ old('rfid') }}" required
-                            class="form-control h-[48px] ps-10 border-neutral-200 bg-neutral-50 rounded-xl w-full @error('rfid') border-danger-600 @enderror"
+                            class="form-control h-[48px] ps-10 border-neutral-200 bg-neutral-50 dark:bg-neutral-700 dark:border-neutral-600 rounded-xl w-full @error('rfid') border-danger-600 @enderror"
                             placeholder="RFID">
                         @error('rfid')
                             <span class="text-danger-600 text-xs mt-1 block">{{ $message }}</span>
@@ -150,7 +156,7 @@
                         <iconify-icon icon="solar:phone-outline"
                             class="absolute start-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 pointer-events-none z-10"></iconify-icon>
                         <input type="text" name="no_telp" value="{{ old('no_telp') }}" required
-                            class="form-control h-[48px] ps-10 border-neutral-200 bg-neutral-50 rounded-xl w-full @error('no_telp') border-danger-600 @enderror"
+                            class="form-control h-[48px] ps-10 border-neutral-200 bg-neutral-50 dark:bg-neutral-700 dark:border-neutral-600 rounded-xl w-full @error('no_telp') border-danger-600 @enderror"
                             placeholder="No Telepon">
                         @error('no_telp')
                             <span class="text-danger-600 text-xs mt-1 block">{{ $message }}</span>
@@ -162,7 +168,7 @@
                         <iconify-icon icon="mdi:dumbbell"
                             class="absolute start-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 pointer-events-none z-10"></iconify-icon>
                         <select name="id_specialisasi" required
-                            class="form-control h-[48px] ps-10 border-neutral-200 bg-neutral-50 rounded-xl w-full @error('id_specialisasi') border-danger-600 @enderror">
+                            class="form-control h-[48px] ps-10 border-neutral-200 bg-neutral-50 dark:bg-neutral-700 dark:border-neutral-600 rounded-xl w-full @error('id_specialisasi') border-danger-600 @enderror">
                             <option value="">-- Pilih Spesialisasi --</option>
                             @foreach($specialisasis as $specialisasi)
                                 <option value="{{ $specialisasi->id }}" {{ old('id_specialisasi') == $specialisasi->id ? 'selected' : '' }}>
@@ -180,7 +186,7 @@
                         <iconify-icon icon="mdi:certificate"
                             class="absolute start-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 pointer-events-none z-10"></iconify-icon>
                         <input type="text" name="experience" value="{{ old('experience') }}" required
-                            class="form-control h-[48px] ps-10 border-neutral-200 bg-neutral-50 rounded-xl w-full @error('experience') border-danger-600 @enderror"
+                            class="form-control h-[48px] ps-10 border-neutral-200 bg-neutral-50 dark:bg-neutral-700 dark:border-neutral-600 rounded-xl w-full @error('experience') border-danger-600 @enderror"
                             placeholder="Pengalaman (contoh: 5 Tahun)">
                         @error('experience')
                             <span class="text-danger-600 text-xs mt-1 block">{{ $message }}</span>
@@ -192,7 +198,7 @@
                         <iconify-icon icon="mdi:map-marker"
                             class="absolute start-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 pointer-events-none z-10"></iconify-icon>
                         <input type="text" name="tempat_lahir" value="{{ old('tempat_lahir') }}" required
-                            class="form-control h-[48px] ps-10 border-neutral-200 bg-neutral-50 rounded-xl w-full @error('tempat_lahir') border-danger-600 @enderror"
+                            class="form-control h-[48px] ps-10 border-neutral-200 bg-neutral-50 dark:bg-neutral-700 dark:border-neutral-600 rounded-xl w-full @error('tempat_lahir') border-danger-600 @enderror"
                             placeholder="Tempat Lahir">
                         @error('tempat_lahir')
                             <span class="text-danger-600 text-xs mt-1 block">{{ $message }}</span>
@@ -204,7 +210,7 @@
                         <iconify-icon icon="mdi:calendar"
                             class="absolute start-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 pointer-events-none z-10"></iconify-icon>
                         <input type="date" name="tgl_lahir" value="{{ old('tgl_lahir') }}" required
-                            class="form-control h-[48px] ps-10 border-neutral-200 bg-neutral-50 rounded-xl w-full @error('tgl_lahir') border-danger-600 @enderror">
+                            class="form-control h-[48px] ps-10 border-neutral-200 bg-neutral-50 dark:bg-neutral-700 dark:border-neutral-600 rounded-xl w-full @error('tgl_lahir') border-danger-600 @enderror">
                         @error('tgl_lahir')
                             <span class="text-danger-600 text-xs mt-1 block">{{ $message }}</span>
                         @enderror
@@ -215,7 +221,7 @@
                         <iconify-icon icon="mdi:gender-male-female"
                             class="absolute start-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 pointer-events-none z-10"></iconify-icon>
                         <select name="jenis_kelamin" required
-                            class="form-control h-[48px] ps-10 border-neutral-200 bg-neutral-50 rounded-xl w-full @error('jenis_kelamin') border-danger-600 @enderror">
+                            class="form-control h-[48px] ps-10 border-neutral-200 bg-neutral-50 dark:bg-neutral-700 dark:border-neutral-600 rounded-xl w-full @error('jenis_kelamin') border-danger-600 @enderror">
                             <option value="">-- Pilih Jenis Kelamin --</option>
                             <option value="Laki-laki" {{ old('jenis_kelamin') == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
                             <option value="Perempuan" {{ old('jenis_kelamin') == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
@@ -228,7 +234,7 @@
                     {{-- Alamat --}}
                     <div class="mb-4">
                         <textarea name="alamat" required rows="3"
-                            class="form-control border-neutral-200 bg-neutral-50 rounded-xl w-full @error('alamat') border-danger-600 @enderror"
+                            class="form-control border-neutral-200 bg-neutral-50 dark:bg-neutral-700 dark:border-neutral-600 rounded-xl w-full @error('alamat') border-danger-600 @enderror"
                             placeholder="Alamat Lengkap">{{ old('alamat') }}</textarea>
                         @error('alamat')
                             <span class="text-danger-600 text-xs mt-1 block">{{ $message }}</span>
@@ -237,9 +243,9 @@
 
                     {{-- Foto --}}
                     <div class="mb-4">
-                        <label class="block text-sm font-medium mb-2">Foto Profil <span class="text-danger-600">*</span></label>
+                        <label class="block text-sm font-medium mb-2 text-ink-2 dark:text-ink-d2">Foto Profil <span class="text-danger-600">*</span></label>
                         <input type="file" name="photo" accept="image/*" required
-                            class="border border-neutral-200 bg-neutral-50 w-full rounded-xl @error('photo') border-danger-600 @enderror">
+                            class="border border-neutral-200 bg-neutral-50 dark:bg-neutral-700 dark:border-neutral-600 dark:text-ink-d w-full rounded-xl @error('photo') border-danger-600 @enderror">
                         @error('photo')
                             <span class="text-danger-600 text-xs mt-1 block">{{ $message }}</span>
                         @enderror
@@ -254,11 +260,11 @@
                     </h6>
 
                     <div id="jadwal-container">
-                        <div class="jadwal-item border border-neutral-200 rounded-xl p-4 mb-3 bg-neutral-50">
+                        <div class="jadwal-item border border-neutral-200 dark:border-neutral-600 rounded-xl p-4 mb-3 bg-neutral-50 dark:bg-neutral-700">
                             <div class="grid grid-cols-12 gap-3">
                                 <div class="col-span-12 md:col-span-4">
-                                    <label class="text-sm font-medium mb-1 block">Hari</label>
-                                    <select name="jadwal[0][day_of_week]" class="form-control h-[48px] border-neutral-300 bg-white rounded-lg" required>
+                                    <label class="text-sm font-medium mb-1 block text-ink-2 dark:text-ink-d2">Hari</label>
+                                    <select name="jadwal[0][day_of_week]" class="form-control h-[48px] border-neutral-300 dark:border-neutral-500 bg-white dark:bg-neutral-800 rounded-lg" required>
                                         <option value="">-- Pilih Hari --</option>
                                         <option value="Senin">Senin</option>
                                         <option value="Selasa">Selasa</option>
@@ -270,12 +276,12 @@
                                     </select>
                                 </div>
                                 <div class="col-span-6 md:col-span-3">
-                                    <label class="text-sm font-medium mb-1 block">Jam Mulai</label>
-                                    <input type="time" name="jadwal[0][start_time]" class="form-control h-[48px] border-neutral-300 bg-white rounded-lg" required>
+                                    <label class="text-sm font-medium mb-1 block text-ink-2 dark:text-ink-d2">Jam Mulai</label>
+                                    <input type="time" name="jadwal[0][start_time]" class="form-control h-[48px] border-neutral-300 dark:border-neutral-500 bg-white dark:bg-neutral-800 rounded-lg" required>
                                 </div>
                                 <div class="col-span-6 md:col-span-3">
-                                    <label class="text-sm font-medium mb-1 block">Jam Selesai</label>
-                                    <input type="time" name="jadwal[0][end_time]" class="form-control h-[48px] border-neutral-300 bg-white rounded-lg" required>
+                                    <label class="text-sm font-medium mb-1 block text-ink-2 dark:text-ink-d2">Jam Selesai</label>
+                                    <input type="time" name="jadwal[0][end_time]" class="form-control h-[48px] border-neutral-300 dark:border-neutral-500 bg-white dark:bg-neutral-800 rounded-lg" required>
                                 </div>
                                 <div class="col-span-12 md:col-span-2 flex items-end">
                                     <button type="button" class="btn-remove-jadwal w-full h-[48px] text-danger-600 hover:bg-danger-600 border border-danger-600 hover:text-white rounded-lg text-sm font-medium">
@@ -369,21 +375,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
     addBtn.addEventListener('click', function() {
         const html = `
-        <div class="jadwal-item border border-neutral-200 rounded-xl p-4 mb-3 bg-neutral-50">
+        <div class="jadwal-item border border-neutral-200 dark:border-neutral-600 rounded-xl p-4 mb-3 bg-neutral-50 dark:bg-neutral-700">
             <div class="grid grid-cols-12 gap-3">
                 <div class="col-span-12 md:col-span-4">
-                    <label class="text-sm font-medium mb-1 block">Hari</label>
-                    <select name="jadwal[${index}][day_of_week]" class="form-control h-[48px] border-neutral-300 bg-white rounded-lg" required>
+                    <label class="text-sm font-medium mb-1 block text-ink-2 dark:text-ink-d2">Hari</label>
+                    <select name="jadwal[${index}][day_of_week]" class="form-control h-[48px] border-neutral-300 dark:border-neutral-500 bg-white dark:bg-neutral-800 rounded-lg" required>
                         ${hariOptions}
                     </select>
                 </div>
                 <div class="col-span-6 md:col-span-3">
-                    <label class="text-sm font-medium mb-1 block">Jam Mulai</label>
-                    <input type="time" name="jadwal[${index}][start_time]" class="form-control h-[48px] border-neutral-300 bg-white rounded-lg" required>
+                    <label class="text-sm font-medium mb-1 block text-ink-2 dark:text-ink-d2">Jam Mulai</label>
+                    <input type="time" name="jadwal[${index}][start_time]" class="form-control h-[48px] border-neutral-300 dark:border-neutral-500 bg-white dark:bg-neutral-800 rounded-lg" required>
                 </div>
                 <div class="col-span-6 md:col-span-3">
-                    <label class="text-sm font-medium mb-1 block">Jam Selesai</label>
-                    <input type="time" name="jadwal[${index}][end_time]" class="form-control h-[48px] border-neutral-300 bg-white rounded-lg" required>
+                    <label class="text-sm font-medium mb-1 block text-ink-2 dark:text-ink-d2">Jam Selesai</label>
+                    <input type="time" name="jadwal[${index}][end_time]" class="form-control h-[48px] border-neutral-300 dark:border-neutral-500 bg-white dark:bg-neutral-800 rounded-lg" required>
                 </div>
                 <div class="col-span-12 md:col-span-2 flex items-end">
                     <button type="button" class="btn-remove-jadwal w-full h-[48px] text-danger-600 hover:bg-danger-600 border border-danger-600 hover:text-white rounded-lg text-sm font-medium">
