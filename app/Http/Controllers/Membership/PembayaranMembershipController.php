@@ -182,6 +182,7 @@ class PembayaranMembershipController extends Controller
             'paket' => $anggotaMembership->paketMembership,
             'pembayaran' => $anggotaMembership->pembayaranMemberships,
             'totalDibayar' => $anggotaMembership->pembayaranMemberships->sum('jumlah_bayar'),
+            'tenant' => app('tenant'),
         ];
 
         $pdf = Pdf::loadView('pages.admin.membership.pembayaran-membership.nota-pdf', $data);

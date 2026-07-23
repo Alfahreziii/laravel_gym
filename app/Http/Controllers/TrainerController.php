@@ -47,6 +47,7 @@ class TrainerController extends Controller
             $totalAktif     = $trainers->where('status', Trainer::STATUS_AKTIF)->count();
             $totalNonaktif  = $trainers->where('status', Trainer::STATUS_NONAKTIF)->count();
             $totalPending   = $trainers->where('status', Trainer::STATUS_PENDING)->count();
+            $tenant = app('tenant');
 
             $pdf = Pdf::loadView('pages.trainer.data-trainer.pdf', compact(
                 'trainers',
@@ -55,7 +56,8 @@ class TrainerController extends Controller
                 'totalNonaktif',
                 'totalPending',
                 'title',
-                'statusFilter'
+                'statusFilter',
+                'tenant'
             ));
 
             $pdf->setPaper('a4', 'landscape');

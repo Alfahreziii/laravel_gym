@@ -374,8 +374,9 @@ class TrainerDashboardController extends Controller
         });
 
         $totalSesi = $logs->where('type', 'out')->count();
+        $tenant = app('tenant');
 
-        $pdf = Pdf::loadView('pages.trainer.dashboard.session-logs-pdf', compact('trainer', 'logs', 'filterInfo', 'totalSesi'))
+        $pdf = Pdf::loadView('pages.trainer.dashboard.session-logs-pdf', compact('trainer', 'logs', 'filterInfo', 'totalSesi', 'tenant'))
             ->setPaper('a4', 'portrait');
 
         return $pdf->download('riwayat-sesi-' . $trainer->name . '-' . now()->format('Ymd') . '.pdf');

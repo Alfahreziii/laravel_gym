@@ -63,6 +63,7 @@ class KehadiranMemberController extends Controller
             if ($filterType !== 'all') {
                 $title .= ' - ' . $filterInfo;
             }
+            $tenant = app('tenant');
 
             $pdf = Pdf::loadView('pages.admin.kehadiran.kehadiran-member.pdf', compact(
                 'kehadiranMembers',
@@ -72,7 +73,8 @@ class KehadiranMemberController extends Controller
                 'totalMemberUnik',
                 'title',
                 'filterInfo',
-                'filterType'
+                'filterType',
+                'tenant'
             ));
 
             $pdf->setPaper('a4', 'landscape');

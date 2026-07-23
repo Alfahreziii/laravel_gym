@@ -105,6 +105,7 @@ class AnggotaMembershipController extends Controller
                     $title .= ($statusFilter !== 'all' ? ' - ' : '') . $filterInfo;
                 }
             }
+            $tenant = app('tenant');
 
             $pdf = Pdf::loadView('pages.admin.membership.anggota-paket-member.pdf', compact(
                 'anggotaMemberships',
@@ -118,7 +119,8 @@ class AnggotaMembershipController extends Controller
                 'statusInfo',
                 'filterInfo',
                 'statusFilter',
-                'filterType'
+                'filterType',
+                'tenant'
             ));
 
             $pdf->setPaper('a4', 'landscape');

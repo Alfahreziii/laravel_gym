@@ -46,6 +46,7 @@ class AnggotaController extends Controller
             $totalAnggota    = $anggotas->count();
             $totalAktif      = $anggotas->filter(fn($a) => $a->status_keanggotaan === true)->count();
             $totalTidakAktif = $anggotas->filter(fn($a) => $a->status_keanggotaan === false)->count();
+            $tenant = app('tenant');
 
             $pdf = Pdf::loadView('pages.admin.membership.anggota.pdf', compact(
                 'anggotas',
@@ -53,7 +54,8 @@ class AnggotaController extends Controller
                 'totalAktif',
                 'totalTidakAktif',
                 'title',
-                'statusFilter'
+                'statusFilter',
+                'tenant'
             ));
 
             $pdf->setPaper('a4', 'landscape');

@@ -256,7 +256,7 @@
     @endif
 
     <div class="footer">
-        <div class="footer-left">Hexagym Management System</div>
+        <div class="footer-left">{{ $tenant?->nama_gym ?: 'Gym Management System' }}</div>
         <div class="footer-right">{{ $history->count() }} sesi ditampilkan</div>
     </div>
 

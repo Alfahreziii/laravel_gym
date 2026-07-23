@@ -108,6 +108,7 @@ class MemberTrainerController extends Controller
                     $title .= ($statusFilter !== 'all' ? ' - ' : '') . $filterInfo;
                 }
             }
+            $tenant = app('tenant');
 
             $pdf = Pdf::loadView('pages.admin.personal-trainer.member-trainer.pdf', compact(
                 'memberTrainers',
@@ -121,7 +122,8 @@ class MemberTrainerController extends Controller
                 'statusFilter',
                 'filterType',
                 'filterInfo',
-                'statusInfo'
+                'statusInfo',
+                'tenant'
             ));
 
             $pdf->setPaper('a4', 'landscape');

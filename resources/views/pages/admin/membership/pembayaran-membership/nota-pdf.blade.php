@@ -135,10 +135,20 @@
     </style>
 </head>
 <body>
+    @php
+        $kontakParts = array_filter([
+            $tenant?->no_hp ? 'Telp: ' . $tenant->no_hp : null,
+            $tenant?->email,
+        ]);
+    @endphp
     <div class="header">
-        <h1>GYM FITNESS CENTER</h1>
-        <!-- <p>Jl. Contoh No. 123, Depok, Jawa Barat</p>
-        <p>Telp: (021) 1234567 | Email: info@gymfitness.com</p> -->
+        <h1>{{ $tenant?->nama_gym ? strtoupper($tenant->nama_gym) : 'GYM FITNESS CENTER' }}</h1>
+        @if($tenant?->alamat)
+            <p>{{ $tenant->alamat }}</p>
+        @endif
+        @if(count($kontakParts))
+            <p>{{ implode(' | ', $kontakParts) }}</p>
+        @endif
     </div>
 
     <div class="nota-title">Nota Pembayaran Membership</div>

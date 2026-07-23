@@ -194,10 +194,20 @@
 
 <body>
     <!-- Header -->
+    @php
+        $kontakParts = array_filter([
+            $tenant?->no_hp ? 'Telp: ' . $tenant->no_hp : null,
+            $tenant?->email,
+        ]);
+    @endphp
     <div class="header">
-        <h1>GYM MANAGEMENT</h1>
-        <p>Jl. Contoh Alamat No. 123</p>
-        <p>Telp: 0812-3456-7890</p>
+        <h1>{{ $tenant?->nama_gym ? strtoupper($tenant->nama_gym) : 'GYM MANAGEMENT' }}</h1>
+        @if($tenant?->alamat)
+            <p>{{ $tenant->alamat }}</p>
+        @endif
+        @if(count($kontakParts))
+            <p>{{ implode(' | ', $kontakParts) }}</p>
+        @endif
     </div>
 
     <!-- Info Transaksi -->
@@ -310,7 +320,7 @@
         <p class="thank-you">TERIMA KASIH</p>
         <p>Barang yang sudah dibeli tidak dapat dikembalikan</p>
         <p>Simpan nota ini sebagai bukti pembayaran</p>
-        <p style="margin-top: 8px;">{{ now()->format('Y') }} © Gym Management System</p>
+        <p style="margin-top: 8px;">{{ now()->format('Y') }} © {{ $tenant?->nama_gym ?: 'Gym Management System' }}</p>
     </div>
 </body>
 

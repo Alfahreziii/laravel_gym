@@ -36,6 +36,7 @@ class KasirController extends Controller
                     ->locale('id')
                     ->isoFormat('dddd, D MMMM YYYY HH:mm'),
                 'kasir' => Auth::user()->name ?? 'Kasir', // 🟢 Pakai user yang sedang login
+                'tenant' => app('tenant'),
             ];
 
             // Generate PDF

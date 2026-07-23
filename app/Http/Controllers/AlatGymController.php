@@ -32,6 +32,7 @@ class AlatGymController extends Controller
             $kondisiBaik = $alatGyms->where('kondisi_alat', 'Baik')->count();
             $kondisiRusak = $alatGyms->where('kondisi_alat', 'Rusak')->count();
             $kondisiPerluPerbaikan = $alatGyms->where('kondisi_alat', 'Perlu Perbaikan')->count();
+            $tenant = app('tenant');
 
             $pdf = Pdf::loadView('pages.admin.alat-gym.pdf', compact(
                 'alatGyms',
@@ -40,7 +41,8 @@ class AlatGymController extends Controller
                 'totalNilai',
                 'kondisiBaik',
                 'kondisiRusak',
-                'kondisiPerluPerbaikan'
+                'kondisiPerluPerbaikan',
+                'tenant'
             ));
 
             $pdf->setPaper('a4', 'landscape');

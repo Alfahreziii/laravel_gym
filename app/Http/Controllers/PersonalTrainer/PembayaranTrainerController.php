@@ -121,6 +121,7 @@ class PembayaranTrainerController extends Controller
             'trainer' => $memberTrainer->trainer,
             'pembayaran' => $memberTrainer->pembayaranMemberTrainers,
             'totalDibayar' => $memberTrainer->pembayaranMemberTrainers->sum('jumlah_bayar'),
+            'tenant' => app('tenant'),
         ];
 
         $pdf = Pdf::loadView('pages.admin.personal-trainer.pembayaran-trainer.nota-pdf', $data);

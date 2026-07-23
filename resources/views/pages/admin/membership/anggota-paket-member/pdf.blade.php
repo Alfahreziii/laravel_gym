@@ -200,7 +200,7 @@
 <body>
     <div class="header">
         <h1>{{ $title }}</h1>
-        <h2>Gym Management System</h2>
+        <h2>{{ $tenant?->nama_gym ?: 'Gym Management System' }}</h2>
         <div class="date">Dicetak pada: {{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') }}
             WIB</div>
     </div>
@@ -347,7 +347,7 @@
     @endif
 
     <div class="footer">
-        <p>Dokumen ini digenerate secara otomatis oleh sistem | © {{ date('Y') }} Gym Management System</p>
+        <p>Dokumen ini digenerate secara otomatis oleh sistem | © {{ date('Y') }} {{ $tenant?->nama_gym ?: 'Gym Management System' }}</p>
     </div>
 </body>
 

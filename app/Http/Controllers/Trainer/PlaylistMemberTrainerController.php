@@ -307,6 +307,7 @@ class PlaylistMemberTrainerController extends Controller
             $history = $history->sortKeys();
 
             $totalDurasi = array_sum(array_filter($durasiPerSesi));
+            $tenant = app('tenant');
 
             $pdf = Pdf::loadView('pages.trainer.playlist-member-trainer.pdf', compact(
                 'trainer',
@@ -314,7 +315,8 @@ class PlaylistMemberTrainerController extends Controller
                 'history',
                 'durasiPerSesi',
                 'tanggalPerSesi',
-                'totalDurasi'
+                'totalDurasi',
+                'tenant'
             ))->setPaper('a4', 'portrait');
 
             $filename = 'riwayat-gym-' . str_replace(' ', '-', strtolower($memberTrainer->anggota->name)) . '-' . now()->format('Ymd') . '.pdf';

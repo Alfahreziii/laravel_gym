@@ -40,6 +40,7 @@ class ProductController extends Controller
             $produkNonaktif = $products->where('is_active', 0)->count();
             $totalStok      = $products->sum('quantity');
             $title          = 'Laporan Data Produk';
+            $tenant         = app('tenant');
 
             $pdf = Pdf::loadView('pages.admin.kasir.products.pdf', compact(
                 'products',
@@ -49,7 +50,8 @@ class ProductController extends Controller
                 'produkAktif',
                 'produkNonaktif',
                 'totalStok',
-                'title'
+                'title',
+                'tenant'
             ));
             $pdf->setPaper('a4', 'landscape');
 

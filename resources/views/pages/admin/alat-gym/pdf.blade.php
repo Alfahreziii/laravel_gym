@@ -228,7 +228,7 @@
     <!-- Header -->
     <div class="header">
         <h1>Laporan Inventaris Alat Gym</h1>
-        <h2>Gym Management System</h2>
+        <h2>{{ $tenant?->nama_gym ?: 'Gym Management System' }}</h2>
         <div class="date">Dicetak pada: {{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') }} WIB</div>
     </div>
     
@@ -375,7 +375,7 @@
     
     <!-- Footer -->
     <div class="footer">
-        <p><strong>Gym Management System - Inventaris Alat Gym</strong></p>
+        <p><strong>{{ $tenant?->nama_gym ?: 'Gym Management System' }} - Inventaris Alat Gym</strong></p>
         <p>Dokumen ini digenerate secara otomatis oleh sistem</p>
     </div>
 </body>

@@ -250,7 +250,7 @@
     @endif
     
     <div class="footer">
-        <p>Dokumen ini digenerate secara otomatis oleh sistem | © {{ date('Y') }} Gym Management System</p>
+        <p>Dokumen ini digenerate secara otomatis oleh sistem | © {{ date('Y') }} {{ $tenant?->nama_gym ?: 'Gym Management System' }}</p>
     </div>
 </body>
 </html>
