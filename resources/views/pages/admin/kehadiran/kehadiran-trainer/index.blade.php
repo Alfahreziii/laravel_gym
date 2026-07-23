@@ -165,7 +165,7 @@
 
     {{-- Mode Switcher --}}
     <div style="padding:.75rem 1.25rem .25rem; flex-shrink:0;">
-        <div style="display:flex; background:#f3f4f6; border-radius:.75rem; padding:3px; gap:3px;">
+        <div class="hexa-mode-switch" style="display:flex; border-radius:.75rem; padding:3px; gap:3px;">
             <button id="mode-btn-photo" onclick="setMode('photo')"
                 style="flex:1; padding:.5rem .5rem; font-size:.8rem; font-weight:600; border:none; border-radius:.6rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:.35rem; transition:all .2s; background:#404040; color:#fff;">
                 <iconify-icon icon="solar:camera-bold" style="font-size:1rem;"></iconify-icon>
@@ -182,7 +182,7 @@
     {{-- Body --}}
     <div style="flex:1; overflow-y:auto; padding:1rem 1.25rem 1.25rem;">
 
-        <div id="scanner-toast" style="display:none; margin-bottom:1rem; border-radius:.75rem; padding:.75rem 1rem; font-size:.875rem; font-weight:600; align-items:center; gap:.5rem;"></div>
+        <div id="scanner-toast" class="scan-toast" style="display:none;"></div>
 
         <form id="scanner-form" action="{{ route('absensi.trainer.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
@@ -223,7 +223,7 @@
             </div>
 
             {{-- QR status info --}}
-            <div id="qr-status" style="display:none; margin-bottom:1.25rem; background:#f9fafb; border:1px solid #e5e7eb; border-radius:.75rem; padding:.75rem 1rem; font-size:.8125rem; color:#374151; align-items:center; gap:.5rem; text-align:center; justify-content:center;">
+            <div id="qr-status" class="qr-status-scanning" style="display:none; margin-bottom:1.25rem; border:1px solid; border-radius:.75rem; padding:.75rem 1rem; font-size:.8125rem; align-items:center; gap:.5rem; text-align:center; justify-content:center;">
                 <iconify-icon icon="solar:camera-scan-bold" style="font-size:1.25rem;"></iconify-icon>
                 <span id="qr-status-text">Arahkan kamera ke QR code kartu trainer…</span>
             </div>
@@ -246,6 +246,8 @@
     50%  { top: calc(100% - 2px); opacity: 1; }
     100% { top: 0; opacity: 1; }
 }
+.qr-status-scanning { background:#F9FAFB; border-color:#E5E7EB; color:#374151; }
+.dark .qr-status-scanning { background: rgba(255, 255, 255, .04); border-color:#332D26; color:#D4D4D4; }
 </style>
 
 @endsection
@@ -517,22 +519,12 @@
 
             function setQRStatus(state, msg) {
                 qrStatusTxt.textContent = msg;
-                if (state === 'found') {
-                    qrStatus.style.background   = '#f0fdf4';
-                    qrStatus.style.borderColor  = '#86efac';
-                    qrStatus.style.color        = '#15803d';
-                    qrStatus.querySelector('iconify-icon').setAttribute('icon', 'solar:check-circle-bold');
-                } else if (state === 'error') {
-                    qrStatus.style.background   = '#fef2f2';
-                    qrStatus.style.borderColor  = '#fca5a5';
-                    qrStatus.style.color        = '#dc2626';
-                    qrStatus.querySelector('iconify-icon').setAttribute('icon', 'solar:close-circle-bold');
-                } else {
-                    qrStatus.style.background   = '#f9fafb';
-                    qrStatus.style.borderColor  = '#e5e7eb';
-                    qrStatus.style.color        = '#374151';
-                    qrStatus.querySelector('iconify-icon').setAttribute('icon', 'solar:camera-scan-bold');
-                }
+                qrStatus.classList.remove('qr-status-scanning', 'qr-status-found', 'qr-status-error');
+                qrStatus.classList.add('qr-status-' + state);
+                const icon = state === 'found' ? 'solar:check-circle-bold'
+                    : state === 'error' ? 'solar:close-circle-bold'
+                    : 'solar:camera-scan-bold';
+                qrStatus.querySelector('iconify-icon').setAttribute('icon', icon);
             }
 
             // ── Submit handler (form manual) ────────────────────────────────
@@ -620,7 +612,8 @@
 
             function showScanToast(type, msg) {
                 const ok = type === 'success';
-                toast.style.cssText = `display:flex; align-items:center; gap:.5rem; padding:.75rem 1rem; border-radius:.75rem; font-size:.875rem; font-weight:600; margin-bottom:1rem; border:1px solid; ${ok ? 'background:#f0fdf4; color:#15803d; border-color:#bbf7d0;' : 'background:#fef2f2; color:#dc2626; border-color:#fecaca;'}`;
+                toast.className     = 'scan-toast ' + (ok ? 'scan-toast-success' : 'scan-toast-danger');
+                toast.style.display = 'flex';
                 toast.innerHTML = `<iconify-icon icon="${ok ? 'solar:check-circle-bold' : 'solar:close-circle-bold'}" style="font-size:1.25rem; flex-shrink:0;"></iconify-icon><span>${msg}</span>`;
                 clearTimeout(toast._to);
                 toast._to = setTimeout(() => { toast.style.display = 'none'; }, 5000);

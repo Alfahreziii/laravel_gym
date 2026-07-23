@@ -359,6 +359,53 @@ input[type="time"]::after {
     border-color: #332D26 !important;
 }
 
+/* Pill mode-switcher (Foto+ID / Scan QR) */
+.hexa-mode-switch {
+    background: #F3F4F6;
+}
+.dark .hexa-mode-switch {
+    background: #28231D;
+}
+
+/* Kotak status QR — state found/error sama di semua drawer, state "scanning"
+   default beda warna per halaman jadi didefinisikan lokal di masing-masing view. */
+.qr-status-found {
+    background: #F0FDF4;
+    border-color: #86EFAC;
+    color: #15803D;
+}
+.qr-status-error {
+    background: #FEF2F2;
+    border-color: #FCA5A5;
+    color: #DC2626;
+}
+.dark .qr-status-found {
+    background: rgba(21, 128, 61, .18);
+    border-color: #15803D;
+    color: #4ADE80;
+}
+.dark .qr-status-error {
+    background: rgba(220, 38, 38, .18);
+    border-color: #991B1B;
+    color: #F87171;
+}
+
+/* Toast hasil scan absensi */
+.scan-toast {
+    align-items: center;
+    gap: .5rem;
+    padding: .75rem 1rem;
+    border-radius: .75rem;
+    font-size: .875rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    border: 1px solid;
+}
+.scan-toast-success { background: #F0FDF4; color: #15803D; border-color: #BBF7D0; }
+.scan-toast-danger  { background: #FEF2F2; color: #DC2626; border-color: #FECACA; }
+.dark .scan-toast-success { background: rgba(21, 128, 61, .18); color: #4ADE80; border-color: #15803D; }
+.dark .scan-toast-danger  { background: rgba(220, 38, 38, .18); color: #F87171; border-color: #991B1B; }
+
 /* ── Profile dropdown dark mode ─────────────────────────────────────────── */
 .dark #dropdownProfile {
     background-color: #1F1B17;
