@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Carbon\Carbon;
 
 class MemberTrainer extends TenantModel
 {
@@ -90,7 +89,7 @@ class MemberTrainer extends TenantModel
      */
     public function getIsActiveAttribute()
     {
-        $today = Carbon::today();
+        $today = tenant_today();
         return $this->tgl_mulai <= $today && $this->tgl_selesai >= $today;
     }
 }

@@ -288,7 +288,7 @@ class TransaksiKeuanganController extends Controller
 
             $html = '<table>';
             $html .= '<tr><td colspan="9" class="title">' . $this->exEsc($title) . '</td></tr>';
-            $subtitle = 'Dicetak: ' . now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') . ' WIB';
+            $subtitle = 'Dicetak: ' . tenant_now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') . ' ' . tz_label();
             if (count($filterLabel) > 0) {
                 $subtitle .= ' | Filter: ' . implode(' | ', $filterLabel);
             }

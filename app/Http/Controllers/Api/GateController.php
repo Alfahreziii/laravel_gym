@@ -44,7 +44,7 @@ class GateController extends Controller
         ]);
 
         $rfid  = $request->kartu;
-        $today = Carbon::today();
+        $today = tenant_today();
 
         $member = Anggota::where('id_kartu', $rfid)->first();
 
@@ -88,7 +88,7 @@ class GateController extends Controller
         }
 
         $lastPresence = KehadiranMember::where('rfid', $rfid)
-            ->whereDate('created_at', $today)
+            ->whereBetween('created_at', tenant_today_range())
             ->latest()
             ->first();
 
@@ -119,7 +119,7 @@ class GateController extends Controller
         ]);
 
         $rfid  = $request->kartu;
-        $today = Carbon::today();
+        $today = tenant_today();
 
         // ============================================================
         // CEK MEMBER DULU
@@ -159,7 +159,7 @@ class GateController extends Controller
             }
 
             $lastPresence = KehadiranMember::where('rfid', $rfid)
-                ->whereDate('created_at', $today)
+                ->whereBetween('created_at', tenant_today_range())
                 ->latest()
                 ->first();
 
@@ -196,7 +196,7 @@ class GateController extends Controller
         }
 
         $lastPresenceTrainer = \App\Models\KehadiranTrainer::where('rfid', $rfid)
-            ->whereDate('created_at', $today)
+            ->whereBetween('created_at', tenant_today_range())
             ->latest()
             ->first();
 
@@ -229,7 +229,7 @@ class GateController extends Controller
         ]);
 
         $rfid  = $request->kartu;
-        $today = Carbon::today();
+        $today = tenant_today();
 
         $member = Anggota::where('status_finger', 0)->first();
 
@@ -273,7 +273,7 @@ class GateController extends Controller
         }
 
         $lastPresence = KehadiranMember::where('rfid', $rfid)
-            ->whereDate('created_at', $today)
+            ->whereBetween('created_at', tenant_today_range())
             ->latest()
             ->first();
 
@@ -376,7 +376,7 @@ class GateController extends Controller
             ], 404);
         }
 
-        $today      = Carbon::today();
+        $today      = tenant_today();
         $membership = $this->getMembership($member->id, $today);
 
         if (!$membership) {
@@ -395,8 +395,8 @@ class GateController extends Controller
                 'id'               => $member->id,
                 'name'             => $member->name,
                 'rfid'             => $member->rfid,
-                'membership_mulai' => Carbon::parse($membership->tgl_mulai)->format('d-m-Y'),
-                'membership_akhir' => Carbon::parse($membership->tgl_selesai)->format('d-m-Y'),
+                'membership_mulai' => Carbon::parse($membership->tgl_mulai, tenant_timezone())->format('d-m-Y'),
+                'membership_akhir' => Carbon::parse($membership->tgl_selesai, tenant_timezone())->format('d-m-Y'),
             ]
         ], 200);
     }

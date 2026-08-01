@@ -32,7 +32,7 @@ class KasirController extends Controller
             $data = [
                 'transaction' => $transaction,
                 'items' => $transaction->items,
-                'tanggal' => Carbon::parse($transaction->transaction_date ?? $transaction->created_at)
+                'tanggal' => to_tenant_tz($transaction->transaction_date ?? $transaction->created_at)
                     ->locale('id')
                     ->isoFormat('dddd, D MMMM YYYY HH:mm'),
                 'kasir' => Auth::user()->name ?? 'Kasir', // 🟢 Pakai user yang sedang login
@@ -137,7 +137,7 @@ class KasirController extends Controller
             }
 
             // Untuk "semua tanggal" atau range besar: pecah per bulan → ZIP
-            $grouped = $allFiltered->groupBy(fn($t) => Carbon::parse($t->created_at)->format('Y-m'));
+            $grouped = $allFiltered->groupBy(fn($t) => to_tenant_tz($t->created_at)->format('Y-m'));
 
             $zipPath = storage_path('app/temp_export_' . time() . '.zip');
             $zip = new \ZipArchive();
@@ -336,7 +336,7 @@ class KasirController extends Controller
 <body>
 <table>
   <tr><td colspan="14" class="title">Laporan Riwayat Penjualan</td></tr>
-  <tr><td colspan="14" class="subtitle">Periode: <?= htmlspecialchars($filterLabel) ?> &nbsp;|&nbsp; Dicetak: <?= now()->locale('id')->isoFormat('D MMMM YYYY HH:mm') ?></td></tr>
+  <tr><td colspan="14" class="subtitle">Periode: <?= htmlspecialchars($filterLabel) ?> &nbsp;|&nbsp; Dicetak: <?= tenant_now()->locale('id')->isoFormat('D MMMM YYYY HH:mm') ?> <?= tz_label() ?></td></tr>
   <tr><td colspan="14"></td></tr>
 
   <!-- Ringkasan -->
@@ -385,7 +385,7 @@ class KasirController extends Controller
                     echo '<td class="center">' . $no++ . '</td>';
                     echo '<td>' . htmlspecialchars($trx->transaction_code) . '</td>';
                     echo '<td>' . htmlspecialchars($trx->customer_name ?? '-') . '</td>';
-                    echo '<td class="center">' . Carbon::parse($trx->created_at)->format('d/m/Y H:i') . '</td>';
+                    echo '<td class="center">' . to_tenant_tz($trx->created_at)->format('d/m/Y H:i') . '</td>';
                     echo '<td class="center">' . htmlspecialchars($trx->metode_pembayaran ?? '-') . '</td>';
                     echo '<td class="num">Rp ' . $fmt($trx->harga_sebelum_diskon) . '</td>';
                     echo '<td class="num">Rp ' . $fmt($trx->diskon_barang) . '</td>';
@@ -469,7 +469,7 @@ class KasirController extends Controller
                     'id'                   => $item->id,
                     'kode_transaksi'       => $item->transaction_code,
                     'customer_name'        => $item->customer_name ?? '-',
-                    'tanggal'              => Carbon::parse($item->created_at)->format('d M Y'),
+                    'tanggal'              => to_tenant_tz($item->created_at)->format('d M Y'),
                     'total_amount'         => 'Rp ' . number_format($item->total_amount, 0, ',', '.'),
                     'dibayarkan'           => 'Rp ' . number_format($item->dibayarkan, 0, ',', '.'),
                     'kembalian'            => 'Rp ' . number_format($item->kembalian, 0, ',', '.'),
@@ -755,7 +755,7 @@ class KasirController extends Controller
         if (!$akunPendapatan) Log::warning('Akun Pendapatan Penjualan (MOD005) tidak ditemukan—baris kredit pendapatan dilewati.');
         if (!$akunHPP)        Log::warning('Akun Beban HPP (BEB001) tidak ditemukan—baris debit HPP dilewati.');
 
-        $tanggal = now()->format('Y-m-d');
+        $tanggal = tenant_today_date();
         $trxCode = $transaction->transaction_code;
 
         // 1) PENERIMAAN KAS (netBayar)
@@ -901,7 +901,7 @@ class KasirController extends Controller
                     'diskon'               => $transaction->diskon,
                     'diskon_barang'        => $transaction->diskon_barang,
                     'keterangan_flag'      => $hasKeterangan,
-                    'created_at'           => Carbon::parse($transaction->created_at)->format('d M Y H:i'),
+                    'created_at'           => to_tenant_tz($transaction->created_at)->format('d M Y H:i'),
                     'items_json'           => $transaction->items->map(fn($it) => [
                         'product_id'   => $it->product_id,
                         'product_name' => $it->product_name,

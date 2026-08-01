@@ -131,7 +131,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddle
 });
 
 // Guest Route
-Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddleware::class . ':guest|admin'])->group(function () {
+Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddleware::class . ':guest|admin|spv'])->group(function () {
     Route::controller(KehadiranMemberController::class)->group(function () {
         Route::get('/laporan/kehadiran', 'index')->middleware(RoleMiddleware::class . ':admin|spv')->name('laporan.kehadiran');
         Route::post('/kehadiranmember/export-pdf', 'exportPdf')->name('kehadiranmember.export_pdf');
@@ -207,6 +207,11 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
             Route::put('/products/{product}', 'update')->name('products.update');
             Route::delete('/products/{product}', 'destroy')->name('products.destroy');
             Route::post('/products/{product}/adjust', 'adjustQuantity')->name('products.adjust');
+        });
+        // Import Excel — admin & spv
+        Route::middleware(RoleMiddleware::class . ':admin|spv')->group(function () {
+            Route::get('/products/import-template', 'downloadImportTemplate')->name('products.import_template');
+            Route::post('/products/import', 'import')->name('products.import');
         });
         Route::get('/products/{product}/logs', 'logs')->middleware(RoleMiddleware::class . ':admin|spv')->name('products.logs');
         Route::get('/products/{product}/logs/datatable', 'datatableLogs')->middleware(RoleMiddleware::class . ':admin|spv')->name('products.logs.datatable');
@@ -418,6 +423,11 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
             Route::get('/pengaturan/profil-gym', 'index')->name('gym_profile.index');
             Route::patch('/pengaturan/profil-gym', 'update')->name('gym_profile.update');
         });
+
+    // Ganti zona waktu tenant — admin & spv
+    Route::patch('/pengaturan/zona-waktu', [GymProfileController::class, 'updateTimezone'])
+        ->middleware(RoleMiddleware::class . ':admin|spv')
+        ->name('gym_profile.update_timezone');
 
     // Route untuk Level Trainer
     Route::controller(LevelTrainerController::class)->middleware('module:trainer')->group(function () {

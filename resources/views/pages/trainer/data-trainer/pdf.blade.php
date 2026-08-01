@@ -211,14 +211,14 @@
     <div class="header">
         <h1>{{ $title ?? 'Laporan Data Trainer' }}</h1>
         <h2>{{ $tenant?->nama_gym ?: 'Gym Management System' }}</h2>
-        <div class="date">Dicetak pada: {{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') }} WIB</div>
+        <div class="date">Dicetak pada: {{ tenant_now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') }} {{ tz_label() }}</div>
     </div>
     
     <!-- Info Section -->
     <div class="info-section">
         <div class="info-row">
             <div class="info-label">Tanggal Export:</div>
-            <div class="info-value">{{ \Carbon\Carbon::now()->format('d F Y, H:i') }} WIB</div>
+            <div class="info-value">{{ tenant_now()->format('d F Y, H:i') }} {{ tz_label() }}</div>
         </div>
         <div class="info-row">
             <div class="info-label">Total Data:</div>

@@ -153,7 +153,7 @@
     <div class="header">
         <h1>Riwayat Sesi Training</h1>
         <h2>Trainer: {{ $trainer->name }}</h2>
-        <div class="date">Dicetak pada: {{ now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') }}</div>
+        <div class="date">Dicetak pada: {{ tenant_now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') }} {{ tz_label() }}</div>
     </div>
 
     <div class="info-box">
@@ -186,7 +186,7 @@
             @forelse($logs as $index => $log)
                 <tr>
                     <td>{{ $index + 1 }}</td>
-                    <td>{{ $log->created_at->format('d M Y H:i') }}</td>
+                    <td>{{ to_tenant_tz($log->created_at)->format('d M Y H:i') }}</td>
                     <td>
                         @if ($log->type === 'in')
                             <span class="badge-masuk">Masuk</span>

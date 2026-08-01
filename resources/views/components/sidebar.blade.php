@@ -115,7 +115,7 @@
                 </li>
             @endhasanyrole
 
-            @hasanyrole('guest|admin')
+            @hasanyrole('guest|admin|spv')
                 <li
                     class="dropdown {{ (request()->routeIs('kehadiranmember.*') && !request()->routeIs('laporan.kehadiran')) || request()->routeIs('kehadirantrainer.*') ? 'open' : '' }}">
                     <a href="javascript:void(0)">

@@ -140,7 +140,7 @@ class KehadiranTrainerController extends Controller
                     . '<td>' . $this->exEsc($item->rfid ?? '-') . '</td>'
                     . '<td>' . $this->exEsc($item->nama ?? '-') . '</td>'
                     . '<td class="center">' . $status . '</td>'
-                    . '<td class="center">' . $item->created_at->format('d/m/Y H:i:s') . '</td>'
+                    . '<td class="center">' . to_tenant_tz($item->created_at)->format('d/m/Y H:i:s') . '</td>'
                     . '</tr>';
             }
 
@@ -150,7 +150,7 @@ class KehadiranTrainerController extends Controller
 
             $html = '<table>';
             $html .= '<tr><td colspan="5" class="title">' . $this->exEsc($title) . '</td></tr>';
-            $html .= '<tr><td colspan="5" class="subtitle">Dicetak: ' . now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') . ' WIB &nbsp;|&nbsp; Filter Periode: ' . $this->exEsc($filterInfo) . '</td></tr>';
+            $html .= '<tr><td colspan="5" class="subtitle">Dicetak: ' . tenant_now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') . ' ' . tz_label() . ' &nbsp;|&nbsp; Filter Periode: ' . $this->exEsc($filterInfo) . '</td></tr>';
             $html .= '<tr><td colspan="5"></td></tr>';
             $html .= '<tr>'
                 . '<td class="summary-label">Total Kehadiran</td><td class="summary-val">' . $totalKehadiran . '</td>'
@@ -187,7 +187,7 @@ class KehadiranTrainerController extends Controller
      */
     public function index()
     {
-        $kehadirantrainers = KehadiranTrainer::whereDate('created_at', now()->toDateString())
+        $kehadirantrainers = KehadiranTrainer::whereBetween('created_at', tenant_today_range())
             ->latest()
             ->get();
 
@@ -225,7 +225,7 @@ class KehadiranTrainerController extends Controller
                     'foto'       => $item->foto ? asset('storage/' . $item->foto) : null,
                     'name'       => $item->nama ?? '-',
                     'status'     => $item->status,
-                    'time'       => $item->created_at->format('d M Y - H:i:s'),
+                    'time'       => to_tenant_tz($item->created_at)->format('d M Y - H:i:s'),
                     'delete_url' => route('kehadirantrainer.destroy', $item->id),
                 ];
             }),
@@ -253,10 +253,8 @@ class KehadiranTrainerController extends Controller
                 ->with('danger', 'Kartu dengan RFID ' . e($request->rfid) . ' tidak ditemukan!');
         }
 
-        $today = now()->toDateString();
-
         $lastAttendance = KehadiranTrainer::where('rfid', $request->rfid)
-            ->whereDate('created_at', $today)
+            ->whereBetween('created_at', tenant_today_range())
             ->orderByDesc('created_at')
             ->first();
 

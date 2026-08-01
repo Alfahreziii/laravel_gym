@@ -25,7 +25,7 @@ class KehadiranMemberObserver
             $activeMembership = $anggota->active_membership;
 
             if ($isAktif && $activeMembership) {
-                $sisaHari   = now()->startOfDay()->diffInDays($activeMembership->tgl_selesai->endOfDay(), false);
+                $sisaHari   = tenant_today()->diffInDays($activeMembership->tgl_selesai->endOfDay(), false);
                 $tglSelesai = $activeMembership->tgl_selesai->format('d M Y');
             } else {
                 $latest = $anggota->anggotaMemberships()->latest('tgl_selesai')->first();
@@ -48,7 +48,7 @@ class KehadiranMemberObserver
             'tgl_selesai'        => $tglSelesai,
             'alasan_tidak_aktif' => $alasanTidakAktif,
             'foto'               => $fotoUrl,
-            'waktu'              => $kehadiran->created_at->format('d M Y - H:i:s'),
+            'waktu'              => to_tenant_tz($kehadiran->created_at)->format('d M Y - H:i:s'),
             'timestamp'          => $kehadiran->created_at->timestamp,
         ];
 

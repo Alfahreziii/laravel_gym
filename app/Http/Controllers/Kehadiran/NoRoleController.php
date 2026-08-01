@@ -46,9 +46,8 @@ class NoRoleController extends Controller
             return redirect()->route('absensi.trainer')->with('danger', $msg);
         }
 
-        $today = now()->toDateString();
         $last  = KehadiranTrainer::whereRaw('UPPER(rfid) = ?', [$rfid])
-            ->whereDate('created_at', $today)
+            ->whereBetween('created_at', tenant_today_range())
             ->orderByDesc('created_at')
             ->first();
 
@@ -90,7 +89,7 @@ class NoRoleController extends Controller
      */
     public function index()
     {
-        $kehadiranmembers = KehadiranMember::whereDate('created_at', now()->toDateString())
+        $kehadiranmembers = KehadiranMember::whereBetween('created_at', tenant_today_range())
             ->latest()
             ->get();
 
@@ -125,8 +124,8 @@ class NoRoleController extends Controller
                     'foto'       => $item->foto ? asset('storage/' . $item->foto) : null,
                     'name'       => $item->nama ?? '-',
                     'status'     => $item->status,
-                    'date'       => $item->created_at->format('d/m/Y'),
-                    'time'       => $item->created_at->format('H:i:s'),
+                    'date'       => to_tenant_tz($item->created_at)->format('d/m/Y'),
+                    'time'       => to_tenant_tz($item->created_at)->format('H:i:s'),
                     'delete_url' => route('absen.destroy', $item->id),
                 ];
             }),
@@ -167,10 +166,8 @@ class NoRoleController extends Controller
             return redirect()->route('absen.index')->with('danger', 'Kartu dengan RFID ' . e($rfid) . ' tidak ditemukan!');
         }
 
-        $today = now()->toDateString();
-
         $lastAttendance = KehadiranMember::whereRaw('UPPER(rfid) = ?', [$rfid])
-            ->whereDate('created_at', $today)
+            ->whereBetween('created_at', tenant_today_range())
             ->orderByDesc('created_at')
             ->first();
 
@@ -200,14 +197,13 @@ class NoRoleController extends Controller
 
             if ($isAjax) {
                 // Build notif payload langsung di sini (tidak tunggu observer/cache)
-                $today2   = \Carbon\Carbon::today();
                 $isAktif  = $anggota->status_keanggotaan;
                 $activeMembership = $anggota->active_membership;
                 $sisaHari = null;
                 $tglSelesai = null;
                 $alasanTidakAktif = null;
                 if ($isAktif && $activeMembership) {
-                    $sisaHari   = (int) now()->startOfDay()->diffInDays($activeMembership->tgl_selesai->endOfDay(), false);
+                    $sisaHari   = (int) tenant_today()->diffInDays($activeMembership->tgl_selesai->endOfDay(), false);
                     $tglSelesai = $activeMembership->tgl_selesai->format('d M Y');
                 } else {
                     $latest = $anggota->anggotaMemberships()->latest('tgl_selesai')->first();
@@ -227,7 +223,7 @@ class NoRoleController extends Controller
                         'tgl_selesai'        => $tglSelesai,
                         'alasan_tidak_aktif' => $alasanTidakAktif,
                         'foto'               => $fotoPath ? asset('storage/' . $fotoPath) : null,
-                        'waktu'              => now()->format('d M Y - H:i:s'),
+                        'waktu'              => tenant_now()->format('d M Y - H:i:s'),
                         'timestamp'          => now()->timestamp,
                     ],
                 ]);
@@ -268,7 +264,7 @@ class NoRoleController extends Controller
      */
     public function indextrainer()
     {
-        $kehadirantrainers = KehadiranTrainer::whereDate('created_at', now()->toDateString())
+        $kehadirantrainers = KehadiranTrainer::whereBetween('created_at', tenant_today_range())
             ->latest()
             ->get();
 
@@ -306,8 +302,8 @@ class NoRoleController extends Controller
                     'foto'       => $item->foto ? asset('storage/' . $item->foto) : null,
                     'name'       => $item->nama ?? '-',
                     'status'     => $item->status,
-                    'date'       => $item->created_at->format('d/m/Y'),
-                    'time'       => $item->created_at->format('H:i:s'),
+                    'date'       => to_tenant_tz($item->created_at)->format('d/m/Y'),
+                    'time'       => to_tenant_tz($item->created_at)->format('H:i:s'),
                     'delete_url' => route('absentrainer.destroy', $item->id),
                 ];
             }),
@@ -336,10 +332,8 @@ class NoRoleController extends Controller
                 ->with('danger', 'Kartu dengan RFID ' . e($rfid) . ' tidak ditemukan!');
         }
 
-        $today = now()->toDateString();
-
         $lastAttendance = KehadiranTrainer::whereRaw('UPPER(rfid) = ?', [$rfid])
-            ->whereDate('created_at', $today)
+            ->whereBetween('created_at', tenant_today_range())
             ->orderByDesc('created_at')
             ->first();
 

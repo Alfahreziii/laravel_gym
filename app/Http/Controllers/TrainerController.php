@@ -133,7 +133,7 @@ class TrainerController extends Controller
 
             $html = '<table>';
             $html .= '<tr><td colspan="12" class="title">' . $this->exEsc($title) . '</td></tr>';
-            $html .= '<tr><td colspan="12" class="subtitle">Dicetak: ' . now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') . ' WIB</td></tr>';
+            $html .= '<tr><td colspan="12" class="subtitle">Dicetak: ' . tenant_now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') . ' ' . tz_label() . '</td></tr>';
             $html .= '<tr><td colspan="12"></td></tr>';
             $html .= '<tr>'
                 . '<td colspan="3" class="summary-label">Total Trainer</td><td colspan="3" class="summary-val">' . $totalTrainer . '</td>'

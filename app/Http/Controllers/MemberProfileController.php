@@ -41,8 +41,7 @@ class MemberProfileController extends Controller
         // Statistik kehadiran
         $totalKehadiran = $anggota->kehadirans->count();
         $kehadiranBulanIni = $anggota->kehadirans()
-            ->whereMonth('created_at', now()->month)
-            ->whereYear('created_at', now()->year)
+            ->whereBetween('created_at', tenant_month_range())
             ->count();
 
         return view('pages.member.profile', compact('anggota', 'totalKehadiran', 'kehadiranBulanIni'));

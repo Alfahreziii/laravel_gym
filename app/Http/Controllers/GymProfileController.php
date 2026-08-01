@@ -40,4 +40,15 @@ class GymProfileController extends Controller
 
         return redirect()->route('gym_profile.index')->with('success', 'Profil gym berhasil diperbarui.');
     }
+
+    public function updateTimezone(Request $request)
+    {
+        $request->validate([
+            'timezone' => ['required', 'string', 'in:Asia/Jakarta,Asia/Makassar,Asia/Jayapura'],
+        ]);
+
+        app('tenant')->update(['timezone' => $request->timezone]);
+
+        return back()->with('success', 'Zona waktu berhasil diperbarui.');
+    }
 }

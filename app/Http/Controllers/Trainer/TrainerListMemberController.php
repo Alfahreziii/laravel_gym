@@ -20,7 +20,7 @@ class TrainerListMemberController extends Controller
             return redirect()->back()->with('error', 'Anda tidak terdaftar sebagai trainer.');
         }
 
-        $memberInGymToday = KehadiranMember::whereDate('created_at', now()->toDateString())
+        $memberInGymToday = KehadiranMember::whereBetween('created_at', tenant_today_range())
             ->latest()
             ->get()
             ->groupBy('rfid')
@@ -29,7 +29,7 @@ class TrainerListMemberController extends Controller
             ->pluck('rfid')
             ->toArray();
 
-        $today = now()->toDateString();
+        $today = tenant_today_date();
 
         $allMemberTrainers = MemberTrainer::with(['anggota', 'paketPersonalTrainer', 'sesiLogs'])
             ->where('id_trainer', $trainer->id)
@@ -93,7 +93,7 @@ class TrainerListMemberController extends Controller
         $perPage = (int) $request->get('perPage', 10);
         $page    = (int) $request->get('page', 1);
 
-        $memberInGymToday = KehadiranMember::whereDate('created_at', now()->toDateString())
+        $memberInGymToday = KehadiranMember::whereBetween('created_at', tenant_today_range())
             ->latest()
             ->get()
             ->groupBy('rfid')
@@ -102,7 +102,7 @@ class TrainerListMemberController extends Controller
             ->pluck('rfid')
             ->toArray();
 
-        $today             = now()->toDateString();
+        $today             = tenant_today_date();
         $trainerIsTraining = $trainer->isTraining();
 
         $allMemberTrainers = MemberTrainer::with(['anggota', 'paketPersonalTrainer', 'sesiLogs'])
@@ -172,7 +172,7 @@ class TrainerListMemberController extends Controller
                     'is_checked_in'         => (bool) $m->is_checked_in,
                     'is_session_active'     => (bool) $m->is_session_active,
                     'session_started_at'    => $m->session_started_at
-                        ? \Carbon\Carbon::parse($m->session_started_at)->format('H:i')
+                        ? to_tenant_tz($m->session_started_at)->format('H:i')
                         : null,
                     'trainer_is_training'   => $trainerIsTraining,
                     'start_session_url'     => route('trainer.session.start', $sessionId),
@@ -199,12 +199,12 @@ class TrainerListMemberController extends Controller
         $search  = $request->get('search', '');
         $perPage = (int) $request->get('perPage', 10);
         $page    = (int) $request->get('page', 1);
-        $today   = now()->toDateString();
+        $today   = tenant_today_date();
 
         $trainerIsTraining = $trainer->isTraining();
 
         $lastKehadiran = KehadiranMember::where('rfid', $member->id_kartu)
-            ->whereDate('created_at', $today)
+            ->whereBetween('created_at', tenant_today_range())
             ->orderBy('created_at', 'desc')
             ->first();
         $isCheckedIn = $lastKehadiran && strtolower(trim($lastKehadiran->status)) === 'in';
@@ -237,7 +237,7 @@ class TrainerListMemberController extends Controller
                     'jumlah_sesi'         => $mt->paketPersonalTrainer->jumlah_sesi ?? 0,
                     'is_session_active'   => (bool) $mt->is_session_active,
                     'session_started_at'  => $mt->is_session_active && $mt->session_started_at
-                        ? \Carbon\Carbon::parse($mt->session_started_at)->format('H:i')
+                        ? to_tenant_tz($mt->session_started_at)->format('H:i')
                         : null,
                     'trainer_is_training' => $trainerIsTraining,
                     'is_checked_in'       => $isCheckedIn,
@@ -265,7 +265,7 @@ class TrainerListMemberController extends Controller
         $search  = $request->get('search', '');
         $perPage = (int) $request->get('perPage', 10);
         $page    = (int) $request->get('page', 1);
-        $today   = now()->toDateString();
+        $today   = tenant_today_date();
 
         $query = MemberTrainer::with(['paketPersonalTrainer'])
             ->where('id_trainer', $trainer->id)
@@ -330,7 +330,7 @@ class TrainerListMemberController extends Controller
             ->orderBy('tgl_mulai', 'desc')
             ->get();
 
-        $today = now()->toDateString();
+        $today = tenant_today_date();
 
         $activePackages = $memberTrainers->filter(function ($mt) use ($today) {
             return $mt->tgl_mulai->format('Y-m-d') <= $today
@@ -348,7 +348,7 @@ class TrainerListMemberController extends Controller
         $totalPaket          = $memberTrainers->count();
 
         $isCheckedInToday = KehadiranMember::where('rfid', $member->id_kartu)
-            ->whereDate('created_at', now()->toDateString())
+            ->whereBetween('created_at', tenant_today_range())
             ->orderBy('created_at', 'desc')
             ->first();
 

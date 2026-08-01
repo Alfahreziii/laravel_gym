@@ -77,7 +77,7 @@
                                         🏋️ Sedang Training
                                     </span>
                                     <p class="text-xs text-neutral-600 mt-2">
-                                        Mulai: {{ $activeMember->session_started_at->format('H:i') }}
+                                        Mulai: {{ to_tenant_tz($activeMember->session_started_at)->format('H:i') }}
                                     </p>
                                 </div>
                             </div>

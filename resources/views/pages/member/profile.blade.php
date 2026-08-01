@@ -649,10 +649,11 @@
                 @if ($anggota->kehadirans->count() > 0)
                     @foreach ($anggota->kehadirans->take(10) as $kehadiran)
                         @php
-                            $isIn      = $kehadiran->status === 'in';
-                            $namaHari  = $hariId[$kehadiran->created_at->dayOfWeek];
-                            $namaBulan = $bulanId[(int) $kehadiran->created_at->format('n')];
-                            $tglFmt    = $namaHari . ', ' . $kehadiran->created_at->format('d') . ' ' . $namaBulan . ' ' . $kehadiran->created_at->format('Y');
+                            $isIn        = $kehadiran->status === 'in';
+                            $kehadiranTz = to_tenant_tz($kehadiran->created_at);
+                            $namaHari    = $hariId[$kehadiranTz->dayOfWeek];
+                            $namaBulan   = $bulanId[(int) $kehadiranTz->format('n')];
+                            $tglFmt      = $namaHari . ', ' . $kehadiranTz->format('d') . ' ' . $namaBulan . ' ' . $kehadiranTz->format('Y');
                         @endphp
                         <div class="mp-kitem">
                             <div class="mp-kicon {{ $isIn ? 'mp-kicon-in' : 'mp-kicon-out' }}">
@@ -668,7 +669,7 @@
                             </div>
                             <div class="mp-kinfo">
                                 <div class="mp-kdate">{{ $tglFmt }}</div>
-                                <div class="mp-ktime">{{ $kehadiran->created_at->format('H:i') }} WIB · {{ $namaHari }}</div>
+                                <div class="mp-ktime">{{ $kehadiranTz->format('H:i') }} {{ tz_label() }} · {{ $namaHari }}</div>
                             </div>
                             <span class="mp-kpill {{ $isIn ? 'mp-kpill-in' : 'mp-kpill-out' }}">
                                 {{ $isIn ? 'CHECK IN' : 'CHECK OUT' }}
@@ -707,10 +708,13 @@
             <div class="mp-qrborder">
                 {!! DNS2D::getBarcodeHTML($anggota->id_kartu, 'QRCODE', 8, 8) !!}
             </div>
+            @php
+                $qrGymName = (app()->bound('tenant') ? app('tenant')?->nama_gym : null) ?: 'HexaGym';
+            @endphp
             <div class="mp-instr">
                 <div class="mp-instr-ttl">Cara menggunakan</div>
                 <ol>
-                    <li>Tunjukkan barcode ini ke staf HexaGym</li>
+                    <li>Tunjukkan barcode ini ke staf {{ $qrGymName }}</li>
                     <li>Staf memindai dengan scanner</li>
                     <li>Absensi tercatat otomatis</li>
                     <li>Atau download kartu member untuk dicetak</li>

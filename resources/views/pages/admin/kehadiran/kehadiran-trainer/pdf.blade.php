@@ -224,7 +224,7 @@
                             <span class="badge badge-out">CHECK OUT</span>
                         @endif
                     </td>
-                    <td>{{ $item->created_at->format('d M Y - H:i:s') }}</td>
+                    <td>{{ to_tenant_tz($item->created_at)->format('d M Y - H:i:s') }}</td>
                 </tr>
             @empty
                 <tr>
@@ -237,7 +237,7 @@
     </table>
 
     <div class="print-date">
-        Dicetak pada: {{ now()->locale('id')->isoFormat('D MMMM YYYY, HH:mm:ss') }}
+        Dicetak pada: {{ tenant_now()->locale('id')->isoFormat('D MMMM YYYY, HH:mm:ss') }} {{ tz_label() }}
     </div>
 </body>
 

@@ -174,7 +174,7 @@
     
     <div class="info-section">
         <div class="info-item">
-            <strong>Tanggal Export:</strong> {{ date('d F Y, H:i') }} WIB
+            <strong>Tanggal Export:</strong> {{ tenant_now()->format('d F Y, H:i') }} {{ tz_label() }}
         </div>
         <div class="info-item">
             <strong>Data Ditampilkan:</strong> {{ $anggotas->count() }} Anggota

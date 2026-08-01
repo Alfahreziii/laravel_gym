@@ -188,6 +188,51 @@
                 </div>
             </div>
 
+            {{-- Zona waktu — label tampil untuk semua role, dropdown ganti khusus admin|spv --}}
+            @php
+                $canChangeTimezone = Auth::user()->hasRole(['admin', 'spv']);
+            @endphp
+            <button @if ($canChangeTimezone) data-dropdown-toggle="dropdownTimezone" @endif id="timezoneToggle"
+                class="navbar-ctrl-btn flex items-center gap-1 !w-auto px-2" type="button" title="Zona waktu">
+                <iconify-icon icon="mdi:clock-outline" class="text-[19px]"></iconify-icon>
+                <span class="text-xs font-semibold">{{ tz_label() }}</span>
+            </button>
+
+            @if ($canChangeTimezone)
+                @php
+                    $tzOptions = [
+                        'Asia/Jakarta'  => 'WIB — Jakarta',
+                        'Asia/Makassar' => 'WITA — Makassar',
+                        'Asia/Jayapura' => 'WIT — Jayapura',
+                    ];
+                    $currentTz = tenant_timezone();
+                @endphp
+                <div id="dropdownTimezone"
+                    class="z-10 hidden bg-white dark:bg-surface-dark rounded-2xl overflow-hidden shadow-lg w-56 border border-neutral-100 dark:border-line-dark">
+                    <div class="px-4 py-3 border-b border-neutral-100 dark:border-neutral-700">
+                        <span class="font-semibold text-sm">Zona Waktu</span>
+                    </div>
+                    <ul class="py-2">
+                        @foreach ($tzOptions as $tzValue => $tzLabel)
+                            <li>
+                                <form method="POST" action="{{ route('gym_profile.update_timezone') }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="timezone" value="{{ $tzValue }}">
+                                    <button type="submit"
+                                        class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-neutral-700 flex items-center justify-between {{ $currentTz === $tzValue ? 'text-primary-600 font-semibold' : '' }}">
+                                        {{ $tzLabel }}
+                                        @if ($currentTz === $tzValue)
+                                            <iconify-icon icon="mdi:check"></iconify-icon>
+                                        @endif
+                                    </button>
+                                </form>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             {{-- Dark mode toggle --}}
             <button type="button" id="theme-toggle" class="navbar-ctrl-btn" title="Ganti tema">
                 <x-icon.moon id="theme-toggle-dark-icon" class="text-[19px]" />
@@ -267,6 +312,9 @@
         const notifToggle = document.querySelector('[data-dropdown-toggle="dropdownNotification"]');
         const notifDropdown = document.getElementById('dropdownNotification');
 
+        const timezoneToggle = document.getElementById('timezoneToggle');
+        const timezoneDropdown = document.getElementById('dropdownTimezone');
+
         function toggleDropdown(toggleBtn, dropdown) {
             if (!toggleBtn || !dropdown) return;
             toggleBtn.addEventListener('click', function(e) {
@@ -282,6 +330,7 @@
         function closeAllDropdowns() {
             if (profileDropdown) profileDropdown.classList.add('hidden');
             if (notifDropdown) notifDropdown.classList.add('hidden');
+            if (timezoneDropdown) timezoneDropdown.classList.add('hidden');
         }
 
         document.addEventListener('click', function(e) {
@@ -289,8 +338,10 @@
                 profileToggle && !profileToggle.contains(e.target);
             const clickedOutsideNotif = notifDropdown && !notifDropdown.contains(e.target) &&
                 notifToggle && !notifToggle.contains(e.target);
+            const clickedOutsideTimezone = timezoneDropdown && !timezoneDropdown.contains(e.target) &&
+                timezoneToggle && !timezoneToggle.contains(e.target);
 
-            if (clickedOutsideProfile && clickedOutsideNotif) {
+            if (clickedOutsideProfile && clickedOutsideNotif && clickedOutsideTimezone) {
                 closeAllDropdowns();
             }
         });
@@ -303,5 +354,6 @@
 
         toggleDropdown(profileToggle, profileDropdown);
         toggleDropdown(notifToggle, notifDropdown);
+        toggleDropdown(timezoneToggle, timezoneDropdown);
     });
 </script>

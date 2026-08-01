@@ -15,6 +15,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Controllers\Concerns\ExportsExcel;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Reader\Xlsx as XlsxReader;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 class ProductController extends Controller
 {
@@ -117,7 +121,7 @@ class ProductController extends Controller
 
             $html = '<table>';
             $html .= '<tr><td colspan="12" class="title">Laporan Data Produk</td></tr>';
-            $html .= '<tr><td colspan="12" class="subtitle">Dicetak: ' . now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') . ' WIB</td></tr>';
+            $html .= '<tr><td colspan="12" class="subtitle">Dicetak: ' . tenant_now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') . ' ' . tz_label() . '</td></tr>';
             $html .= '<tr><td colspan="12"></td></tr>';
             $html .= '<tr>'
                 . '<td colspan="3" class="summary-label">Total Produk</td><td colspan="3" class="summary-val">' . $totalProduk . '</td>'
@@ -187,6 +191,7 @@ class ProductController extends Controller
                     'no'            => (($page - 1) * $perPage) + $index + 1,
                     'id'            => $item->id,
                     'name'          => $item->name,
+                    'barcode'       => $item->barcode,
                     'image_url'     => $item->image
                         ? asset('storage/' . $item->image)
                         : asset('assets/images/kasir/product-placeholder.png'),
@@ -408,6 +413,268 @@ class ProductController extends Controller
         }
     }
 
+    /**
+     * Download template Excel untuk import produk massal. Foto produk
+     * sengaja tidak termasuk kolom — tetap diupload manual per-produk lewat form edit.
+     */
+    public function downloadImportTemplate()
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Template Produk');
+
+        $headers = [
+            'A1' => 'Nama Produk*',
+            'B1' => 'Barcode*',
+            'C1' => 'Kategori* (pilih dari dropdown)',
+            'D1' => 'Deskripsi',
+            'E1' => 'Harga Jual*',
+            'F1' => 'HPP*',
+            'G1' => 'Diskon',
+            'H1' => 'Tipe Diskon (percent/nominal)',
+            'I1' => 'Stok Awal',
+            'J1' => 'Reorder Point',
+            'K1' => 'Aktif (Ya/Tidak)',
+        ];
+        foreach ($headers as $cell => $text) {
+            $sheet->setCellValue($cell, $text);
+        }
+        $sheet->getStyle('A1:K1')->getFont()->setBold(true);
+        $sheet->getStyle('A1:K1')->getFill()
+            ->setFillType(Fill::FILL_SOLID)
+            ->getStartColor()->setRGB('D9E1F2');
+
+        // Catatan di header Kategori — muncul saat kursor diarahkan ke sel ini di Excel.
+        $kategoriNote = $sheet->getComment('C1');
+        $kategoriNote->getText()->createTextRun(
+            'Wajib sama persis dengan salah satu nama di sheet "Daftar Kategori". '
+            . 'Klik sel di kolom ini lalu pilih dari dropdown yang muncul — '
+            . 'kalau ketik manual nama yang tidak ada di daftar, Excel akan menolaknya.'
+        );
+        $kategoriNote->setWidth('220pt');
+        $kategoriNote->setHeight('110pt');
+
+        // Kolom Barcode DIPAKSA format Text — kalau dibiarkan format Number/General,
+        // Excel akan menampilkan barcode yang panjang jadi notasi ilmiah (mis. 8.99E+12)
+        // dan angka nol di depan bisa hilang. Diterapkan ke banyak baris ke bawah
+        // supaya baris baru yang diisi user juga ikut format Text ini.
+        $sheet->getStyle('B2:B1000')->getNumberFormat()
+            ->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_TEXT);
+
+        $categories = KategoriProduct::orderBy('name')->pluck('name')->values();
+
+        $sheet->fromArray([
+            'Contoh Protein Bar', null, $categories->first() ?? 'Minuman',
+            'Contoh deskripsi produk (opsional)', 15000, 10000, 0, 'nominal', 10, 5, 'Ya',
+        ], null, 'A2');
+        $sheet->setCellValueExplicit('B2', '8991234567890', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+
+        foreach (range('A', 'K') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        // Sheet kedua: daftar kategori yang valid, biar admin tidak salah ketik nama kategori
+        $catSheet = $spreadsheet->createSheet();
+        $catSheet->setTitle('Daftar Kategori');
+        $catSheet->setCellValue('A1', 'Kategori yang tersedia di sistem');
+        $catSheet->getStyle('A1')->getFont()->setBold(true);
+        foreach ($categories as $i => $name) {
+            $catSheet->setCellValue('A' . ($i + 2), $name);
+        }
+        $catSheet->getColumnDimension('A')->setAutoSize(true);
+
+        // Dropdown di kolom Kategori (Template Produk) — daftarnya diambil langsung
+        // dari sheet "Daftar Kategori", jadi user tinggal pilih, tidak perlu ketik manual.
+        if ($categories->isNotEmpty()) {
+            $lastRow = $categories->count() + 1;
+            $validation = new \PhpOffice\PhpSpreadsheet\Cell\DataValidation();
+            $validation->setType(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::TYPE_LIST);
+            $validation->setErrorStyle(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::STYLE_STOP);
+            $validation->setAllowBlank(true);
+            $validation->setShowInputMessage(true);
+            $validation->setShowErrorMessage(true);
+            $validation->setShowDropDown(true);
+            $validation->setPromptTitle('Pilih Kategori');
+            $validation->setPrompt('Pilih salah satu kategori dari daftar. Lihat sheet "Daftar Kategori" untuk daftar lengkapnya.');
+            $validation->setErrorTitle('Kategori tidak valid');
+            $validation->setError('Kategori harus dipilih dari daftar yang tersedia, tidak boleh ketik manual.');
+            $validation->setFormula1("'Daftar Kategori'!\$A\$2:\$A\${$lastRow}");
+
+            $sheet->setDataValidation('C2:C1000', $validation);
+        }
+
+        $spreadsheet->setActiveSheetIndex(0);
+
+        $writer = new Xlsx($spreadsheet);
+
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, 'Template_Import_Produk.xlsx', [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
+    }
+
+    /**
+     * Import produk massal dari file Excel (.xlsx) hasil template di atas.
+     *
+     * - Barcode yang sudah ada di-update (termasuk penyesuaian stok + jurnal keuangan).
+     * - Barcode baru dibuat sebagai produk baru (stok awal + jurnal keuangan, sama seperti store()).
+     * - Baris dengan data wajib kosong atau kategori tidak ditemukan di-skip & dilaporkan sebagai error.
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls',
+        ]);
+
+        try {
+            $reader = new XlsxReader();
+            $reader->setReadDataOnly(true);
+            $spreadsheet = $reader->load($request->file('file')->getRealPath());
+            $rows = $spreadsheet->getSheet(0)->toArray(null, true, true, false);
+        } catch (\Exception $e) {
+            Log::error('Gagal membaca file import produk', ['error' => $e->getMessage()]);
+            return back()->with('danger', 'Gagal membaca file. Pastikan formatnya .xlsx sesuai template yang disediakan.');
+        }
+
+        array_shift($rows); // buang baris header
+
+        $kategoriMap = KategoriProduct::pluck('id', 'name')
+            ->mapWithKeys(fn ($id, $name) => [mb_strtolower(trim($name)) => $id]);
+
+        $created = 0;
+        $updated = 0;
+        $errors  = [];
+
+        foreach ($rows as $index => $row) {
+            $rowNum = $index + 2; // +1 krn array_shift, +1 krn baris excel mulai dari 1
+
+            [$name, $barcode, $kategoriNama, $description, $price, $hpp, $discount, $discountType, $quantity, $reorder, $aktif] =
+                array_pad(array_values($row), 11, null);
+
+            $name         = trim((string) $name);
+            $kategoriNama = trim((string) $kategoriNama);
+
+            // Kalau barcode kebaca sebagai angka (kolomnya sempat berformat Number di
+            // file user), hindari notasi ilmiah (mis. 8.99123E+12) dengan format
+            // fixed-point dulu sebelum di-cast ke string.
+            $barcode = is_numeric($barcode) ? sprintf('%.0f', $barcode) : trim((string) $barcode);
+
+            if ($name === '' && $barcode === '') {
+                continue; // baris kosong
+            }
+
+            if ($name === '' || $barcode === '' || $kategoriNama === '' || $price === null || $price === '' || $hpp === null || $hpp === '') {
+                $errors[] = "Baris {$rowNum}: Nama, Barcode, Kategori, Harga Jual, dan HPP wajib diisi.";
+                continue;
+            }
+
+            $kategoriId = $kategoriMap[mb_strtolower($kategoriNama)] ?? null;
+            if (!$kategoriId) {
+                $errors[] = "Baris {$rowNum}: Kategori '{$kategoriNama}' tidak ditemukan di sistem.";
+                continue;
+            }
+
+            $discountType = $discountType !== null && trim((string) $discountType) !== ''
+                ? strtolower(trim((string) $discountType))
+                : null;
+            if ($discountType && !in_array($discountType, ['percent', 'nominal'], true)) {
+                $errors[] = "Baris {$rowNum}: Tipe Diskon harus 'percent' atau 'nominal'.";
+                continue;
+            }
+
+            $quantity = ($quantity !== null && $quantity !== '') ? max(0, (int) $quantity) : 0;
+            $reorder  = ($reorder !== null && $reorder !== '') ? max(0, (int) $reorder) : 0;
+            $isActive = $this->parseAktifCell($aktif);
+
+            DB::beginTransaction();
+            try {
+                $product = Product::where('barcode', $barcode)->first();
+
+                $data = [
+                    'name'                => $name,
+                    'barcode'             => $barcode,
+                    'description'         => $description !== null && trim((string) $description) !== '' ? trim((string) $description) : null,
+                    'price'               => (float) $price,
+                    'hpp'                 => (float) $hpp,
+                    'discount'            => $discount !== null && $discount !== '' ? (float) $discount : null,
+                    'discount_type'       => $discountType,
+                    'reorder'             => $reorder,
+                    'is_active'           => $isActive,
+                    'kategori_product_id' => $kategoriId,
+                ];
+
+                if ($product) {
+                    $product->update($data);
+
+                    $delta = $quantity - $product->quantity;
+                    if ($delta !== 0) {
+                        $type   = $delta > 0 ? 'in' : 'out';
+                        $qtyAbs = abs($delta);
+
+                        ProductQuantityLog::create([
+                            'product_id'       => $product->id,
+                            'type'             => $type,
+                            'quantity'         => $qtyAbs,
+                            'current_quantity' => $quantity,
+                            'description'      => 'Penyesuaian stok dari import Excel',
+                        ]);
+
+                        $product->update(['quantity' => $quantity]);
+
+                        if ($type === 'in') {
+                            $this->jurnalPembelianStok($product, $qtyAbs, 'Penyesuaian stok (import): ' . $product->name);
+                        } else {
+                            $this->jurnalKerugianPersediaan($product, $qtyAbs, 'Penyesuaian stok (import): ' . $product->name);
+                        }
+                    }
+
+                    $updated++;
+                } else {
+                    $data['quantity'] = $quantity;
+                    $product = Product::create($data);
+
+                    if ($product->quantity > 0) {
+                        ProductQuantityLog::create([
+                            'product_id'       => $product->id,
+                            'type'             => 'in',
+                            'quantity'         => $product->quantity,
+                            'current_quantity' => $product->quantity,
+                            'description'      => 'Stok awal produk (import Excel)',
+                        ]);
+
+                        $this->jurnalPembelianStok($product, $product->quantity, 'Pembelian stok awal (import): ' . $product->name);
+                    }
+
+                    $created++;
+                }
+
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                $errors[] = "Baris {$rowNum}: Gagal disimpan — " . $e->getMessage();
+            }
+        }
+
+        $message = "Import selesai: {$created} produk baru, {$updated} produk diperbarui.";
+        if ($errors) {
+            $message .= ' ' . count($errors) . ' baris gagal diproses.';
+        }
+
+        return back()
+            ->with($errors ? 'warning' : 'success', $message)
+            ->with('import_errors', $errors);
+    }
+
+    private function parseAktifCell($value): bool
+    {
+        if ($value === null || trim((string) $value) === '') {
+            return true; // default aktif kalau kosong
+        }
+
+        return in_array(strtolower(trim((string) $value)), ['ya', 'yes', '1', 'true', 'aktif'], true);
+    }
+
     public function logs($product)
     {
         $products = Product::findOrFail($product);
@@ -443,7 +710,7 @@ class ProductController extends Controller
                     'quantity'         => $item->quantity,
                     'current_quantity' => $item->current_quantity,
                     'description'      => $item->description ?? '-',
-                    'created_at'       => $item->created_at->format('d M Y, H:i'),
+                    'created_at'       => to_tenant_tz($item->created_at)->format('d M Y, H:i'),
                 ];
             }),
             'total'    => $total,
@@ -474,7 +741,7 @@ class ProductController extends Controller
         }
 
         $nilai   = $product->hpp * $qty;
-        $tanggal = now()->format('Y-m-d');
+        $tanggal = tenant_today_date();
         $ref     = ['referensi_id' => $product->id, 'referensi_tabel' => 'products'];
 
         TransaksiKeuangan::create(array_merge($ref, [
@@ -511,7 +778,7 @@ class ProductController extends Controller
         }
 
         $nilai   = $product->hpp * $qty;
-        $tanggal = now()->format('Y-m-d');
+        $tanggal = tenant_today_date();
         $ref     = ['referensi_id' => $product->id, 'referensi_tabel' => 'products'];
 
         TransaksiKeuangan::create(array_merge($ref, [
@@ -548,7 +815,7 @@ class ProductController extends Controller
         }
 
         $nilai   = $product->hpp * $qty;
-        $tanggal = now()->format('Y-m-d');
+        $tanggal = tenant_today_date();
         $ref     = ['referensi_id' => $product->id, 'referensi_tabel' => 'products'];
 
         TransaksiKeuangan::create(array_merge($ref, [

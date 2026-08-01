@@ -268,7 +268,7 @@ class MemberTrainerController extends Controller
 
             $html = '<table>';
             $html .= '<tr><td colspan="11" class="title">' . $this->exEsc($title) . '</td></tr>';
-            $html .= '<tr><td colspan="11" class="subtitle">Dicetak: ' . now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') . ' WIB &nbsp;|&nbsp; Filter Status: ' . $this->exEsc($statusInfo) . ' &nbsp;|&nbsp; Filter Periode: ' . $this->exEsc($filterInfo) . '</td></tr>';
+            $html .= '<tr><td colspan="11" class="subtitle">Dicetak: ' . tenant_now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') . ' ' . tz_label() . ' &nbsp;|&nbsp; Filter Status: ' . $this->exEsc($statusInfo) . ' &nbsp;|&nbsp; Filter Periode: ' . $this->exEsc($filterInfo) . '</td></tr>';
             $html .= '<tr><td colspan="11"></td></tr>';
             $html .= '<tr>'
                 . '<td colspan="2" class="summary-label">Total Transaksi</td><td colspan="1" class="summary-val">' . $totalMemberTrainer . '</td>'
@@ -785,7 +785,7 @@ class MemberTrainerController extends Controller
         $totalBiaya = $memberTrainer->total_biaya;
         $namaAnggota = $memberTrainer->anggota->name ?? 'Member';
         $namaTrainer = $memberTrainer->trainer->name ?? 'Trainer';
-        $tanggal = $memberTrainer->created_at ?? now();
+        $tanggal = $memberTrainer->created_at ? to_tenant_tz($memberTrainer->created_at)->toDateString() : tenant_today_date();
 
         TransaksiKeuangan::create([
             'akun_id' => $akunPiutang->id,
@@ -877,7 +877,7 @@ class MemberTrainerController extends Controller
                 'deskripsi' => "Penyesuaian piutang PT {$namaAnggota} (Trainer: {$namaTrainer}) - naik",
                 'debit' => $selisih,
                 'kredit' => 0,
-                'tanggal' => now(),
+                'tanggal' => tenant_today_date(),
                 'referensi_id' => $memberTrainer->id,
                 'referensi_tabel' => 'member_trainers',
             ]);
@@ -887,7 +887,7 @@ class MemberTrainerController extends Controller
                 'deskripsi' => "Penyesuaian pendapatan PT {$namaAnggota} (Trainer: {$namaTrainer}) - naik",
                 'debit' => 0,
                 'kredit' => $selisih,
-                'tanggal' => now(),
+                'tanggal' => tenant_today_date(),
                 'referensi_id' => $memberTrainer->id,
                 'referensi_tabel' => 'member_trainers',
             ]);
@@ -899,7 +899,7 @@ class MemberTrainerController extends Controller
                 'deskripsi' => "Penyesuaian piutang PT {$namaAnggota} (Trainer: {$namaTrainer}) - turun",
                 'debit' => 0,
                 'kredit' => $selisihAbs,
-                'tanggal' => now(),
+                'tanggal' => tenant_today_date(),
                 'referensi_id' => $memberTrainer->id,
                 'referensi_tabel' => 'member_trainers',
             ]);
@@ -909,7 +909,7 @@ class MemberTrainerController extends Controller
                 'deskripsi' => "Penyesuaian pendapatan PT {$namaAnggota} (Trainer: {$namaTrainer}) - turun",
                 'debit' => $selisihAbs,
                 'kredit' => 0,
-                'tanggal' => now(),
+                'tanggal' => tenant_today_date(),
                 'referensi_id' => $memberTrainer->id,
                 'referensi_tabel' => 'member_trainers',
             ]);

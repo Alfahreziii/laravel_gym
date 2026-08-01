@@ -15,13 +15,13 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        $today = Carbon::today();
+        $today = tenant_today();
 
         $memberLakiLaki  = Anggota::where('jenis_kelamin', 'Laki-laki')->count();
         $memberPerempuan = Anggota::where('jenis_kelamin', 'Perempuan')->count();
         $totalMember     = Anggota::count();
         $memberAktif     = Anggota::all()->filter(fn($anggota) => $anggota->status_keanggotaan)->count();
-        $memberInGym     = KehadiranMember::whereDate('created_at', $today->toDateString())
+        $memberInGym     = KehadiranMember::whereBetween('created_at', tenant_today_range())
             ->latest()
             ->get()
             ->groupBy('rfid')
@@ -32,19 +32,21 @@ class DashboardController extends Controller
         // ========================================
         // MEMBER TERBARU (5 pendaftaran terakhir)
         // ========================================
+        $todayStr = $today->format('Y-m-d');
+
         $memberTerbaru = Anggota::with([
             'user',
             'anggotaMemberships' => fn($q) => $q->orderByDesc('tgl_selesai'),
-        ])->latest()->take(5)->get()->map(function ($anggota) use ($today) {
+        ])->latest()->take(5)->get()->map(function ($anggota) use ($todayStr) {
             $active = $anggota->anggotaMemberships
-                ->filter(fn($m) => $m->tgl_mulai <= $today && $m->tgl_selesai >= $today)
+                ->filter(fn($m) => $m->tgl_mulai->format('Y-m-d') <= $todayStr && $m->tgl_selesai->format('Y-m-d') >= $todayStr)
                 ->first();
             $latest = $active ?? $anggota->anggotaMemberships->first();
 
-            if (!$latest || $latest->tgl_selesai->lt($today)) {
+            if (!$latest || $latest->tgl_selesai->format('Y-m-d') < $todayStr) {
                 $statusLabel = $latest ? 'Expired' : 'Belum daftar';
                 $statusType  = $latest ? 'danger' : 'neutral';
-            } elseif ($today->diffInDays($latest->tgl_selesai) <= 7) {
+            } elseif (\Carbon\Carbon::parse($todayStr)->diffInDays($latest->tgl_selesai->format('Y-m-d')) <= 7) {
                 $statusLabel = 'Akan berakhir';
                 $statusType  = 'warning';
             } else {
@@ -68,7 +70,7 @@ class DashboardController extends Controller
         // ========================================
         // KEHADIRAN LANGSUNG (hari ini, terbaru 8)
         // ========================================
-        $kehadiranLangsung = KehadiranMember::whereDate('created_at', $today->toDateString())
+        $kehadiranLangsung = KehadiranMember::whereBetween('created_at', tenant_today_range())
             ->latest()
             ->take(8)
             ->get();
@@ -320,7 +322,7 @@ class DashboardController extends Controller
         $perPage = (int) $request->get('perPage', 5);
         $page = (int) $request->get('page', 1);
 
-        $query = KehadiranMember::whereDate('created_at', now()->toDateString())->latest();
+        $query = KehadiranMember::whereBetween('created_at', tenant_today_range())->latest();
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -341,7 +343,7 @@ class DashboardController extends Controller
                     'foto'   => $item->foto ? asset('storage/' . $item->foto) : null,
                     'name'   => $item->nama ?? '-',
                     'status' => $item->status,
-                    'time'   => $item->created_at->format('d M Y H:i'),
+                    'time'   => to_tenant_tz($item->created_at)->format('d M Y H:i'),
                 ];
             }),
             'total'    => $total,
@@ -356,9 +358,7 @@ class DashboardController extends Controller
         $perPage = (int) $request->get('perPage', 5);
         $page = (int) $request->get('page', 1);
 
-        $today = now()->toDateString();
-
-        $all = KehadiranMember::whereDate('created_at', $today)
+        $all = KehadiranMember::whereBetween('created_at', tenant_today_range())
             ->latest()
             ->get()
             ->groupBy('rfid')
@@ -386,7 +386,7 @@ class DashboardController extends Controller
                     'foto'   => $item->foto ? asset('storage/' . $item->foto) : null,
                     'name'   => $item->nama ?? '-',
                     'status' => $item->status,
-                    'time'   => $item->created_at->format('d M Y H:i'),
+                    'time'   => to_tenant_tz($item->created_at)->format('d M Y H:i'),
                 ];
             }),
             'total'    => $total,

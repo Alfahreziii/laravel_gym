@@ -257,7 +257,7 @@ class AnggotaMembershipController extends Controller
 
             $html = '<table>';
             $html .= '<tr><td colspan="12" class="title">' . $this->exEsc($title) . '</td></tr>';
-            $html .= '<tr><td colspan="12" class="subtitle">Dicetak: ' . now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') . ' WIB &nbsp;|&nbsp; Filter Status: ' . $this->exEsc($statusInfo) . ' &nbsp;|&nbsp; Filter Periode: ' . $this->exEsc($filterInfo) . '</td></tr>';
+            $html .= '<tr><td colspan="12" class="subtitle">Dicetak: ' . tenant_now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') . ' ' . tz_label() . ' &nbsp;|&nbsp; Filter Status: ' . $this->exEsc($statusInfo) . ' &nbsp;|&nbsp; Filter Periode: ' . $this->exEsc($filterInfo) . '</td></tr>';
             $html .= '<tr><td colspan="12"></td></tr>';
             $html .= '<tr>'
                 . '<td colspan="2" class="summary-label">Total Transaksi</td><td colspan="2" class="summary-val">' . $totalMembership . '</td>'
@@ -873,7 +873,7 @@ class AnggotaMembershipController extends Controller
                 'deskripsi'       => "Penyesuaian piutang membership {$namaAnggota} (naik)",
                 'debit'           => $selisih,
                 'kredit'          => 0,
-                'tanggal'         => now(),
+                'tanggal'         => tenant_today_date(),
                 'referensi_id'    => $anggotaMembership->id,
                 'referensi_tabel' => 'anggota_memberships',
             ]);
@@ -883,7 +883,7 @@ class AnggotaMembershipController extends Controller
                 'deskripsi'       => "Penyesuaian pendapatan membership {$namaAnggota} (naik)",
                 'debit'           => 0,
                 'kredit'          => $selisih,
-                'tanggal'         => now(),
+                'tanggal'         => tenant_today_date(),
                 'referensi_id'    => $anggotaMembership->id,
                 'referensi_tabel' => 'anggota_memberships',
             ]);
@@ -896,7 +896,7 @@ class AnggotaMembershipController extends Controller
                 'deskripsi'       => "Penyesuaian piutang membership {$namaAnggota} (turun)",
                 'debit'           => 0,
                 'kredit'          => $selisihAbs,
-                'tanggal'         => now(),
+                'tanggal'         => tenant_today_date(),
                 'referensi_id'    => $anggotaMembership->id,
                 'referensi_tabel' => 'anggota_memberships',
             ]);
@@ -906,7 +906,7 @@ class AnggotaMembershipController extends Controller
                 'deskripsi'       => "Penyesuaian pendapatan membership {$namaAnggota} (turun)",
                 'debit'           => $selisihAbs,
                 'kredit'          => 0,
-                'tanggal'         => now(),
+                'tanggal'         => tenant_today_date(),
                 'referensi_id'    => $anggotaMembership->id,
                 'referensi_tabel' => 'anggota_memberships',
             ]);

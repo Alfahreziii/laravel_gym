@@ -215,7 +215,7 @@
 
     <div class="header">
         <h2>LAPORAN TRANSAKSI KEUANGAN</h2>
-        <p>Detail jurnal keuangan sistem — dicetak {{ now()->format('d M Y, H:i') }} WIB</p>
+        <p>Detail jurnal keuangan sistem — dicetak {{ tenant_now()->format('d M Y, H:i') }} {{ tz_label() }}</p>
     </div>
 
     @if (count($filterLabel) > 0)
@@ -322,7 +322,7 @@
     @endif
 
     <div class="print-info">
-        Dicetak otomatis oleh sistem &mdash; {{ now()->format('d M Y H:i:s') }}
+        Dicetak otomatis oleh sistem &mdash; {{ tenant_now()->format('d M Y H:i:s') }} {{ tz_label() }}
     </div>
 
 </body>

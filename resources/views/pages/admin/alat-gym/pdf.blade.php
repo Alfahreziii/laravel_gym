@@ -229,7 +229,7 @@
     <div class="header">
         <h1>Laporan Inventaris Alat Gym</h1>
         <h2>{{ $tenant?->nama_gym ?: 'Gym Management System' }}</h2>
-        <div class="date">Dicetak pada: {{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') }} WIB</div>
+        <div class="date">Dicetak pada: {{ tenant_now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') }} {{ tz_label() }}</div>
     </div>
     
     <!-- Summary Utama -->

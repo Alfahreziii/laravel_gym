@@ -25,7 +25,7 @@ class AnggotaController extends Controller
         try {
             $statusFilter = $request->input('status_filter', 'all');
 
-            $today = now()->toDateString();
+            $today = tenant_today_date();
 
             $query = Anggota::with(['anggotaMemberships', 'user'])
                 ->join('users', 'anggotas.id', '=', 'users.anggota_id')
@@ -80,7 +80,7 @@ class AnggotaController extends Controller
         try {
             $statusFilter = $request->input('status_filter', 'all');
 
-            $today = now()->toDateString();
+            $today = tenant_today_date();
 
             $query = Anggota::with(['anggotaMemberships', 'user'])
                 ->join('users', 'anggotas.id', '=', 'users.anggota_id')
@@ -121,7 +121,7 @@ class AnggotaController extends Controller
 
             $html = '<table>';
             $html .= '<tr><td colspan="9" class="title">' . $this->exEsc($title) . '</td></tr>';
-            $html .= '<tr><td colspan="9" class="subtitle">Dicetak: ' . now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') . ' WIB</td></tr>';
+            $html .= '<tr><td colspan="9" class="subtitle">Dicetak: ' . tenant_now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') . ' ' . tz_label() . '</td></tr>';
             $html .= '<tr><td colspan="9"></td></tr>';
             $html .= '<tr>'
                 . '<td colspan="3" class="summary-label">Total Anggota</td><td colspan="2" class="summary-val">' . $totalAnggota . '</td>'
@@ -150,14 +150,13 @@ class AnggotaController extends Controller
 
     public function index()
     {
-        $today           = now()->toDateString();
+        $today           = tenant_today_date();
         $totalAnggota    = Anggota::count();
         $totalAktif      = Anggota::whereHas('anggotaMemberships', fn($q) =>
             $q->where('tgl_mulai', '<=', $today)->where('tgl_selesai', '>=', $today)
         )->count();
         $totalTidakAktif = $totalAnggota - $totalAktif;
-        $totalBaru       = Anggota::whereMonth('created_at', now()->month)
-                                   ->whereYear('created_at', now()->year)->count();
+        $totalBaru       = Anggota::whereBetween('created_at', tenant_month_range())->count();
 
         return view('pages.admin.membership.anggota.index', compact(
             'totalAnggota', 'totalAktif', 'totalTidakAktif', 'totalBaru'
@@ -170,7 +169,7 @@ class AnggotaController extends Controller
         $perPage      = (int) $request->get('perPage', 10);
         $page         = (int) $request->get('page', 1);
         $statusFilter = $request->get('status_filter', 'all');
-        $today        = now()->toDateString();
+        $today        = tenant_today_date();
 
         $query = Anggota::with([
             'user',

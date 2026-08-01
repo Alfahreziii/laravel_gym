@@ -178,7 +178,7 @@
     <div class="header">
         <h1>Riwayat Gym Member</h1>
         <h2>Trainer: {{ $trainer->name }}</h2>
-        <div class="date">Dicetak pada: {{ now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') }}</div>
+        <div class="date">Dicetak pada: {{ tenant_now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') }} {{ tz_label() }}</div>
     </div>
 
     <div class="info-grid">
@@ -241,9 +241,9 @@
                                             @endif
                                         </td>
                                         <td style="width:15%; vertical-align:top; text-align:right;">
-                                            <div class="playlist-time">{{ $playlist->created_at->format('d M Y') }}
+                                            <div class="playlist-time">{{ to_tenant_tz($playlist->created_at)->format('d M Y') }}
                                             </div>
-                                            <div class="playlist-time">{{ $playlist->created_at->format('H:i') }}</div>
+                                            <div class="playlist-time">{{ to_tenant_tz($playlist->created_at)->format('H:i') }}</div>
                                         </td>
                                     </tr>
                                 </table>

@@ -180,7 +180,7 @@
         </div>
         <div class="info-row">
             <div class="info-label">Tanggal Transaksi</div>
-            <div class="info-value">: {{ \Carbon\Carbon::parse($transaksi->created_at)->format('d/m/Y H:i') }}</div>
+            <div class="info-value">: {{ to_tenant_tz($transaksi->created_at)->format('d/m/Y H:i') }}</div>
         </div>
         <div class="info-row">
             <div class="info-label">Nama Anggota</div>
@@ -305,7 +305,7 @@
     @endif
 
     <div class="footer">
-        <p>Nota ini dicetak pada {{ \Carbon\Carbon::now()->format('d/m/Y H:i:s') }}</p>
+        <p>Nota ini dicetak pada {{ tenant_now()->format('d/m/Y H:i:s') }} {{ tz_label() }}</p>
         <p>Terima kasih atas kepercayaan Anda. Semoga sehat selalu!</p>
         <p style="margin-top: 10px; font-style: italic;">Semangat berlatih bersama trainer profesional kami!</p>
     </div>

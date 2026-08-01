@@ -103,7 +103,7 @@ class NeracaController extends Controller
 
             $jumlah = floatval($validated['jumlah']);
             $deskripsi = $validated['deskripsi'];
-            $tanggal = now()->format('Y-m-d');
+            $tanggal = tenant_today_date();
 
             // Debit Kas (aset bertambah)
             TransaksiKeuangan::create([

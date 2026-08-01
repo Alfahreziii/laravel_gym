@@ -193,8 +193,8 @@
     <div class="header">
         <h1>{{ $title }}</h1>
         <h2>{{ $tenant?->nama_gym ?: 'Gym Management System' }}</h2>
-        <div class="date">Dicetak pada: {{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') }}
-            WIB</div>
+        <div class="date">Dicetak pada: {{ tenant_now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') }}
+            {{ tz_label() }}</div>
     </div>
 
     <!-- Summary -->
@@ -221,7 +221,7 @@
     <div class="info-section">
         <div class="info-row">
             <div class="info-label">Tanggal Export:</div>
-            <div class="info-value">{{ \Carbon\Carbon::now()->format('d F Y, H:i') }} WIB</div>
+            <div class="info-value">{{ tenant_now()->format('d F Y, H:i') }} {{ tz_label() }}</div>
         </div>
         <div class="info-row">
             <div class="info-label">Data Ditampilkan:</div>
@@ -252,9 +252,9 @@
                         <td class="text-center">{{ $index + 1 }}</td>
                         <td>{{ $item->rfid }}</td>
                         <td>{{ $item->nama ?? '-' }}</td>
-                        <td>{{ \Carbon\Carbon::parse($item->created_at)->locale('id')->isoFormat('dddd, D MMMM YYYY') }}
+                        <td>{{ to_tenant_tz($item->created_at)->locale('id')->isoFormat('dddd, D MMMM YYYY') }}
                         </td>
-                        <td>{{ \Carbon\Carbon::parse($item->created_at)->format('H:i:s') }} WIB</td>
+                        <td>{{ to_tenant_tz($item->created_at)->format('H:i:s') }} {{ tz_label() }}</td>
                         <td class="text-center">
                             @if ($item->status === 'in')
                                 <span class="status-badge status-in">CHECK IN</span>

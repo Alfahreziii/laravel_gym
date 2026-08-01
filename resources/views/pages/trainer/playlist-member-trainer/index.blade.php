@@ -138,10 +138,10 @@
                                                         <!-- Timestamp -->
                                                         <div class="flex-shrink-0 text-right">
                                                             <p class="text-xs text-neutral-500">
-                                                                {{ $playlist->created_at->format('d M Y') }}
+                                                                {{ to_tenant_tz($playlist->created_at)->format('d M Y') }}
                                                             </p>
                                                             <p class="text-xs text-neutral-500">
-                                                                {{ $playlist->created_at->format('H:i') }}
+                                                                {{ to_tenant_tz($playlist->created_at)->format('H:i') }}
                                                             </p>
                                                         </div>
                                                     </div>

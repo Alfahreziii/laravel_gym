@@ -309,6 +309,7 @@
     </div>
 
     {{-- ===== Charts & Tables ===== --}}
+    @unless (Auth::user()->hasRole('spv'))
     <div class="flex flex-col gap-6 mt-6">
 
         {{-- Chart 1: Membership & PT --}}
@@ -415,6 +416,7 @@
         </x-card>
 
     </div>
+    @endunless
 @endsection
 
 

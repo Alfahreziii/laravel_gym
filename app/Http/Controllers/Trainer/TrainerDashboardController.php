@@ -31,7 +31,7 @@ class TrainerDashboardController extends Controller
             return redirect()->back()->with('error', 'Anda tidak terdaftar sebagai trainer.');
         }
 
-        $memberInGymToday = KehadiranMember::whereDate('created_at', now()->toDateString())
+        $memberInGymToday = KehadiranMember::whereBetween('created_at', tenant_today_range())
             ->latest()
             ->get()
             ->groupBy('rfid')
@@ -40,7 +40,7 @@ class TrainerDashboardController extends Controller
             ->pluck('rfid')
             ->toArray();
 
-        $today = now()->toDateString();
+        $today = tenant_today_date();
 
         $memberTrainers = MemberTrainer::with(['anggota', 'paketPersonalTrainer', 'sesiLogs'])
             ->where('id_trainer', $trainer->id)
@@ -68,9 +68,9 @@ class TrainerDashboardController extends Controller
         $search  = $request->get('search', '');
         $perPage = (int) $request->get('perPage', 10);
         $page    = (int) $request->get('page', 1);
-        $today   = now()->toDateString();
+        $today   = tenant_today_date();
 
-        $memberInGymToday = KehadiranMember::whereDate('created_at', $today)
+        $memberInGymToday = KehadiranMember::whereBetween('created_at', tenant_today_range())
             ->latest()
             ->get()
             ->groupBy('rfid')
@@ -115,7 +115,7 @@ class TrainerDashboardController extends Controller
                     'is_checked_in'       => $isCheckedIn,
                     'is_session_active'   => (bool) $mt->is_session_active,
                     'session_started_at'  => $mt->is_session_active && $mt->session_started_at
-                        ? Carbon::parse($mt->session_started_at)->format('H:i')
+                        ? to_tenant_tz($mt->session_started_at)->format('H:i')
                         : null,
                     'trainer_is_training' => $trainerIsTraining,
                     'start_session_url'   => route('trainer.session.start', $mt->id),
@@ -142,7 +142,7 @@ class TrainerDashboardController extends Controller
             $trainer       = $memberTrainer->trainer;
 
             $latestKehadiran = KehadiranMember::where('rfid', $memberTrainer->anggota->id_kartu)
-                ->whereDate('created_at', now()->toDateString())
+                ->whereBetween('created_at', tenant_today_range())
                 ->orderBy('created_at', 'desc')
                 ->first();
 
@@ -303,7 +303,7 @@ class TrainerDashboardController extends Controller
                 );
                 return [
                     'no'          => (($page - 1) * $perPage) + $index + 1,
-                    'created_at'  => $log->created_at->format('d M Y H:i'),
+                    'created_at'  => to_tenant_tz($log->created_at)->format('d M Y H:i'),
                     'type'        => $log->type,
                     'sesi'        => $log->sesi,
                     'current_sesi'=> $log->current_sesi,
@@ -447,7 +447,7 @@ class TrainerDashboardController extends Controller
             $tipe = $log->type === 'in' ? 'Masuk' : 'Selesai';
             $rows .= '<tr>'
                 . '<td class="center">' . ($index + 1) . '</td>'
-                . '<td class="center">' . $log->created_at->format('d/m/Y H:i') . '</td>'
+                . '<td class="center">' . to_tenant_tz($log->created_at)->format('d/m/Y H:i') . '</td>'
                 . '<td class="center">' . $tipe . '</td>'
                 . '<td class="center">' . $log->sesi . '</td>'
                 . '<td class="center">' . $log->current_sesi . '</td>'
@@ -461,7 +461,7 @@ class TrainerDashboardController extends Controller
 
         $html = '<table>';
         $html .= '<tr><td colspan="6" class="title">' . $this->exEsc($title) . '</td></tr>';
-        $html .= '<tr><td colspan="6" class="subtitle">Dicetak: ' . now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') . ' WIB &nbsp;|&nbsp; Periode: ' . $this->exEsc($filterInfo) . '</td></tr>';
+        $html .= '<tr><td colspan="6" class="subtitle">Dicetak: ' . tenant_now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') . ' ' . tz_label() . ' &nbsp;|&nbsp; Periode: ' . $this->exEsc($filterInfo) . '</td></tr>';
         $html .= '<tr><td colspan="6"></td></tr>';
         $html .= '<tr>'
             . '<td colspan="2" class="summary-label">Total Data</td><td colspan="1" class="summary-val">' . $logs->count() . ' log</td>'

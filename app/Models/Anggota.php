@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Carbon\Carbon;
 
 class Anggota extends TenantModel
 {
@@ -72,7 +71,7 @@ class Anggota extends TenantModel
      */
     public function getStatusKeanggotaanAttribute()
     {
-        $today = Carbon::today();
+        $today = tenant_today();
 
         // Cek dulu apakah ada membership yang aktif hari ini
         $activeMembership = $this->anggotaMemberships()
@@ -95,7 +94,7 @@ class Anggota extends TenantModel
      */
     public function getActiveMembershipAttribute()
     {
-        $today = Carbon::today();
+        $today = tenant_today();
 
         return $this->anggotaMemberships()
             ->where('tgl_mulai', '<=', $today)
@@ -135,7 +134,7 @@ class Anggota extends TenantModel
      */
     public function scopeActiveMembership($query)
     {
-        $today = Carbon::today();
+        $today = tenant_today();
 
         return $query->whereHas('anggotaMemberships', function ($q) use ($today) {
             $q->where('tgl_mulai', '<=', $today)

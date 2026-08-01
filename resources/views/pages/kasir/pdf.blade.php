@@ -209,7 +209,7 @@
     <!-- Header -->
     <div class="header">
         <h1>{{ $title }}</h1>
-        <p>Dicetak pada: {{ now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm:ss') }} WIB</p>
+        <p>Dicetak pada: {{ tenant_now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm:ss') }} {{ tz_label() }}</p>
     </div>
 
     <!-- Filter Info -->
@@ -332,7 +332,7 @@
                         <td class="text-center">{{ $index + 1 }}</td>
                         <td><strong>{{ $item->transaction_code }}</strong></td>
                         <td>{{ $item->customer_name ?? '-' }}</td>
-                        <td>{{ \Carbon\Carbon::parse($item->created_at)->format('d/m/Y H:i') }}</td>
+                        <td>{{ to_tenant_tz($item->created_at)->format('d/m/Y H:i') }}</td>
                         <td class="text-right"><strong>Rp
                                 {{ number_format($item->total_amount, 0, ',', '.') }}</strong></td>
                         <td class="text-right">Rp {{ number_format($item->dibayarkan, 0, ',', '.') }}</td>

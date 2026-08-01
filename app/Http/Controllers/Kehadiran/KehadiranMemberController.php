@@ -141,8 +141,8 @@ class KehadiranMemberController extends Controller
                     . '<td class="center">' . ($index + 1) . '</td>'
                     . '<td>' . $this->exEsc($item->rfid) . '</td>'
                     . '<td>' . $this->exEsc($item->nama ?? '-') . '</td>'
-                    . '<td>' . Carbon::parse($item->created_at)->locale('id')->isoFormat('dddd, D MMMM YYYY') . '</td>'
-                    . '<td class="center">' . Carbon::parse($item->created_at)->format('H:i:s') . ' WIB</td>'
+                    . '<td>' . to_tenant_tz($item->created_at)->locale('id')->isoFormat('dddd, D MMMM YYYY') . '</td>'
+                    . '<td class="center">' . to_tenant_tz($item->created_at)->format('H:i:s') . ' ' . tz_label() . '</td>'
                     . '<td class="center">' . $status . '</td>'
                     . '</tr>';
             }
@@ -153,7 +153,7 @@ class KehadiranMemberController extends Controller
 
             $html = '<table>';
             $html .= '<tr><td colspan="6" class="title">' . $this->exEsc($title) . '</td></tr>';
-            $html .= '<tr><td colspan="6" class="subtitle">Dicetak: ' . now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') . ' WIB &nbsp;|&nbsp; Filter Periode: ' . $this->exEsc($filterInfo) . '</td></tr>';
+            $html .= '<tr><td colspan="6" class="subtitle">Dicetak: ' . tenant_now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') . ' ' . tz_label() . ' &nbsp;|&nbsp; Filter Periode: ' . $this->exEsc($filterInfo) . '</td></tr>';
             $html .= '<tr><td colspan="6"></td></tr>';
             $html .= '<tr>'
                 . '<td colspan="1" class="summary-label">Total Kehadiran</td><td colspan="1" class="summary-val">' . $totalKehadiran . '</td>'
@@ -186,7 +186,7 @@ class KehadiranMemberController extends Controller
      */
     public function index()
     {
-        $kehadiranmembers = KehadiranMember::whereDate('created_at', now()->toDateString())
+        $kehadiranmembers = KehadiranMember::whereBetween('created_at', tenant_today_range())
             ->latest()
             ->get();
 
@@ -224,7 +224,7 @@ class KehadiranMemberController extends Controller
                     'foto'       => $item->foto ? asset('storage/' . $item->foto) : null,
                     'name'       => $item->nama ?? '-',
                     'status'     => $item->status,
-                    'time'       => $item->created_at->format('d M Y - H:i:s'),
+                    'time'       => to_tenant_tz($item->created_at)->format('d M Y - H:i:s'),
                     'delete_url' => route('kehadiranmember.destroy', $item->id),
                 ];
             }),
@@ -254,10 +254,8 @@ class KehadiranMemberController extends Controller
                 ->with('danger', 'Kartu dengan RFID ' . e($rfid) . ' tidak ditemukan!');
         }
 
-        $today = now()->toDateString();
-
         $lastAttendance = KehadiranMember::whereRaw('UPPER(rfid) = ?', [$rfid])
-            ->whereDate('created_at', $today)
+            ->whereBetween('created_at', tenant_today_range())
             ->orderByDesc('created_at')
             ->first();
 

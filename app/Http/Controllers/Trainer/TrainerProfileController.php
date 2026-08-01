@@ -34,8 +34,7 @@ class TrainerProfileController extends Controller
 
         $totalKehadiran = $trainer->kehadiranTrainers->count();
         $kehadiranBulanIni = $trainer->kehadiranTrainers()
-            ->whereMonth('created_at', now()->month)
-            ->whereYear('created_at', now()->year)
+            ->whereBetween('created_at', tenant_month_range())
             ->count();
 
         return view('pages.trainer.profile.index', compact('trainer', 'totalKehadiran', 'kehadiranBulanIni'));

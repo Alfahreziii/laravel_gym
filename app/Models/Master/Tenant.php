@@ -19,6 +19,7 @@ class Tenant extends Model
         'alamat',
         'email',
         'no_hp',
+        'timezone',
         'database_pool_id',
         'package_id',
         'status',

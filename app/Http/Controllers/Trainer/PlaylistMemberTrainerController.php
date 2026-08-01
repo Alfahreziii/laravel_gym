@@ -400,7 +400,7 @@ class PlaylistMemberTrainerController extends Controller
                         . '<td class="center">' . $durasi . '</td>'
                         . '<td>' . $this->exEsc($playlist->latihan) . '</td>'
                         . '<td>' . $this->exEsc($playlist->keterangan ?? '-') . '</td>'
-                        . '<td class="center">' . $playlist->created_at->format('d/m/Y H:i') . '</td>'
+                        . '<td class="center">' . to_tenant_tz($playlist->created_at)->format('d/m/Y H:i') . '</td>'
                         . '</tr>';
                 }
             }
@@ -413,7 +413,7 @@ class PlaylistMemberTrainerController extends Controller
 
             $html = '<table>';
             $html .= '<tr><td colspan="6" class="title">' . $this->exEsc($title) . '</td></tr>';
-            $html .= '<tr><td colspan="6" class="subtitle">Dicetak: ' . now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') . ' WIB &nbsp;|&nbsp; Trainer: ' . $this->exEsc($trainer->name) . '</td></tr>';
+            $html .= '<tr><td colspan="6" class="subtitle">Dicetak: ' . tenant_now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') . ' ' . tz_label() . ' &nbsp;|&nbsp; Trainer: ' . $this->exEsc($trainer->name) . '</td></tr>';
             $html .= '<tr><td colspan="6"></td></tr>';
             $html .= '<tr>'
                 . '<td colspan="1" class="summary-label">Paket</td><td colspan="2" class="summary-val">' . $this->exEsc($memberTrainer->paketPersonalTrainer->nama_paket) . '</td>'

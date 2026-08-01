@@ -334,7 +334,7 @@
                                         <div class="font-semibold text-sm text-neutral-800">
                                             {{ $item->nama ?? '-' }}
                                         </div>
-                                        <div class="text-xs text-neutral-500">{{ $item->created_at->format('H:i:s') }}
+                                        <div class="text-xs text-neutral-500">{{ to_tenant_tz($item->created_at)->format('H:i:s') }}
                                         </div>
                                     </div>
                                 </div>

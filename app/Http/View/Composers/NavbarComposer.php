@@ -6,7 +6,6 @@ use Illuminate\View\View;
 use App\Models\Product;
 use App\Models\AnggotaMembership;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
 
 class NavbarComposer
 {
@@ -23,8 +22,8 @@ class NavbarComposer
 
             $expiringMemberships = AnggotaMembership::with(['anggota'])
                 ->whereBetween('tgl_selesai', [
-                    Carbon::today(),
-                    Carbon::today()->addDays(7),
+                    tenant_today(),
+                    tenant_today()->addDays(7),
                 ])
                 ->where('status_pembayaran', 'Lunas')
                 ->orderBy('tgl_selesai', 'asc')
@@ -32,8 +31,8 @@ class NavbarComposer
 
             $expiredMemberships = AnggotaMembership::with(['anggota'])
                 ->whereBetween('tgl_selesai', [
-                    Carbon::today()->subMonths(2),
-                    Carbon::today()->subMonth(),
+                    tenant_today()->subMonths(2),
+                    tenant_today()->subMonth(),
                 ])
                 ->where('status_pembayaran', 'Lunas')
                 ->orderBy('tgl_selesai', 'desc')

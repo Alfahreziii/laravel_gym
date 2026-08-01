@@ -3,8 +3,9 @@
     $title          = 'Produk';
     $subTitle       = 'Daftar Produk';
     $isAdmin        = (bool) auth()->user()?->hasRole('admin');
+    $canImport      = (bool) auth()->user()?->hasRole(['admin', 'spv']);
     $isLaporanMode  = request()->routeIs('laporan.products');
-    $colCount       = $isLaporanMode ? 10 : 11;
+    $colCount       = $isLaporanMode ? 11 : 12;
 @endphp
 
 @section('content')
@@ -14,6 +15,19 @@
 @endif
 @if(session('danger'))
     <x-alert type="danger">{{ session('danger') }}</x-alert>
+@endif
+@if(session('warning'))
+    <x-alert type="warning">{{ session('warning') }}</x-alert>
+@endif
+@if(session('import_errors') && count(session('import_errors')) > 0)
+    <div class="mb-4 rounded-xl border border-warning-200 bg-warning-50 dark:bg-warning-600/10 dark:border-warning-600/30 p-4">
+        <p class="font-semibold text-warning-700 dark:text-warning-400 mb-2">Detail baris yang gagal diimport:</p>
+        <ul class="list-disc list-inside text-sm text-warning-700 dark:text-warning-400 space-y-1">
+            @foreach(session('import_errors') as $err)
+                <li>{{ $err }}</li>
+            @endforeach
+        </ul>
+    </div>
 @endif
 
 <x-page-table
@@ -26,6 +40,13 @@
             <iconify-icon icon="carbon:export" class="text-base"></iconify-icon>
             Export
         </button>
+        @if(!$isLaporanMode && $canImport)
+        <button type="button" onclick="HexaModal.show('import-product-modal')"
+            class="btn btn-secondary btn-sm">
+            <iconify-icon icon="carbon:document-import" class="text-base"></iconify-icon>
+            Import Excel
+        </button>
+        @endif
         @if(!$isLaporanMode && $isAdmin)
         <a href="{{ route('products.create') }}" class="btn btn-primary btn-sm">
             + Tambah Data
@@ -44,6 +65,7 @@
                 @endif
                 <th scope="col">Foto Produk</th>
                 <th scope="col">Nama Produk</th>
+                <th scope="col">Barcode</th>
                 <th scope="col">
                     @if($isAdmin)
                     <span>Stok<br><small>(Klik angka untuk ubah stok)</small></span>
@@ -92,6 +114,43 @@
         </form>
     </x-slot:body>
 </x-modal>
+
+@if($canImport)
+<x-modal id="import-product-modal" title="Import Produk dari Excel">
+    <x-slot:body>
+        <div class="mb-4 rounded-xl bg-info-50 dark:bg-info-600/10 p-4 text-sm text-info-700 dark:text-info-400">
+            <p class="mb-2">
+                Belum punya file-nya? Download dulu template-nya, isi datanya, baru upload di sini.
+                Foto produk tidak ikut di-import — tetap upload manual lewat form edit per-produk.
+            </p>
+            <a href="{{ route('products.import_template') }}"
+                class="inline-flex items-center gap-2 font-semibold hover:underline">
+                <iconify-icon icon="carbon:document-export"></iconify-icon>
+                Download Template Excel
+            </a>
+        </div>
+        <form id="importProductForm" action="{{ route('products.import') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            <label class="form-label">File Excel (.xlsx)</label>
+            <input type="file" name="file" accept=".xlsx,.xls" class="form-control rounded-lg" required>
+            <p class="text-xs text-neutral-500 mt-2">
+                Barcode yang sudah ada di sistem akan diperbarui datanya (termasuk stok). Barcode baru akan ditambahkan sebagai produk baru.
+            </p>
+        </form>
+    </x-slot:body>
+    <x-slot:footer>
+        <button type="button" data-close-modal="import-product-modal"
+            class="border border-neutral-300 hover:bg-neutral-100 text-neutral-700 text-base px-6 py-[11px] rounded-lg transition-colors">
+            Batal
+        </button>
+        <button type="submit" form="importProductForm"
+            class="btn btn-primary border border-primary-600 text-base px-6 py-3 rounded-lg inline-flex items-center gap-2">
+            <iconify-icon icon="carbon:document-import"></iconify-icon>
+            Import Sekarang
+        </button>
+    </x-slot:footer>
+</x-modal>
+@endif
 
 @if($isAdmin)
 <x-modal id="adjust-quantity-modal" title="Edit Quantity Produk">
@@ -231,6 +290,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 + aksiCol
                 + '<td class="whitespace-nowrap">' + imgTag + '</td>'
                 + '<td class="whitespace-nowrap">' + htmlEsc(item.name) + '</td>'
+                + '<td class="whitespace-nowrap">' + htmlEsc(item.barcode) + '</td>'
                 + '<td class="whitespace-nowrap">' + stokCell + '</td>'
                 + '<td class="whitespace-nowrap">' + statusBadge + '</td>'
                 + '<td class="whitespace-nowrap">' + htmlEsc(item.kategori_name) + '</td>'
