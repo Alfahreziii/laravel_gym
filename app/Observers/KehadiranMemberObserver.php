@@ -25,7 +25,7 @@ class KehadiranMemberObserver
             $activeMembership = $anggota->active_membership;
 
             if ($isAktif && $activeMembership) {
-                $sisaHari   = tenant_today()->diffInDays($activeMembership->tgl_selesai->endOfDay(), false);
+                $sisaHari   = (int) tenant_today()->diffInDays($activeMembership->tgl_selesai->endOfDay(), false);
                 $tglSelesai = $activeMembership->tgl_selesai->format('d M Y');
             } else {
                 $latest = $anggota->anggotaMemberships()->latest('tgl_selesai')->first();
@@ -52,7 +52,8 @@ class KehadiranMemberObserver
             'timestamp'          => $kehadiran->created_at->timestamp,
         ];
 
-        // Simpan ke cache sebagai "latest" — TTL 10 menit
-        Cache::put('absen_notif_latest', $payload, now()->addMinutes(10));
+        // Simpan ke cache sebagai "latest" — TTL 10 menit, di-scope per tenant
+        // supaya notif absen tenant lain tidak ikut terbaca.
+        Cache::put(tenant_cache_key('absen_notif_latest'), $payload, now()->addMinutes(10));
     }
 }

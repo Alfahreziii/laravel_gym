@@ -19,6 +19,26 @@ if (! function_exists('tenant_storage_path')) {
     }
 }
 
+if (! function_exists('tenant_cache_key')) {
+    /**
+     * Scope cache key ke tenant aktif (pakai id tenant), supaya data cache
+     * satu tenant tidak "bocor" terbaca/tertimpa oleh tenant lain — penting
+     * untuk cache store yang tidak ikut ter-isolasi oleh switch koneksi DB
+     * tenant (mis. CACHE_STORE=redis/file, beda dengan CACHE_STORE=database
+     * yang kebetulan ikut per-DB tenant).
+     *
+     * Fallback ke key asli (tanpa prefix) di konteks non-tenant (super admin, CLI).
+     */
+    function tenant_cache_key(string $key): string
+    {
+        if (! app()->bound('tenant')) {
+            return $key;
+        }
+
+        return $key . ':tenant_' . app('tenant')->id;
+    }
+}
+
 if (! function_exists('tenant_timezone')) {
     /**
      * Zona waktu tampilan yang dipilih tenant (WIB/WITA/WIT), dari kolom

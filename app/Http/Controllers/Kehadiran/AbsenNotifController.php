@@ -16,7 +16,7 @@ class AbsenNotifController extends Controller
     public function latest(Request $request)
     {
         $since   = (int) $request->query('since', 0);
-        $payload = Cache::get('absen_notif_latest');
+        $payload = Cache::get(tenant_cache_key('absen_notif_latest'));
 
         if (!$payload || $payload['timestamp'] <= $since) {
             return response()->json(['has_new' => false]);
