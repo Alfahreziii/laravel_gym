@@ -316,17 +316,20 @@
                     <th width="8%" class="text-right">Kembali</th>
                     <th width="7%">Metode</th>
                     <th width="9%" class="text-right">Sbl Diskon</th>
-                    <th width="8%" class="text-right">Disk Brg</th>
-                    <th width="8%" class="text-right">Disk Manual</th>
                     <th width="8%" class="text-right">Total Disk</th>
                     <th width="8%" class="text-right">Total HPP</th>
                     <th width="8%" class="text-right">Laba Kotor</th>
+                    <th width="20%">Detail Item</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($transactions as $index => $item)
                     @php
                         $labaKotor = $item->total_amount - $item->total_hpp_transaction;
+                        $detailItem = $item->items->map(function ($it) {
+                            $subtotal = ($it->price * $it->qty) - ($it->diskon ?? 0);
+                            return $it->product_name . ' x' . $it->qty . ' (Rp' . number_format($subtotal, 0, ',', '.') . ')';
+                        })->implode(', ');
                     @endphp
                     <tr>
                         <td class="text-center">{{ $index + 1 }}</td>
@@ -345,12 +348,11 @@
                             @endif
                         </td>
                         <td class="text-right">Rp {{ number_format($item->harga_sebelum_diskon, 0, ',', '.') }}</td>
-                        <td class="text-right">Rp {{ number_format($item->diskon_barang, 0, ',', '.') }}</td>
-                        <td class="text-right">Rp {{ number_format($item->diskon, 0, ',', '.') }}</td>
                         <td class="text-right">Rp
                             {{ number_format($item->diskon_barang + $item->diskon, 0, ',', '.') }}</td>
                         <td class="text-right">Rp {{ number_format($item->total_hpp_transaction, 0, ',', '.') }}</td>
                         <td class="text-right"><strong>Rp {{ number_format($labaKotor, 0, ',', '.') }}</strong></td>
+                        <td style="font-size: 7px;">{{ $detailItem ?: '-' }}</td>
                     </tr>
                 @endforeach
             </tbody>

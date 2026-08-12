@@ -335,9 +335,9 @@ class KasirController extends Controller
 </head>
 <body>
 <table>
-  <tr><td colspan="14" class="title">Laporan Riwayat Penjualan</td></tr>
-  <tr><td colspan="14" class="subtitle">Periode: <?= htmlspecialchars($filterLabel) ?> &nbsp;|&nbsp; Dicetak: <?= tenant_now()->locale('id')->isoFormat('D MMMM YYYY HH:mm') ?> <?= tz_label() ?></td></tr>
-  <tr><td colspan="14"></td></tr>
+  <tr><td colspan="13" class="title">Laporan Riwayat Penjualan</td></tr>
+  <tr><td colspan="13" class="subtitle">Periode: <?= htmlspecialchars($filterLabel) ?> &nbsp;|&nbsp; Dicetak: <?= tenant_now()->locale('id')->isoFormat('D MMMM YYYY HH:mm') ?> <?= tz_label() ?></td></tr>
+  <tr><td colspan="13"></td></tr>
 
   <!-- Ringkasan -->
   <tr>
@@ -352,7 +352,7 @@ class KasirController extends Controller
     <td colspan="3" class="summary-label">Laba Kotor</td>
     <td colspan="5" class="summary-val">Rp <?= $fmt($grandLaba) ?></td>
   </tr>
-  <tr><td colspan="14"></td></tr>
+  <tr><td colspan="13"></td></tr>
 
   <!-- Header tabel -->
   <tr>
@@ -362,14 +362,13 @@ class KasirController extends Controller
     <th>Tanggal</th>
     <th>Metode</th>
     <th>Harga Sbl Diskon</th>
-    <th>Diskon Barang</th>
-    <th>Diskon Manual</th>
     <th>Total Diskon</th>
     <th>Total Tagihan</th>
     <th>Dibayarkan</th>
     <th>Kembalian</th>
     <th>Total HPP</th>
     <th>Laba Kotor</th>
+    <th>Detail Item</th>
   </tr>
 
 <?php
@@ -381,6 +380,10 @@ class KasirController extends Controller
                     }
                     $totalDiskon = $trx->diskon_barang + $trx->diskon;
                     $labaKotor   = $trx->total_amount - $hppTrx;
+                    $detailItem  = $trx->items->map(function ($it) {
+                        $subtotal = ($it->price * $it->qty) - ($it->diskon ?? 0);
+                        return $it->product_name . ' x' . $it->qty . ' (Rp' . number_format($subtotal, 0, ',', '.') . ')';
+                    })->implode(', ');
                     echo '<tr>';
                     echo '<td class="center">' . $no++ . '</td>';
                     echo '<td>' . htmlspecialchars($trx->transaction_code) . '</td>';
@@ -388,14 +391,13 @@ class KasirController extends Controller
                     echo '<td class="center">' . to_tenant_tz($trx->created_at)->format('d/m/Y H:i') . '</td>';
                     echo '<td class="center">' . htmlspecialchars($trx->metode_pembayaran ?? '-') . '</td>';
                     echo '<td class="num">Rp ' . $fmt($trx->harga_sebelum_diskon) . '</td>';
-                    echo '<td class="num">Rp ' . $fmt($trx->diskon_barang) . '</td>';
-                    echo '<td class="num">Rp ' . $fmt($trx->diskon) . '</td>';
                     echo '<td class="num">Rp ' . $fmt($totalDiskon) . '</td>';
                     echo '<td class="num">Rp ' . $fmt($trx->total_amount) . '</td>';
                     echo '<td class="num">Rp ' . $fmt($trx->dibayarkan) . '</td>';
                     echo '<td class="num">Rp ' . $fmt($trx->kembalian) . '</td>';
                     echo '<td class="num">Rp ' . $fmt($hppTrx) . '</td>';
                     echo '<td class="num">Rp ' . $fmt($labaKotor) . '</td>';
+                    echo '<td>' . (htmlspecialchars($detailItem) ?: '-') . '</td>';
                     echo '</tr>';
                 }
 ?>
@@ -404,14 +406,13 @@ class KasirController extends Controller
   <tr class="grand-row">
     <td colspan="5" style="text-align:center;">GRAND TOTAL</td>
     <td class="num">Rp <?= $fmt($grandSblDiskon) ?></td>
-    <td class="num">Rp <?= $fmt($grandDiskonBarang) ?></td>
-    <td class="num">Rp <?= $fmt($grandDiskonManual) ?></td>
     <td class="num">Rp <?= $fmt($grandDiskonBarang + $grandDiskonManual) ?></td>
     <td class="num">Rp <?= $fmt($grandTotal) ?></td>
     <td class="num">Rp <?= $fmt($grandDibayarkan) ?></td>
     <td class="num">Rp <?= $fmt($grandKembalian) ?></td>
     <td class="num">Rp <?= $fmt($grandTotalHPP) ?></td>
     <td class="num">Rp <?= $fmt($grandLaba) ?></td>
+    <td></td>
   </tr>
 </table>
 </body></html>
