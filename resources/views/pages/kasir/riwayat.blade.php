@@ -32,11 +32,12 @@
     </x-slot:actions>
     <x-data-table
         tableId="riwayatKasir"
-        :colspan="12"
+        :colspan="13"
         placeholder="Cari kode, nama pelanggan, metode pembayaran...">
         <x-slot:header>
             <tr>
                 <th>No</th>
+                <th>Aksi</th>
                 <th>Kode Transaksi</th>
                 <th>Nama Pelanggan</th>
                 <th>Tanggal Transaksi</th>
@@ -166,11 +167,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     AjaxTable.init('riwayatKasir', {
         url: '{{ route('kasir.riwayat.datatable') }}',
-        colSpan: 12,
+        colSpan: 13,
         renderRow: function (item) {
             txItems[item.id] = item.items_json;
             return `<tr>
                 <td class="whitespace-nowrap">${item.no}</td>
+                <td class="whitespace-nowrap">
+                    <a href="/kasir/print-nota/${item.id}" target="_blank" class="btn-action" title="Cetak Nota">
+                        <iconify-icon icon="mdi:printer-outline"></iconify-icon>
+                    </a>
+                </td>
                 <td class="whitespace-nowrap">
                     <a class="text-primary-600 cursor-pointer btn-view-detail" data-tx-id="${item.id}">
                         ${item.kode_transaksi}
