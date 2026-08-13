@@ -529,8 +529,21 @@ document.addEventListener('DOMContentLoaded', function () {
                     old_transaction_id: currentTransactionId ?? null
                 })
             })
-            .then(res => res.json())
+            .then(res => {
+                if (res.status === 419) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Sesi Berakhir',
+                        text: 'Sesi login sudah habis. Halaman akan dimuat ulang, lalu ulangi pembayaran.',
+                        allowOutsideClick: false,
+                        confirmButtonText: 'Muat Ulang'
+                    }).then(() => location.reload());
+                    return;
+                }
+                return res.json();
+            })
             .then(data => {
+                if (!data) return;
                 if (data.success) {
                     Swal.fire({
                         title: 'Tersimpan',
@@ -690,6 +703,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
                 body: JSON.stringify(payload)
             });
+
+            if (res.status === 419) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sesi Berakhir',
+                    text: 'Sesi login sudah habis. Halaman akan dimuat ulang, lalu ulangi pembayaran.',
+                    allowOutsideClick: false,
+                    confirmButtonText: 'Muat Ulang'
+                }).then(() => location.reload());
+                return;
+            }
 
             const data = await res.json();
 
@@ -951,6 +975,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     updateCartUI();
+
+    // Jaga sesi tetap hidup selama tab POS terbuka (ping tiap 15 menit)
+    setInterval(() => {
+        fetch('{{ route("session.ping") }}', { method: 'GET', credentials: 'same-origin' })
+            .catch(() => {});
+    }, 15 * 60 * 1000);
 });
 </script>
 

@@ -488,6 +488,8 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddle
 
     // Polling notif absen
     Route::get('/absen-notif/latest', [AbsenNotifController::class, 'latest'])->name('absen_notif.latest');
+
+    Route::get('/session-ping', fn() => response()->noContent())->name('session.ping');
 });
 
 
