@@ -53,6 +53,26 @@
                     <input type="text" id="gajiSesiDisplay" class="form-control bg-gray-50" readonly>
                 </div>
                 <div class="col-span-12"><hr class="my-2"></div>
+                <div class="col-span-12">
+                    <label class="form-label">Kalender Sesi Trainer</label>
+                    <div class="border rounded-lg p-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <button type="button" id="gajiKalPrev" class="btn-action"><iconify-icon icon="mdi:chevron-left"></iconify-icon></button>
+                            <span id="gajiKalLabel" class="font-semibold text-sm"></span>
+                            <button type="button" id="gajiKalNext" class="btn-action"><iconify-icon icon="mdi:chevron-right"></iconify-icon></button>
+                        </div>
+                        <div class="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold text-muted mb-1">
+                            <span>Min</span><span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span>
+                        </div>
+                        <div id="gajiKalGrid" class="grid grid-cols-7 gap-1 text-center text-xs"></div>
+                        <div class="flex flex-wrap items-center gap-3 mt-3 text-[11px] text-muted">
+                            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-success-500 inline-block"></span> Sudah dibayar</span>
+                            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-warning-500 inline-block"></span> Sudah dijalani, belum dibayar</span>
+                            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-gray-200 inline-block"></span> Tidak ada sesi</span>
+                            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded border-2 border-primary-600 inline-block"></span> Periode dipilih</span>
+                        </div>
+                    </div>
+                </div>
                 <div class="col-span-12 md:col-span-6">
                     <label class="form-label">Tanggal Mulai Periode</label>
                     <input type="date" name="tgl_mulai" id="gajiTglMulai" class="form-control" required>
@@ -128,6 +148,91 @@ document.addEventListener('DOMContentLoaded', function () {
     var gajiTglMulai          = document.getElementById('gajiTglMulai');
     var gajiTglSelesai        = document.getElementById('gajiTglSelesai');
     var gajiSubmitBtn         = document.getElementById('gajiSubmitBtn');
+    var gajiKalGrid           = document.getElementById('gajiKalGrid');
+    var gajiKalLabel          = document.getElementById('gajiKalLabel');
+    var gajiKalPrev           = document.getElementById('gajiKalPrev');
+    var gajiKalNext           = document.getElementById('gajiKalNext');
+    var kalCurrentMonth       = null; // 'YYYY-MM'
+    var kalDaysCache          = {};
+
+    function ymAdd(ym, delta) {
+        var parts = ym.split('-');
+        var d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1 + delta, 1);
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    }
+
+    function monthLabel(ym) {
+        var parts = ym.split('-');
+        var d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, 1);
+        return d.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+    }
+
+    function isDateInSelectedRange(dateStr) {
+        var mulai   = gajiTglMulai ? gajiTglMulai.value : '';
+        var selesai = gajiTglSelesai ? gajiTglSelesai.value : '';
+        if (!mulai || !selesai) return false;
+        return dateStr >= mulai && dateStr <= selesai;
+    }
+
+    function renderKalender() {
+        if (!gajiKalGrid || !kalCurrentMonth) return;
+
+        var parts       = kalCurrentMonth.split('-');
+        var year        = parseInt(parts[0], 10);
+        var month       = parseInt(parts[1], 10) - 1;
+        var daysInMonth = new Date(year, month + 1, 0).getDate();
+        var startOffset = new Date(year, month, 1).getDay(); // 0=Minggu
+
+        var html = '';
+        for (var i = 0; i < startOffset; i++) html += '<span></span>';
+
+        for (var d = 1; d <= daysInMonth; d++) {
+            var dateStr = kalCurrentMonth + '-' + String(d).padStart(2, '0');
+            var info = kalDaysCache[dateStr] || { jumlah_sesi: 0, is_paid: false };
+            var colorClass = 'bg-gray-100 text-gray-400';
+            if (info.jumlah_sesi > 0) {
+                colorClass = info.is_paid ? 'bg-success-500 text-white' : 'bg-warning-500 text-white';
+            }
+            var selectedClass = isDateInSelectedRange(dateStr) ? ' border-2 border-primary-600' : ' border-2 border-transparent';
+            var statusTxt = info.jumlah_sesi > 0
+                ? (info.is_paid ? ' (sudah dibayar)' : ' (' + (info.jumlah_dibayar || 0) + '/' + info.jumlah_sesi + ' dibayar)')
+                : '';
+            var titleTxt  = dateStr + ': ' + info.jumlah_sesi + ' sesi' + statusTxt;
+
+            html += '<div class="rounded py-1 ' + colorClass + selectedClass + '" title="' + titleTxt + '">'
+                + '<div class="font-semibold">' + d + '</div>'
+                + (info.jumlah_sesi > 0 ? '<div class="text-[10px] leading-none">' + info.jumlah_sesi + '</div>' : '')
+                + '</div>';
+        }
+
+        gajiKalGrid.innerHTML = html;
+    }
+
+    async function loadKalender(ym) {
+        if (!currentTrainerId) return;
+        kalCurrentMonth = ym;
+        if (gajiKalLabel) gajiKalLabel.textContent = monthLabel(ym);
+        if (gajiKalGrid) gajiKalGrid.innerHTML = '<span class="col-span-7 text-muted py-4">Memuat...</span>';
+
+        try {
+            var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+            var url = '/riwayat-gaji-trainer/kalender-sesi/' + currentTrainerId + '?bulan=' + ym;
+            var response = await fetch(url, {
+                method: 'GET',
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrfMeta ? csrfMeta.content : '' }
+            });
+            var result = await response.json();
+            if (result.success) {
+                kalDaysCache = result.days;
+                renderKalender();
+            }
+        } catch (error) {
+            if (gajiKalGrid) gajiKalGrid.innerHTML = '<span class="col-span-7 text-danger-600 py-4">Gagal memuat kalender</span>';
+        }
+    }
+
+    if (gajiKalPrev) gajiKalPrev.addEventListener('click', function () { loadKalender(ymAdd(kalCurrentMonth, -1)); });
+    if (gajiKalNext) gajiKalNext.addEventListener('click', function () { loadKalender(ymAdd(kalCurrentMonth, 1)); });
 
     function updateTotal() {
         var bonus = gajiBonus ? (parseInt(gajiBonus.value) || 0) : 0;
@@ -199,9 +304,19 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function jumpKalenderKeTanggal(dateStr) {
+        if (!dateStr) return;
+        var targetMonth = dateStr.slice(0, 7);
+        if (targetMonth !== kalCurrentMonth) {
+            loadKalender(targetMonth); // otomatis render ulang setelah data bulan itu didapat
+        } else {
+            renderKalender();
+        }
+    }
+
     var dateTimeout;
-    if (gajiTglMulai) gajiTglMulai.addEventListener('change', function () { clearTimeout(dateTimeout); dateTimeout = setTimeout(fetchPaymentData, 300); });
-    if (gajiTglSelesai) gajiTglSelesai.addEventListener('change', function () { clearTimeout(dateTimeout); dateTimeout = setTimeout(fetchPaymentData, 300); });
+    if (gajiTglMulai) gajiTglMulai.addEventListener('change', function () { clearTimeout(dateTimeout); dateTimeout = setTimeout(fetchPaymentData, 300); jumpKalenderKeTanggal(gajiTglMulai.value); });
+    if (gajiTglSelesai) gajiTglSelesai.addEventListener('change', function () { clearTimeout(dateTimeout); dateTimeout = setTimeout(fetchPaymentData, 300); renderKalender(); });
     if (gajiBonus) gajiBonus.addEventListener('input', updateTotal);
 
     var bayarGajiForm = document.getElementById('bayarGajiForm');
@@ -273,6 +388,8 @@ document.addEventListener('DOMContentLoaded', function () {
             if (tglBayarEl) tglBayarEl.value = new Date().toISOString().split('T')[0];
             var metodeEl = document.getElementById('gajiMetode');
             if (metodeEl) metodeEl.value = '';
+            var now = new Date();
+            loadKalender(now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0'));
             HexaModal.show('bayar-gaji-modal');
         }
     });

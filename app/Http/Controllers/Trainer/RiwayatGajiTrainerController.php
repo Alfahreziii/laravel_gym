@@ -6,8 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\RiwayatGajiTrainer;
 use App\Models\Trainer;
-use App\Models\MemberTrainer;
-use App\Models\PembayaranMemberTrainer;
+use App\Models\SesiTrainer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
@@ -24,17 +23,11 @@ class RiwayatGajiTrainerController extends Controller
             ->where('status', Trainer::STATUS_AKTIF)
             ->get()
             ->map(function ($trainer) {
-                // Total sesi keseluruhan dari member_trainers
-                $totalSesiKeseluruhan = MemberTrainer::where('id_trainer', $trainer->id)
-                    ->join('paket_personal_trainers', 'member_trainers.id_paket_personal_trainer', '=', 'paket_personal_trainers.id')
-                    ->sum('paket_personal_trainers.jumlah_sesi');
-
-                // Total sesi yang sudah dibayar
-                $totalSesiDibayar = RiwayatGajiTrainer::where('id_trainer', $trainer->id)
-                    ->sum('jumlah_sesi');
-
-                // Sesi belum dibayar
-                $sesiBelumDibayar = $totalSesiKeseluruhan - $totalSesiDibayar;
+                // Sesi yang sudah dijalani (type='out') tapi belum ditandai dibayar
+                $sesiBelumDibayar = SesiTrainer::where('id_trainer', $trainer->id)
+                    ->where('type', 'out')
+                    ->whereNull('id_riwayat_gaji_trainer')
+                    ->count();
 
                 // Terakhir gajian
                 $terakhirGajian = $trainer->riwayatGaji()
@@ -70,12 +63,10 @@ class RiwayatGajiTrainerController extends Controller
         $trainers = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
 
         $data = $trainers->values()->map(function ($trainer, $index) use ($page, $perPage) {
-            $totalSesiKeseluruhan = MemberTrainer::where('id_trainer', $trainer->id)
-                ->join('paket_personal_trainers', 'member_trainers.id_paket_personal_trainer', '=', 'paket_personal_trainers.id')
-                ->sum('paket_personal_trainers.jumlah_sesi');
-
-            $totalSesiDibayar = RiwayatGajiTrainer::where('id_trainer', $trainer->id)
-                ->sum('jumlah_sesi');
+            $sesiBelumDibayar = SesiTrainer::where('id_trainer', $trainer->id)
+                ->where('type', 'out')
+                ->whereNull('id_riwayat_gaji_trainer')
+                ->count();
 
             $terakhirGajian = $trainer->riwayatGaji()->latest('tgl_bayar')->first();
 
@@ -84,7 +75,7 @@ class RiwayatGajiTrainerController extends Controller
                 'id'                 => $trainer->id,
                 'nama'               => $trainer->name,
                 'terakhir_gajian'    => $terakhirGajian ? $terakhirGajian->tgl_bayar->format('d F Y') : 'Belum Pernah',
-                'sesi_belum_dibayar' => $totalSesiKeseluruhan - $totalSesiDibayar,
+                'sesi_belum_dibayar' => $sesiBelumDibayar,
                 'base_rate'          => $trainer->settingGaji->base_rate ?? 0,
                 'history_url'        => route('riwayat-gaji-trainer.history', $trainer->id),
             ];
@@ -96,6 +87,55 @@ class RiwayatGajiTrainerController extends Controller
             'perPage'  => $perPage,
             'page'     => $page,
             'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
+    }
+
+    /**
+     * Kalender sesi per tanggal untuk 1 bulan — dipakai di form pembayaran
+     * supaya admin bisa lihat tanggal mana yang sudah dijalani & sudah/belum
+     * dibayar sebelum menentukan periode.
+     */
+    public function sesiCalendar(Request $request, $trainerId)
+    {
+        $request->validate([
+            'bulan' => 'nullable|date_format:Y-m',
+        ]);
+
+        $bulan = $request->query('bulan', tenant_now()->format('Y-m'));
+        $start = Carbon::parse($bulan . '-01')->startOfMonth();
+        $end   = $start->copy()->endOfMonth();
+
+        Trainer::findOrFail($trainerId);
+
+        // Sesi yang dijalani per tanggal (kalender tenant), sekaligus status
+        // dibayar per baris sesi (id_riwayat_gaji_trainer sudah terisi = dibayar)
+        $sesiPerTanggal = SesiTrainer::where('id_trainer', $trainerId)
+            ->where('type', 'out')
+            ->whereBetween('created_at', [$start->copy()->startOfDay(), $end->copy()->endOfDay()])
+            ->get(['created_at', 'id_riwayat_gaji_trainer'])
+            ->groupBy(fn($s) => to_tenant_tz($s->created_at)->format('Y-m-d'));
+
+        $days   = [];
+        $cursor = $start->copy();
+        while ($cursor->lte($end)) {
+            $dateStr = $cursor->format('Y-m-d');
+            $rows    = $sesiPerTanggal->get($dateStr, collect());
+            $total   = $rows->count();
+            $dibayar = $rows->whereNotNull('id_riwayat_gaji_trainer')->count();
+
+            $days[$dateStr] = [
+                'jumlah_sesi'    => $total,
+                'jumlah_dibayar' => $dibayar,
+                'is_paid'        => $total > 0 && $dibayar === $total,
+            ];
+
+            $cursor->addDay();
+        }
+
+        return response()->json([
+            'success' => true,
+            'bulan'   => $start->format('Y-m'),
+            'days'    => $days,
         ]);
     }
 
@@ -127,34 +167,17 @@ class RiwayatGajiTrainerController extends Controller
 
             Log::info('Base Rate: ' . $baseRate);
 
-            // Ambil ID member_trainers yang pembayaran pertamanya ada di periode ini
-            $memberTrainerIds = PembayaranMemberTrainer::whereBetween('tgl_bayar', [$tglMulai, $tglSelesai])
-                ->select('id_member_trainer', DB::raw('MIN(id) as first_payment_id'))
-                ->groupBy('id_member_trainer')
-                ->pluck('first_payment_id');
+            // Hitung sesi yang BENAR-BENAR sudah dijalani DAN BELUM DIBAYAR dalam
+            // periode ini (pakai log SesiTrainer type='out', id_riwayat_gaji_trainer
+            // masih null = belum pernah masuk pembayaran manapun)
+            $jumlahSesi = SesiTrainer::where('id_trainer', $trainerId)
+                ->where('type', 'out')
+                ->whereNull('id_riwayat_gaji_trainer')
+                ->whereBetween('created_at', [$tglMulai, $tglSelesai])
+                ->count();
 
-            Log::info('First Payment IDs in period: ', $memberTrainerIds->toArray());
+            Log::info('Jumlah Sesi Belum Dibayar: ' . $jumlahSesi);
 
-            // Ambil member_trainers yang valid (milik trainer ini dan pembayaran pertamanya di periode ini)
-            $validMemberTrainers = MemberTrainer::whereIn('id', function($query) use ($memberTrainerIds) {
-                    $query->select('id_member_trainer')
-                        ->from('pembayaran_member_trainers')
-                        ->whereIn('id', $memberTrainerIds);
-                })
-                ->where('id_trainer', $trainerId)
-                ->with('paketPersonalTrainer')
-                ->get();
-
-            Log::info('Valid Member Trainers Count: ' . $validMemberTrainers->count());
-            Log::info('Valid Member Trainers IDs: ', $validMemberTrainers->pluck('id')->toArray());
-
-            // Hitung total sesi
-            $jumlahSesi = $validMemberTrainers->sum(function($memberTrainer) {
-                return $memberTrainer->paketPersonalTrainer->jumlah_sesi ?? 0;
-            });
-
-            Log::info('Jumlah Sesi: ' . $jumlahSesi);
-            
             // Hitung total yang harus dibayarkan
             $totalDibayarkan = $baseRate * $jumlahSesi;
 
@@ -173,8 +196,6 @@ class RiwayatGajiTrainerController extends Controller
                     'trainer_id' => $trainerId,
                     'tgl_mulai' => $tglMulai->format('Y-m-d'),
                     'tgl_selesai' => $tglSelesai->format('Y-m-d'),
-                    'valid_member_trainers_count' => $validMemberTrainers->count(),
-                    'first_payment_ids_count' => $memberTrainerIds->count(),
                 ]
             ]);
         } catch (\Exception $e) {
@@ -219,26 +240,20 @@ class RiwayatGajiTrainerController extends Controller
             $trainer = Trainer::with('settingGaji')->findOrFail($request->id_trainer);
             $baseRate = $trainer->settingGaji->base_rate ?? 0;
 
-            // Ambil ID member_trainers yang pembayaran pertamanya ada di periode ini
-            $memberTrainerIds = PembayaranMemberTrainer::whereBetween('tgl_bayar', [$tglMulai, $tglSelesai])
-                ->select('id_member_trainer', DB::raw('MIN(id) as first_payment_id'))
-                ->groupBy('id_member_trainer')
-                ->pluck('first_payment_id');
+            // Kunci baris sesi yang mau dibayar (FOR UPDATE) supaya aman dari race
+            // condition kalau ada 2 request submit bersamaan untuk periode overlap.
+            // Hanya ambil sesi yang BELUM PERNAH dibayar (id_riwayat_gaji_trainer
+            // masih null) — jadi sesi yang sudah dibayar di pembayaran manapun
+            // sebelumnya TIDAK akan pernah ikut terhitung/terbayar lagi, walau
+            // periode yang dipilih sekarang overlap dengan periode lama.
+            $sesiIds = SesiTrainer::where('id_trainer', $request->id_trainer)
+                ->where('type', 'out')
+                ->whereNull('id_riwayat_gaji_trainer')
+                ->whereBetween('created_at', [$tglMulai, $tglSelesai])
+                ->lockForUpdate()
+                ->pluck('id');
 
-            // Ambil member_trainers yang valid
-            $validMemberTrainers = MemberTrainer::whereIn('id', function($query) use ($memberTrainerIds) {
-                    $query->select('id_member_trainer')
-                        ->from('pembayaran_member_trainers')
-                        ->whereIn('id', $memberTrainerIds);
-                })
-                ->where('id_trainer', $request->id_trainer)
-                ->with('paketPersonalTrainer')
-                ->get();
-
-            // Hitung total sesi
-            $jumlahSesi = $validMemberTrainers->sum(function($memberTrainer) {
-                return $memberTrainer->paketPersonalTrainer->jumlah_sesi ?? 0;
-            });
+            $jumlahSesi = $sesiIds->count();
 
             Log::info('Jumlah Sesi untuk disimpan: ' . $jumlahSesi);
 
@@ -246,7 +261,7 @@ class RiwayatGajiTrainerController extends Controller
                 DB::rollBack();
                 return response()->json([
                     'success' => false,
-                    'message' => 'Tidak ada sesi yang perlu dibayar dalam periode ini'
+                    'message' => 'Tidak ada sesi yang belum dibayar dalam periode ini'
                 ], 400);
             }
 
@@ -270,6 +285,12 @@ class RiwayatGajiTrainerController extends Controller
             ]);
 
             Log::info('Riwayat Gaji Created: ', $riwayat->toArray());
+
+            // Tandai sesi-sesi yang baru saja dibayar supaya tidak bisa ikut
+            // terhitung lagi di pembayaran berikutnya.
+            SesiTrainer::whereIn('id', $sesiIds)->update([
+                'id_riwayat_gaji_trainer' => $riwayat->id,
+            ]);
 
             DB::commit();
 

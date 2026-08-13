@@ -10,6 +10,7 @@ class SesiTrainer extends TenantModel
 
     protected $fillable = [
         'id_trainer',
+        'id_riwayat_gaji_trainer',
         'type',
         'sesi',
         'current_sesi',
@@ -19,5 +20,10 @@ class SesiTrainer extends TenantModel
     public function trainer()
     {
         return $this->belongsTo(Trainer::class);
+    }
+
+    public function riwayatGaji()
+    {
+        return $this->belongsTo(RiwayatGajiTrainer::class, 'id_riwayat_gaji_trainer');
     }
 }
