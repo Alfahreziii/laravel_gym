@@ -10,9 +10,11 @@ use App\Models\KehadiranMember;
 use App\Models\TransaksiKeuangan;
 use App\Models\AkunKeuangan;
 use Carbon\Carbon;
+use App\Http\Controllers\Concerns\ResolvesMemberExpiry;
 
 class DashboardController extends Controller
 {
+    use ResolvesMemberExpiry;
     public function index(Request $request)
     {
         $today = tenant_today();
@@ -74,6 +76,23 @@ class DashboardController extends Controller
             ->latest()
             ->take(8)
             ->get();
+
+        // ========================================
+        // GRAFIK KEDATANGAN MEMBER (7 hari terakhir, hanya check-in)
+        // ========================================
+        $tz = tenant_timezone();
+        $kedatanganLabels = [];
+        $kedatanganData   = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $day        = Carbon::now($tz)->subDays($i);
+            $rangeStart = $day->copy()->startOfDay()->setTimezone(config('app.timezone'));
+            $rangeEnd   = $day->copy()->endOfDay()->setTimezone(config('app.timezone'));
+
+            $kedatanganLabels[] = $day->format('d M');
+            $kedatanganData[]   = KehadiranMember::where('status', 'in')
+                ->whereBetween('created_at', [$rangeStart, $rangeEnd])
+                ->count();
+        }
 
         // ========================================
         // DAFTAR TAHUN TERSEDIA
@@ -246,7 +265,9 @@ class DashboardController extends Controller
             'memberLakiLaki',
             'memberPerempuan',
             'memberTerbaru',
-            'kehadiranLangsung'
+            'kehadiranLangsung',
+            'kedatanganLabels',
+            'kedatanganData'
         ));
     }
 
@@ -335,15 +356,23 @@ class DashboardController extends Controller
         $total = (clone $query)->count();
         $data = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
 
+        $anggotaMap = $this->anggotaMapForRfids($data->pluck('rfid')->all());
+
         return response()->json([
-            'data' => $data->map(function ($item, $index) use ($page, $perPage) {
+            'data' => $data->map(function ($item, $index) use ($page, $perPage, $anggotaMap) {
+                $expiry = $this->memberExpiryInfo($anggotaMap->get(strtoupper($item->rfid)));
+
                 return [
-                    'no'     => (($page - 1) * $perPage) + $index + 1,
-                    'rfid'   => $item->rfid,
-                    'foto'   => $item->foto ? asset('storage/' . $item->foto) : null,
-                    'name'   => $item->nama ?? '-',
-                    'status' => $item->status,
-                    'time'   => to_tenant_tz($item->created_at)->format('d M Y H:i'),
+                    'no'                => (($page - 1) * $perPage) + $index + 1,
+                    'rfid'              => $item->rfid,
+                    'foto'              => $item->foto ? asset('storage/' . $item->foto) : null,
+                    'name'              => $item->nama ?? '-',
+                    'status'            => $item->status,
+                    'time'              => to_tenant_tz($item->created_at)->format('d M Y H:i'),
+                    'profile_photo'     => $expiry['profile_photo'],
+                    'expired_at'        => $expiry['expired_at'],
+                    'membership_status' => $expiry['membership_status'],
+                    'membership_type'   => $expiry['membership_type'],
                 ];
             }),
             'total'    => $total,
@@ -378,15 +407,23 @@ class DashboardController extends Controller
         $total = $all->count();
         $data = $all->slice(($page - 1) * $perPage, $perPage)->values();
 
+        $anggotaMap = $this->anggotaMapForRfids($data->pluck('rfid')->all());
+
         return response()->json([
-            'data' => $data->map(function ($item, $index) use ($page, $perPage) {
+            'data' => $data->map(function ($item, $index) use ($page, $perPage, $anggotaMap) {
+                $expiry = $this->memberExpiryInfo($anggotaMap->get(strtoupper($item->rfid)));
+
                 return [
-                    'no'     => (($page - 1) * $perPage) + $index + 1,
-                    'rfid'   => $item->rfid,
-                    'foto'   => $item->foto ? asset('storage/' . $item->foto) : null,
-                    'name'   => $item->nama ?? '-',
-                    'status' => $item->status,
-                    'time'   => to_tenant_tz($item->created_at)->format('d M Y H:i'),
+                    'no'                => (($page - 1) * $perPage) + $index + 1,
+                    'rfid'              => $item->rfid,
+                    'foto'              => $item->foto ? asset('storage/' . $item->foto) : null,
+                    'name'              => $item->nama ?? '-',
+                    'status'            => $item->status,
+                    'time'              => to_tenant_tz($item->created_at)->format('d M Y H:i'),
+                    'profile_photo'     => $expiry['profile_photo'],
+                    'expired_at'        => $expiry['expired_at'],
+                    'membership_status' => $expiry['membership_status'],
+                    'membership_type'   => $expiry['membership_type'],
                 ];
             }),
             'total'    => $total,

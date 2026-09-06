@@ -47,6 +47,8 @@ class AkunKeuanganSeeder extends Seeder
 
             // BEB002 baru: untuk pengurangan stok manual (rusak / hilang / susut) — bukan dari penjualan
             ['kategori_id' => $beban->id, 'nama' => 'Beban Kerugian Persediaan',   'kode' => 'BEB002'],
+
+            ['kategori_id' => $beban->id, 'nama' => 'Beban Gaji Trainer', 'kode' => 'BEB003'],
         ];
 
         foreach ($akun as $item) {

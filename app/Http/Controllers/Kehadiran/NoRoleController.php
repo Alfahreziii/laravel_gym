@@ -10,9 +10,11 @@ use App\Models\Trainer;
 use App\Models\KehadiranMember;
 use App\Models\Anggota;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\Concerns\ResolvesMemberExpiry;
 
 class NoRoleController extends Controller
 {
+    use ResolvesMemberExpiry;
     /**
      * Jeda minimum (detik) sebelum RFID yang sama boleh absen lagi.
      * Mencegah duplikat saat kartu/QR masih terbaca kamera berkali-kali.
@@ -115,18 +117,26 @@ class NoRoleController extends Controller
         $total = (clone $query)->count();
         $data  = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
 
+        $anggotaMap = $this->anggotaMapForRfids($data->pluck('rfid')->all());
+
         return response()->json([
-            'data' => $data->map(function ($item, $index) use ($page, $perPage) {
+            'data' => $data->map(function ($item, $index) use ($page, $perPage, $anggotaMap) {
+                $expiry = $this->memberExpiryInfo($anggotaMap->get(strtoupper($item->rfid)));
+
                 return [
-                    'no'         => (($page - 1) * $perPage) + $index + 1,
-                    'id'         => $item->id,
-                    'rfid'       => $item->rfid,
-                    'foto'       => $item->foto ? asset('storage/' . $item->foto) : null,
-                    'name'       => $item->nama ?? '-',
-                    'status'     => $item->status,
-                    'date'       => to_tenant_tz($item->created_at)->format('d/m/Y'),
-                    'time'       => to_tenant_tz($item->created_at)->format('H:i:s'),
-                    'delete_url' => route('absen.destroy', $item->id),
+                    'no'                => (($page - 1) * $perPage) + $index + 1,
+                    'id'                => $item->id,
+                    'rfid'              => $item->rfid,
+                    'foto'              => $item->foto ? asset('storage/' . $item->foto) : null,
+                    'name'              => $item->nama ?? '-',
+                    'status'            => $item->status,
+                    'date'              => to_tenant_tz($item->created_at)->format('d/m/Y'),
+                    'time'              => to_tenant_tz($item->created_at)->format('H:i:s'),
+                    'delete_url'        => route('absen.destroy', $item->id),
+                    'profile_photo'     => $expiry['profile_photo'],
+                    'expired_at'        => $expiry['expired_at'],
+                    'membership_status' => $expiry['membership_status'],
+                    'membership_type'   => $expiry['membership_type'],
                 ];
             }),
             'total'    => $total,

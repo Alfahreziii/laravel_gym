@@ -56,6 +56,17 @@ class NeracaController extends Controller
             });
         });
 
+        // Sembunyikan akun yang belum terpakai (tidak ada jalur jurnal) dari tampilan.
+        // Baris tetap ada di DB & seeder — hanya disembunyikan di neraca. Aman ke total
+        // karena saldo akun-akun ini selalu 0.
+        $hiddenKodes = ['AST005', 'KEW001', 'KEW002', 'MOD002'];
+        $kategori->each(function ($kat) use ($hiddenKodes) {
+            $kat->setRelation(
+                'akun',
+                $kat->akun->reject(fn ($akun) => in_array($akun->kode, $hiddenKodes, true))->values()
+            );
+        });
+
         // Hitung total per kelompok
         $total_aset       = $kategori->where('kode', 'AST')->first()?->akun->sum('saldo') ?? 0;
         $total_kewajiban  = $kategori->where('kode', 'KEW')->first()?->akun->sum('saldo') ?? 0;

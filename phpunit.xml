@@ -22,8 +22,30 @@
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_STORE" value="array"/>
-        <!-- <env name="DB_CONNECTION" value="sqlite"/> -->
-        <!-- <env name="DB_DATABASE" value=":memory:"/> -->
+
+        <!-- Satu DB test khusus untuk koneksi mysql (default), mysql_master, dan tenant.
+             JANGAN pernah arahkan ke DB nyata (gym_kosongan/hexagym_master/produksi). -->
+        <env name="DB_CONNECTION" value="mysql"/>
+        <env name="DB_HOST" value="127.0.0.1"/>
+        <env name="DB_PORT" value="3306"/>
+        <env name="DB_DATABASE" value="hexagym_test"/>
+        <env name="DB_USERNAME" value="root"/>
+        <env name="DB_PASSWORD" value=""/>
+
+        <env name="DB_MASTER_HOST" value="127.0.0.1"/>
+        <env name="DB_MASTER_PORT" value="3306"/>
+        <env name="DB_MASTER_DATABASE" value="hexagym_test"/>
+        <env name="DB_MASTER_USERNAME" value="root"/>
+        <env name="DB_MASTER_PASSWORD" value=""/>
+
+        <!-- 'tenant' connection database di config/database.php hardcoded '' (diisi
+             runtime oleh ResolveTenant) — nama DB test-nya di-set manual di
+             tests/TestCase.php::beforeRefreshingDatabase(), bukan dari env ini. -->
+        <env name="DB_TENANT_HOST" value="127.0.0.1"/>
+        <env name="DB_TENANT_PORT" value="3306"/>
+        <env name="DB_TENANT_USERNAME" value="root"/>
+        <env name="DB_TENANT_PASSWORD" value=""/>
+
         <env name="MAIL_MAILER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="QUEUE_CONNECTION" value="sync"/>

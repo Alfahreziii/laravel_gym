@@ -7,6 +7,11 @@
 @endphp
 
 @section('content')
+    <style>
+        .chart-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .chart-min > div { width: 100%; }
+    </style>
+
     {{-- ===== KPI Row ===== --}}
     @php
         $maleRatio = $totalMember > 0 ? round(($memberLakiLaki / $totalMember) * 100, 1) : 0;
@@ -254,14 +259,16 @@
                             <thead>
                                 <tr>
                                     <th scope="col" style="padding:8px 12px;font-size:11px">No</th>
+                                    <th scope="col" style="padding:8px 12px;font-size:11px">Foto Profil</th>
                                     <th scope="col" style="padding:8px 12px;font-size:11px">Nama</th>
                                     <th scope="col" style="padding:8px 12px;font-size:11px">Status</th>
+                                    <th scope="col" style="padding:8px 12px;font-size:11px">Expired</th>
                                     <th scope="col" style="padding:8px 12px;font-size:11px">Waktu</th>
                                 </tr>
                             </thead>
                             <tbody id="tbodyKehadiran">
                                 <tr>
-                                    <td colspan="4" class="text-center py-6 text-xs text-ink-3">Loading...</td>
+                                    <td colspan="6" class="text-center py-6 text-xs text-ink-3">Loading...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -285,14 +292,16 @@
                             <thead>
                                 <tr>
                                     <th scope="col" style="padding:8px 12px;font-size:11px">No</th>
+                                    <th scope="col" style="padding:8px 12px;font-size:11px">Foto Profil</th>
                                     <th scope="col" style="padding:8px 12px;font-size:11px">Nama</th>
                                     <th scope="col" style="padding:8px 12px;font-size:11px">Status</th>
+                                    <th scope="col" style="padding:8px 12px;font-size:11px">Expired</th>
                                     <th scope="col" style="padding:8px 12px;font-size:11px">Waktu</th>
                                 </tr>
                             </thead>
                             <tbody id="tbodyMemberInRoom">
                                 <tr>
-                                    <td colspan="4" class="text-center py-6 text-xs text-ink-3">Loading...</td>
+                                    <td colspan="6" class="text-center py-6 text-xs text-ink-3">Loading...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -360,7 +369,11 @@
                 </div>
             </x-slot:header>
 
-            <div id="chart" class="pt-4 w-full"></div>
+            <div class="chart-scroll">
+                <div class="chart-min" style="min-width:640px">
+                    <div id="chart" class="pt-4 w-full"></div>
+                </div>
+            </div>
         </x-card>
 
         {{-- Chart 2: Penjualan Produk --}}
@@ -412,7 +425,28 @@
                 </div>
             </x-slot:header>
 
-            <div id="chartProduct" class="pt-4 w-full"></div>
+            <div class="chart-scroll">
+                <div class="chart-min" style="min-width:640px">
+                    <div id="chartProduct" class="pt-4 w-full"></div>
+                </div>
+            </div>
+        </x-card>
+
+        {{-- Chart 3: Grafik Kedatangan Member --}}
+        <x-card>
+            <x-slot:header>
+                <div>
+                    <p class="font-display font-semibold text-base text-ink dark:text-ink-d mb-0.5">
+                        Grafik Kedatangan Member (7 Hari Terakhir)
+                    </p>
+                </div>
+            </x-slot:header>
+
+            <div class="chart-scroll">
+                <div class="chart-min" style="min-width:560px">
+                    <div id="chartKedatangan" class="pt-4 w-full"></div>
+                </div>
+            </div>
         </x-card>
 
     </div>
@@ -430,6 +464,8 @@
             currentMonth: @json($currentMonth),
             totalRevenueAllYears: @json($totalRevenueAllYears),
             totalProductRevenueAllYears: @json($totalProductRevenueAllYears),
+            kedatanganLabels: @json($kedatanganLabels),
+            kedatanganData: @json($kedatanganData),
         };
 
         function formatRupiah(number) {
@@ -463,17 +499,32 @@
                 if (tabs[0]) activate(tabs[0]);
             })();
 
-            // --- Compact row renderer (4 kolom: No, Nama, Status, Waktu) ---
+            // --- Compact row renderer (6 kolom: No, Foto Profil, Nama, Status, Expired, Waktu) ---
+            const expiredBadgeColors = {
+                success: 'color:#15803D;background:rgba(34,197,94,.13)',
+                warning: 'color:#B45309;background:rgba(245,158,11,.13)',
+                danger:  'color:#B91C1C;background:rgba(239,68,68,.13)',
+                neutral: 'color:#4B5563;background:rgba(107,114,128,.10)',
+            };
             const compactRow = function(item) {
                 const isIn = item.status && item.status.toLowerCase() === 'in';
                 const badge = isIn ?
                     '<span style="font-size:10px;font-weight:700;color:#BC3E14;background:rgba(242,98,46,.10);padding:2px 7px;border-radius:999px;white-space:nowrap">Hadir</span>' :
                     '<span style="font-size:10px;font-weight:700;color:#9C978E;background:rgba(156,151,142,.10);padding:2px 7px;border-radius:999px;white-space:nowrap">Keluar</span>';
                 const waktu = (item.time ?? '-').split(' ').pop();
+                const expiredStyle = expiredBadgeColors[item.membership_type] || expiredBadgeColors.neutral;
+                const profilePhoto = item.profile_photo ?
+                    `<img src="${item.profile_photo}" alt="${item.name ?? ''}" style="width:28px;height:28px;border-radius:50%;object-fit:cover" loading="lazy">` :
+                    '-';
                 return `<tr>
                     <td style="padding:8px 12px;font-size:12px;white-space:nowrap">${item.no ?? '-'}</td>
+                    <td style="padding:8px 12px;white-space:nowrap">${profilePhoto}</td>
                     <td style="padding:8px 12px;font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px" title="${item.name ?? ''}">${item.name ?? '-'}</td>
                     <td style="padding:8px 12px">${badge}</td>
+                    <td style="padding:8px 12px;font-size:11px;white-space:nowrap">
+                        <div style="color:#6E6A63">${item.expired_at ?? '-'}</div>
+                        <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;white-space:nowrap;${expiredStyle}">${item.membership_status ?? '-'}</span>
+                    </td>
                     <td style="padding:8px 12px;font-size:12px;font-variant-numeric:tabular-nums;color:#6E6A63;white-space:nowrap">${waktu}</td>
                 </tr>`;
             };
@@ -485,7 +536,7 @@
                 infoId: 'infoKehadiran',
                 searchId: 'searchKehadiran',
                 perPage: 5,
-                colSpan: 4,
+                colSpan: 6,
                 renderRow: compactRow,
             });
 
@@ -496,9 +547,24 @@
                 infoId: 'infoMemberInRoom',
                 searchId: 'searchMemberInRoom',
                 perPage: 5,
-                colSpan: 4,
+                colSpan: 6,
                 renderRow: compactRow,
             });
+
+            // --- Chart: Grafik Kedatangan Member (7 hari terakhir) ---
+            const chartKedatanganEl = document.querySelector('#chartKedatangan');
+            if (chartKedatanganEl) {
+                new ApexCharts(chartKedatanganEl, {
+                    chart: { type: 'area', height: 300, toolbar: { show: false } },
+                    series: [{ name: 'Kedatangan', data: window.dashboardData.kedatanganData }],
+                    xaxis: { categories: window.dashboardData.kedatanganLabels },
+                    colors: ['#F2622E'],
+                    stroke: { curve: 'smooth', width: 2 },
+                    fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.35, opacityTo: 0.05 } },
+                    dataLabels: { enabled: false },
+                    grid: { strokeDashArray: 4 },
+                }).render();
+            }
 
         });
     </script>

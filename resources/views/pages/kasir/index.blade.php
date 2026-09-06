@@ -12,14 +12,33 @@
 @section('content')
 
 {{-- Full-bleed POS layout that fills the dashboard-main-body area --}}
-<style>@media (min-width:1536px){.pos-shell{margin-bottom:-1.5rem}}</style>
+<style>
+@media (min-width:1536px){.pos-shell{margin-bottom:-1.5rem}}
+.pos-tabs{display:none}
+.cart-produk{width:22rem;flex-shrink:0;overflow:hidden}
+@media (max-width:699.98px){
+  .pos-shell{flex-direction:column}
+  .pos-tabs{display:flex}
+  #pos-panel-produk,.cart-produk{flex:1 1 auto;width:100%;min-height:0}
+  .pos-shell[data-active="produk"] .cart-produk{display:none}
+  .pos-shell[data-active="cart"] #pos-panel-produk{display:none}
+}
+</style>
 <div class="pos-shell"
-     style="display:flex; height:calc(100vh - 4.5rem); overflow:hidden;
+     style="display:flex; height:calc(100vh - 4.5rem);height:calc(100dvh - 4.5rem); overflow:hidden;
             margin-left:-0.9375rem; margin-right:-0.9375rem;
             margin-top:-0.9375rem; margin-bottom:-0.9375rem;">
 
+    <div class="pos-tabs bg-white dark:bg-surface-dark border-b border-neutral-200 dark:border-line-dark" style="flex-shrink:0;">
+        <button type="button" class="pos-tab flex-1 py-3 text-sm font-semibold text-center border-b-2 border-transparent text-neutral-500 dark:text-ink-d2" data-tab="produk">Produk</button>
+        <button type="button" class="pos-tab flex-1 py-3 text-sm font-semibold text-center border-b-2 border-transparent text-neutral-500 dark:text-ink-d2" data-tab="cart">
+            Keranjang
+            <span id="pos-tab-cart-badge" class="ml-1 inline-flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-primary-600 text-white text-xs" style="display:none;">0</span>
+        </button>
+    </div>
+
     {{-- ===== LEFT: Product Panel ===== --}}
-    <div class="bg-neutral-50 dark:bg-canvas-dark"
+    <div id="pos-panel-produk" class="bg-neutral-50 dark:bg-canvas-dark"
          style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
 
         {{-- Header: title + search --}}
@@ -54,8 +73,8 @@
 
         {{-- Product grid (scrollable) — kartu dirender via fetchProductGrid() --}}
         <div id="product-grid"
-             style="flex:1; overflow-y:auto; padding:14px;
-                    display:grid; grid-template-columns:repeat(3,1fr); gap:14px;
+             style="flex:1; min-height:0; overflow-y:auto; padding:14px;
+                    display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:14px;
                     align-content:start;">
             {{-- JS render via AJAX --}}
         </div>
@@ -70,8 +89,8 @@
     </div>
 
     {{-- ===== RIGHT: Cart Panel ===== --}}
-    <div class="cart-produk flex flex-col justify-between wrapper-produk-detail">
-        <div class="">
+    <div class="cart-produk flex flex-col justify-between wrapper-produk-detail bg-white dark:bg-surface-dark border-l border-neutral-200 dark:border-line-dark p-4 min-h-0">
+        <div class="flex-1 min-h-0 overflow-y-auto">
             <div class="produk-header flex items-center justify-between">
                 <h6 class="font-display font-semibold text-base text-ink dark:text-ink-d m-0">Detail Items</h6>
             </div>
@@ -408,6 +427,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const finalTotal = Math.max(totalBeforeDiscount - totalDiskonAll, 0);
 
         totalItemEl.innerText = `${totalItems} Items`;
+
+        const cartBadge = document.getElementById('pos-tab-cart-badge');
+        if (cartBadge) {
+            cartBadge.textContent = totalItems;
+            cartBadge.style.display = totalItems > 0 ? 'inline-flex' : 'none';
+        }
+
         totalHargaEl.innerText = 'Rp ' + formatRp(totalBeforeDiscount);
         diskonBarangEl.innerText = '-Rp ' + formatRp(totalItemDiscount);
         diskonInputEl.innerText = '-Rp ' + formatRp(diskon);
@@ -982,6 +1008,25 @@ document.addEventListener('DOMContentLoaded', function () {
             .catch(() => {});
     }, 15 * 60 * 1000);
 });
+
+// === POS mobile tab toggle (Produk / Keranjang) ===
+(function () {
+    const shell = document.querySelector('.pos-shell');
+    if (!shell) return;
+    const tabs = document.querySelectorAll('.pos-tab');
+    function setActive(name) {
+        shell.setAttribute('data-active', name);
+        tabs.forEach(t => {
+            const on = t.dataset.tab === name;
+            t.classList.toggle('text-primary-600', on);
+            t.classList.toggle('border-primary-600', on);
+            t.classList.toggle('text-neutral-500', !on);
+            t.classList.toggle('border-transparent', !on);
+        });
+    }
+    tabs.forEach(t => t.addEventListener('click', () => setActive(t.dataset.tab)));
+    setActive('produk');
+})();
 </script>
 
 {{-- Product grid: AJAX fetch + pagination --}}

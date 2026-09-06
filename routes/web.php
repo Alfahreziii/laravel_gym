@@ -138,6 +138,7 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddle
         Route::post('/kehadiranmember/export-excel', 'exportExcel')->name('kehadiranmember.export_excel');
         Route::get('/kehadiran-member', 'index')->name('kehadiranmember.index');
         Route::get('/kehadiranmember/datatable', 'datatable')->name('kehadiranmember.datatable');
+        Route::get('/kehadiranmember/kedatangan-chart', 'kedatanganChart')->name('kehadiranmember.kedatangan_chart');
         Route::get('/kehadiran-member/create', 'create')->name('kehadiranmember.create');
         Route::post('/kehadiran-member', 'store')->name('kehadiranmember.store');
         Route::delete('/kehadiran-member/{kehadiranmember}', 'destroy')->name('kehadiranmember.destroy');

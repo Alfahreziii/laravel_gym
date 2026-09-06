@@ -221,14 +221,16 @@
                         </h6>
                     </div>
                     <div class="card-body p-6">
-                        <x-data-table tableId="absen" :colspan="7" placeholder="Search nama, RFID, status...">
+                        <x-data-table tableId="absen" :colspan="9" placeholder="Search nama, RFID, status...">
                             <x-slot:header>
                                 <tr>
                                     <th class="text-left">No</th>
                                     <th class="text-left">ID Kartu</th>
                                     <th class="text-left">Foto</th>
+                                    <th class="text-left">Foto Profil</th>
                                     <th class="text-left">Nama</th>
                                     <th class="text-center">Status</th>
+                                    <th class="text-left">Expired</th>
                                     <th class="text-left">Waktu</th>
                                     <th class="text-center">Aksi</th>
                                 </tr>
@@ -502,7 +504,7 @@
             // ==================== AJAX TABLE ====================
             AjaxTable.init('absen', {
                 url: '{{ route('absen.datatable') }}',
-                colSpan: 7,
+                colSpan: 9,
                 renderRow: function(item) {
                     const foto = item.foto ?
                         `<img src="${item.foto}" alt="Photo"
@@ -513,17 +515,35 @@
                             <i class="ri-user-line text-neutral-400 text-xl"></i>
                            </div>`;
 
+                    const profilePhoto = `<img src="${item.profile_photo}" alt="Profile"
+                            class="w-12 h-12 rounded-full object-cover cursor-pointer shadow-sm hover:shadow-md transition-shadow"
+                            onclick="showPhoto('${item.profile_photo}')"
+                            loading="lazy">`;
+
                     const statusBadge = item.status === 'in' ?
                         `<span class="status-indicator status-in bg-success-100 text-success-700 px-4 py-1.5 rounded-full text-xs font-bold">IN</span>` :
                         `<span class="status-indicator status-out bg-warning-100 text-warning-700 px-4 py-1.5 rounded-full text-xs font-bold">OUT</span>`;
+
+                    const expiredBadgeColors = {
+                        success: 'bg-success-100 text-success-700',
+                        warning: 'bg-warning-100 text-warning-700',
+                        danger: 'bg-danger-100 text-danger-700',
+                        neutral: 'bg-neutral-100 text-neutral-600',
+                    };
+                    const expiredCls = expiredBadgeColors[item.membership_type] || expiredBadgeColors.neutral;
 
                     return `
                         <tr class="hover:bg-neutral-50 transition-colors">
                             <td class="py-3 whitespace-nowrap">${item.no}</td>
                             <td class="py-3 font-mono text-sm whitespace-nowrap">${item.rfid}</td>
                             <td class="py-3 whitespace-nowrap">${foto}</td>
+                            <td class="py-3 whitespace-nowrap">${profilePhoto}</td>
                             <td class="py-3 font-semibold whitespace-nowrap">${item.name}</td>
                             <td class="py-3 text-center whitespace-nowrap">${statusBadge}</td>
+                            <td class="py-3 text-sm text-neutral-600 whitespace-nowrap">
+                                <div>${item.expired_at}</div>
+                                <span class="${expiredCls} px-2 py-0.5 rounded-full text-xs font-bold">${item.membership_status}</span>
+                            </td>
                             <td class="py-3 text-sm text-neutral-600 whitespace-nowrap">
                                 <div>${item.date}</div>
                                 <div class="text-xs text-neutral-500">${item.time}</div>

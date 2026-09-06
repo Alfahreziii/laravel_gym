@@ -11,8 +11,10 @@
 |
 */
 
+// Migration + transaksi per-test (multi-koneksi tenant/mysql/mysql_master)
+// ditangani manual di Tests\TestCase::setUp()/tearDown() — lihat komentar di
+// sana untuk alasan tidak memakai trait RefreshDatabase bawaan Laravel.
 pest()->extend(Tests\TestCase::class)
-    ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
     ->in('Feature');
 
 /*

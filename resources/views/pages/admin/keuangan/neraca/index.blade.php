@@ -57,7 +57,10 @@
         </table>
     </div>
 
-    {{-- Bagian Kewajiban --}}
+    {{--
+    Bagian Kewajiban — di-hide dulu sementara (belum ada akun kewajiban yang
+    aktif dipakai). Untuk dimunculkan lagi, hapus wrapper comment ini.
+
     <div class="card overflow-hidden border border-neutral-200 dark:border-neutral-700">
         <div class="flex items-center gap-3 px-5 py-4 border-b border-neutral-200 dark:border-neutral-700">
             <div class="w-1.5 h-5 rounded-full bg-primary-500 flex-none"></div>
@@ -71,12 +74,16 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-neutral-200 dark:divide-neutral-700">
-                @foreach ($kategori->where('kode', 'KEW')->first()?->akun ?? [] as $akun)
+                @forelse ($kategori->where('kode', 'KEW')->first()?->akun ?? [] as $akun)
                     <tr class="hover:bg-neutral-50 dark:hover:bg-neutral-700/20">
                         <td class="px-5 py-3 text-ink dark:text-ink-d">{{ $akun->nama }}</td>
                         <td class="px-5 py-3 text-right tabular-nums text-ink dark:text-ink-d">{{ number_format($akun->saldo, 2, ',', '.') }}</td>
                     </tr>
-                @endforeach
+                @empty
+                    <tr>
+                        <td colspan="2" class="px-5 py-3 text-center text-sm text-ink-2 dark:text-ink-d2 italic">Belum ada kewajiban</td>
+                    </tr>
+                @endforelse
             </tbody>
             <tfoot>
                 <tr class="border-t-2 border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-700/30">
@@ -86,6 +93,7 @@
             </tfoot>
         </table>
     </div>
+    --}}
 
     {{-- Bagian Modal --}}
     <div class="card overflow-hidden border border-neutral-200 dark:border-neutral-700">

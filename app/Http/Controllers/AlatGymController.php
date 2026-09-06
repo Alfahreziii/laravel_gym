@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\AlatGym;
+use App\Models\AkunKeuangan;
+use App\Models\TransaksiKeuangan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -224,8 +227,11 @@ class AlatGymController extends Controller
         ]);
 
         try {
-            AlatGym::create($validated);
-            return redirect()->route('alat_gym.index')->with('success', 'Data alat gym berhasil ditambahkan.');
+            return DB::transaction(function () use ($validated) {
+                $alatgym = AlatGym::create($validated);
+                $this->syncJurnalAlatGym($alatgym);
+                return redirect()->route('alat_gym.index')->with('success', 'Data alat gym berhasil ditambahkan.');
+            });
         } catch (\Exception $e) {
             Log::error($e->getMessage());
             return redirect()->back()->withInput()->with('error', 'Terjadi kesalahan saat menambahkan data alat gym.');
@@ -259,12 +265,65 @@ class AlatGymController extends Controller
         ]);
 
         try {
-            $alatgym->update($validated);
-            return redirect()->route('alat_gym.index')->with('success', 'Data alat gym berhasil diperbarui.');
+            return DB::transaction(function () use ($alatgym, $validated) {
+                $alatgym->update($validated);
+                $this->syncJurnalAlatGym($alatgym);
+                return redirect()->route('alat_gym.index')->with('success', 'Data alat gym berhasil diperbarui.');
+            });
         } catch (\Exception $e) {
             Log::error($e->getMessage());
             return redirect()->back()->withInput()->with('danger', 'Terjadi kesalahan saat memperbarui data alat gym.');
         }
+    }
+
+    /**
+     * Sinkronkan jurnal keuangan untuk satu alat gym.
+     * Pola hapus-lalu-buat-ulang: data lama tanpa jurnal ikut ter-cover saat
+     * di-edit, dan nilai jurnal selalu mengikuti harga x jumlah terbaru.
+     *
+     * Jurnal pembelian aset:
+     *   Debit  Peralatan Gym (AST003) = harga x jumlah
+     *   Kredit Kas (AST001)           = harga x jumlah
+     */
+    private function syncJurnalAlatGym(AlatGym $alatgym): void
+    {
+        TransaksiKeuangan::where('referensi_tabel', 'alat_gyms')
+            ->where('referensi_id', $alatgym->id)
+            ->delete();
+
+        $nilai = (float) $alatgym->harga * (int) $alatgym->jumlah;
+        if ($nilai <= 0) {
+            return; // jangan buat baris bernilai nol
+        }
+
+        $akunPeralatan = AkunKeuangan::where('kode', 'AST003')->first();
+        $akunKas       = AkunKeuangan::where('kode', 'AST001')->first();
+        if (! $akunPeralatan) {
+            throw new \Exception('Akun Peralatan Gym (AST003) tidak ditemukan.');
+        }
+        if (! $akunKas) {
+            throw new \Exception('Akun Kas (AST001) tidak ditemukan.');
+        }
+
+        $tanggal   = $alatgym->tgl_pembelian ?: tenant_today_date();
+        $deskripsi = "Pembelian alat gym: {$alatgym->nama_alat_gym} ({$alatgym->jumlah} unit)";
+        $ref       = ['referensi_id' => $alatgym->id, 'referensi_tabel' => 'alat_gyms'];
+
+        TransaksiKeuangan::create(array_merge($ref, [
+            'akun_id'   => $akunPeralatan->id,
+            'deskripsi' => $deskripsi,
+            'debit'     => $nilai,
+            'kredit'    => 0,
+            'tanggal'   => $tanggal,
+        ]));
+
+        TransaksiKeuangan::create(array_merge($ref, [
+            'akun_id'   => $akunKas->id,
+            'deskripsi' => $deskripsi,
+            'debit'     => 0,
+            'kredit'    => $nilai,
+            'tanggal'   => $tanggal,
+        ]));
     }
 
     /**
@@ -273,8 +332,13 @@ class AlatGymController extends Controller
     public function destroy(AlatGym $alatgym)
     {
         try {
-            $alatgym->delete();
-            return redirect()->route('alat_gym.index')->with('success', 'Data alat gym berhasil dihapus.');
+            return DB::transaction(function () use ($alatgym) {
+                TransaksiKeuangan::where('referensi_tabel', 'alat_gyms')
+                    ->where('referensi_id', $alatgym->id)
+                    ->delete();
+                $alatgym->delete();
+                return redirect()->route('alat_gym.index')->with('success', 'Data alat gym berhasil dihapus.');
+            });
         } catch (\Exception $e) {
             Log::error($e->getMessage());
             return redirect()->route('alat_gym.index')->with('danger', 'Terjadi kesalahan saat menghapus data alat gym.');

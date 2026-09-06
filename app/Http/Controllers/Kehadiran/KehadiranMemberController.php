@@ -12,10 +12,12 @@ use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use App\Http\Controllers\Concerns\ExportsExcel;
+use App\Http\Controllers\Concerns\ResolvesMemberExpiry;
 
 class KehadiranMemberController extends Controller
 {
     use ExportsExcel;
+    use ResolvesMemberExpiry;
 
     /**
      * Jeda minimum (detik) sebelum RFID yang sama boleh absen lagi.
@@ -59,6 +61,11 @@ class KehadiranMemberController extends Controller
             $totalOut        = $kehadiranMembers->where('status', 'out')->count();
             $totalMemberUnik = $kehadiranMembers->unique('rfid')->count();
 
+            $anggotaMap = $this->anggotaMapForRfids($kehadiranMembers->pluck('rfid')->all());
+            $expiryByRfid = $kehadiranMembers->mapWithKeys(function ($item) use ($anggotaMap) {
+                return [$item->id => $this->memberExpiryInfo($anggotaMap->get(strtoupper($item->rfid)))];
+            });
+
             $title = 'Laporan Kehadiran Member';
             if ($filterType !== 'all') {
                 $title .= ' - ' . $filterInfo;
@@ -74,7 +81,8 @@ class KehadiranMemberController extends Controller
                 'title',
                 'filterInfo',
                 'filterType',
-                'tenant'
+                'tenant',
+                'expiryByRfid'
             ));
 
             $pdf->setPaper('a4', 'landscape');
@@ -129,6 +137,9 @@ class KehadiranMemberController extends Controller
             $totalOut        = $kehadiranMembers->where('status', 'out')->count();
             $totalMemberUnik = $kehadiranMembers->unique('rfid')->count();
 
+            // Foto profil di-skip di Excel (gambar sulit diembed di format .xls HTML-table ini).
+            $anggotaMap = $this->anggotaMapForRfids($kehadiranMembers->pluck('rfid')->all());
+
             $title = 'Laporan Kehadiran Member';
             if ($filterType !== 'all') {
                 $title .= ' - ' . $filterInfo;
@@ -137,6 +148,7 @@ class KehadiranMemberController extends Controller
             $rows = '';
             foreach ($kehadiranMembers as $index => $item) {
                 $status = $item->status === 'in' ? 'CHECK IN' : 'CHECK OUT';
+                $expiry = $this->memberExpiryInfo($anggotaMap->get(strtoupper($item->rfid)));
                 $rows .= '<tr>'
                     . '<td class="center">' . ($index + 1) . '</td>'
                     . '<td>' . $this->exEsc($item->rfid) . '</td>'
@@ -144,25 +156,27 @@ class KehadiranMemberController extends Controller
                     . '<td>' . to_tenant_tz($item->created_at)->locale('id')->isoFormat('dddd, D MMMM YYYY') . '</td>'
                     . '<td class="center">' . to_tenant_tz($item->created_at)->format('H:i:s') . ' ' . tz_label() . '</td>'
                     . '<td class="center">' . $status . '</td>'
+                    . '<td>' . $this->exEsc($expiry['expired_at'] . ' (' . $expiry['membership_status'] . ')') . '</td>'
                     . '</tr>';
             }
 
             if ($kehadiranMembers->isEmpty()) {
-                $rows = '<tr><td colspan="6" class="center">Tidak ada data kehadiran untuk periode ini.</td></tr>';
+                $rows = '<tr><td colspan="7" class="center">Tidak ada data kehadiran untuk periode ini.</td></tr>';
             }
 
             $html = '<table>';
-            $html .= '<tr><td colspan="6" class="title">' . $this->exEsc($title) . '</td></tr>';
-            $html .= '<tr><td colspan="6" class="subtitle">Dicetak: ' . tenant_now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') . ' ' . tz_label() . ' &nbsp;|&nbsp; Filter Periode: ' . $this->exEsc($filterInfo) . '</td></tr>';
-            $html .= '<tr><td colspan="6"></td></tr>';
+            $html .= '<tr><td colspan="7" class="title">' . $this->exEsc($title) . '</td></tr>';
+            $html .= '<tr><td colspan="7" class="subtitle">Dicetak: ' . tenant_now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') . ' ' . tz_label() . ' &nbsp;|&nbsp; Filter Periode: ' . $this->exEsc($filterInfo) . '</td></tr>';
+            $html .= '<tr><td colspan="7"></td></tr>';
             $html .= '<tr>'
                 . '<td colspan="1" class="summary-label">Total Kehadiran</td><td colspan="1" class="summary-val">' . $totalKehadiran . '</td>'
                 . '<td colspan="1" class="summary-label">Check In / Out</td><td colspan="1" class="summary-val">' . $totalIn . ' / ' . $totalOut . '</td>'
                 . '<td colspan="1" class="summary-label">Member Unik</td><td colspan="1" class="summary-val">' . $totalMemberUnik . '</td>'
+                . '<td colspan="1"></td>'
                 . '</tr>';
-            $html .= '<tr><td colspan="6"></td></tr>';
+            $html .= '<tr><td colspan="7"></td></tr>';
             $html .= '<tr>'
-                . '<th>No</th><th>RFID</th><th>Nama Member</th><th>Tanggal</th><th>Waktu</th><th>Status</th>'
+                . '<th>No</th><th>RFID</th><th>Nama Member</th><th>Tanggal</th><th>Waktu</th><th>Status</th><th>Expired</th>'
                 . '</tr>';
             $html .= $rows;
             $html .= '</table>';
@@ -215,23 +229,54 @@ class KehadiranMemberController extends Controller
         $total = (clone $query)->count();
         $data  = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
 
+        $anggotaMap = $this->anggotaMapForRfids($data->pluck('rfid')->all());
+
         return response()->json([
-            'data' => $data->map(function ($item, $index) use ($page, $perPage) {
+            'data' => $data->map(function ($item, $index) use ($page, $perPage, $anggotaMap) {
+                $expiry = $this->memberExpiryInfo($anggotaMap->get(strtoupper($item->rfid)));
+
                 return [
-                    'no'         => (($page - 1) * $perPage) + $index + 1,
-                    'id'         => $item->id,
-                    'rfid'       => $item->rfid,
-                    'foto'       => $item->foto ? asset('storage/' . $item->foto) : null,
-                    'name'       => $item->nama ?? '-',
-                    'status'     => $item->status,
-                    'time'       => to_tenant_tz($item->created_at)->format('d M Y - H:i:s'),
-                    'delete_url' => route('kehadiranmember.destroy', $item->id),
+                    'no'                 => (($page - 1) * $perPage) + $index + 1,
+                    'id'                 => $item->id,
+                    'rfid'               => $item->rfid,
+                    'foto'               => $item->foto ? asset('storage/' . $item->foto) : null,
+                    'name'               => $item->nama ?? '-',
+                    'status'             => $item->status,
+                    'time'               => to_tenant_tz($item->created_at)->format('d M Y - H:i:s'),
+                    'delete_url'         => route('kehadiranmember.destroy', $item->id),
+                    'profile_photo'      => $expiry['profile_photo'],
+                    'expired_at'         => $expiry['expired_at'],
+                    'membership_status'  => $expiry['membership_status'],
+                    'membership_type'    => $expiry['membership_type'],
                 ];
             }),
             'total'    => $total,
             'perPage'  => $perPage,
             'page'     => $page,
             'lastPage' => max(1, ceil($total / $perPage)),
+        ]);
+    }
+
+    /**
+     * Distribusi jumlah check-in member per jam untuk hari ini (00-23).
+     */
+    public function kedatanganChart(Request $request)
+    {
+        $rows = KehadiranMember::where('status', 'in')
+            ->whereBetween('created_at', tenant_today_range())
+            ->get(['created_at']);
+
+        $counts = array_fill(0, 24, 0);
+        foreach ($rows as $row) {
+            $hour = (int) to_tenant_tz($row->created_at)->format('G');
+            $counts[$hour]++;
+        }
+
+        $labels = array_map(fn ($h) => str_pad((string) $h, 2, '0', STR_PAD_LEFT) . ':00', range(0, 23));
+
+        return response()->json([
+            'labels' => $labels,
+            'data'   => $counts,
         ]);
     }
 

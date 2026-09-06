@@ -239,15 +239,19 @@
             <thead>
                 <tr>
                     <th width="5%" class="text-center">No</th>
-                    <th width="12%">RFID</th>
-                    <th width="20%">Nama Member</th>
-                    <th width="18%">Tanggal</th>
-                    <th width="10%">Waktu</th>
-                    <th width="10%" class="text-center">Status</th>
+                    <th width="10%">RFID</th>
+                    <th width="17%">Nama Member</th>
+                    <th width="15%">Tanggal</th>
+                    <th width="9%">Waktu</th>
+                    <th width="9%" class="text-center">Status</th>
+                    <th width="17%">Expired</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($kehadiranMembers as $index => $item)
+                    @php
+                        $expiry = $expiryByRfid[$item->id] ?? null;
+                    @endphp
                     <tr>
                         <td class="text-center">{{ $index + 1 }}</td>
                         <td>{{ $item->rfid }}</td>
@@ -262,6 +266,7 @@
                                 <span class="status-badge status-out">CHECK OUT</span>
                             @endif
                         </td>
+                        <td>{{ $expiry['expired_at'] ?? '-' }} ({{ $expiry['membership_status'] ?? '-' }})</td>
                     </tr>
                 @endforeach
             </tbody>

@@ -7,6 +7,11 @@
 
 @section('content')
 
+<style>
+    .chart-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .chart-min > div { width: 100%; }
+</style>
+
 @if(session('success'))
     <x-alert type="success">{{ session('success') }}</x-alert>
 @endif
@@ -47,6 +52,19 @@
         </div>
     </div>
 </div>
+
+<div class="card shadow-none hexa-stat-card rounded-xl mb-6">
+    <div class="card-header bg-transparent border-0 pb-0">
+        <h6 class="mb-0">Kedatangan Member Hari Ini (per Jam)</h6>
+    </div>
+    <div class="card-body">
+        <div class="chart-scroll">
+            <div class="chart-min" style="min-width:720px">
+                <div id="chartKedatanganMember" class="w-full"></div>
+            </div>
+        </div>
+    </div>
+</div>
 @endif
 
 <x-page-table
@@ -67,7 +85,7 @@
             Export
         </button>
     </x-slot:actions>
-    <x-data-table tableId="kehadiranMember" :colspan="(!$isLaporanMode && auth()->user()->hasRole('admin')) ? 7 : 6" placeholder="Search...">
+    <x-data-table tableId="kehadiranMember" :colspan="(!$isLaporanMode && auth()->user()->hasRole('admin')) ? 9 : 8" placeholder="Search...">
         <x-slot:header>
             <tr>
                 <th>S.L</th>
@@ -78,8 +96,10 @@
                 @endif
                 <th>ID Kartu</th>
                 <th>Foto</th>
+                <th>Foto Profil</th>
                 <th>Nama Member</th>
                 <th>Status</th>
+                <th>Expired</th>
                 <th>Waktu</th>
             </tr>
         </x-slot:header>
@@ -260,13 +280,14 @@
 @endsection
 
 @section('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="{{ asset('assets/js/ajax-table.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
 
             const isAdmin   = {{ auth()->user()->hasRole('admin') ? 'true' : 'false' }};
             const isLaporan = {{ $isLaporanMode ? 'true' : 'false' }};
-            const colSpan   = (isAdmin && !isLaporan) ? 7 : 6;
+            const colSpan   = (isAdmin && !isLaporan) ? 9 : 8;
 
             AjaxTable.init('kehadiranMember', {
                 url: '{{ route('kehadiranmember.datatable') }}',
@@ -279,7 +300,17 @@
                         loading="lazy">` :
                         `<span class="text-gray-400 italic text-xs">No photo</span>`;
 
+                    const profilePhoto = `<img src="${item.profile_photo}" alt="${item.name}"
+                        class="w-10 h-10 rounded-full object-cover cursor-pointer bg-gray-200"
+                        onclick="showPhoto('${item.profile_photo}', 'Foto Profil')"
+                        loading="lazy">`;
+
                     const statusBadge = AjaxTable.badge(item.status === 'in' ? 'success' : 'warning', item.status === 'in' ? 'CHECK IN' : 'CHECK OUT');
+                    const expiredBadge = AjaxTable.badge(item.membership_type, item.membership_status);
+                    const expiredCol = `<div class="flex flex-col gap-0.5">
+                        <span class="text-xs whitespace-nowrap">${item.expired_at}</span>
+                        ${expiredBadge}
+                    </div>`;
 
                     const aksiCol = (isAdmin && !isLaporan) ? `
                         <td class="whitespace-nowrap">
@@ -295,13 +326,48 @@
                             ${aksiCol}
                             <td class="whitespace-nowrap">${item.rfid}</td>
                             <td class="whitespace-nowrap">${foto}</td>
+                            <td class="whitespace-nowrap">${profilePhoto}</td>
                             <td class="whitespace-nowrap">${item.name}</td>
                             <td class="whitespace-nowrap">${statusBadge}</td>
+                            <td class="whitespace-nowrap">${expiredCol}</td>
                             <td class="whitespace-nowrap">${item.time}</td>
                         </tr>
                     `;
                 }
             });
+
+            @if(!$isLaporanMode)
+            let kedatanganChart = null;
+
+            window.refreshKedatanganChart = function() {
+                fetch('{{ route('kehadiranmember.kedatangan_chart') }}')
+                    .then(r => r.json())
+                    .then(res => {
+                        if (kedatanganChart) {
+                            kedatanganChart.updateSeries([{ name: 'Check-in', data: res.data }]);
+                            return;
+                        }
+                        const el = document.querySelector('#chartKedatanganMember');
+                        if (!el) return;
+                        kedatanganChart = new ApexCharts(el, {
+                            chart: { type: 'bar', height: 260, toolbar: { show: false } },
+                            series: [{ name: 'Check-in', data: res.data }],
+                            xaxis: { categories: res.labels, labels: { rotate: -45, style: { fontSize: '10px' } } },
+                            colors: ['#F2622E'],
+                            plotOptions: { bar: { borderRadius: 4, columnWidth: '55%' } },
+                            dataLabels: { enabled: false },
+                            grid: { strokeDashArray: 4 },
+                        });
+                        kedatanganChart.render();
+                    })
+                    .catch(() => {});
+            };
+
+            window.refreshKedatanganChart();
+
+            // Polling ringan — tangkap absen dari device lain (kiosk / halaman norole)
+            setInterval(window.refreshKedatanganChart, 30000);
+            @endif
 
             window.confirmDeleteKehadiran = function(url) {
                 Swal.fire({
@@ -610,6 +676,9 @@
 
                     if (res.success && window._ajaxTables && window._ajaxTables['tbodyKehadiranMember']) {
                         window._ajaxTables['tbodyKehadiranMember'].refresh();
+                        if (typeof window.refreshKedatanganChart === 'function') {
+                            window.refreshKedatanganChart();
+                        }
                     }
                 })
                 .catch(() => {

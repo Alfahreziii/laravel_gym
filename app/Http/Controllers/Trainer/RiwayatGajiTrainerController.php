@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\RiwayatGajiTrainer;
 use App\Models\Trainer;
 use App\Models\SesiTrainer;
+use App\Models\AkunKeuangan;
+use App\Models\TransaksiKeuangan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
@@ -290,6 +292,43 @@ class RiwayatGajiTrainerController extends Controller
             // terhitung lagi di pembayaran berikutnya.
             SesiTrainer::whereIn('id', $sesiIds)->update([
                 'id_riwayat_gaji_trainer' => $riwayat->id,
+            ]);
+
+            // === Jurnal keuangan: catat pembayaran gaji sebagai beban ===
+            // Debit  Beban Gaji Trainer (BEB003)  -> beban bertambah
+            // Kredit Kas (AST001)                 -> kas berkurang
+            $akunBebanGaji = AkunKeuangan::where('kode', 'BEB003')->first();
+            $akunKas       = AkunKeuangan::where('kode', 'AST001')->first();
+
+            if (! $akunBebanGaji) {
+                throw new \Exception('Akun Beban Gaji Trainer (BEB003) belum ada. Jalankan seeder / insert akun BEB003 di DB tenant ini.');
+            }
+            if (! $akunKas) {
+                throw new \Exception('Akun Kas (AST001) tidak ditemukan.');
+            }
+
+            $metodeLabel = $riwayat->metode_pembayaran_label ?? $request->metode_pembayaran;
+            $deskripsiGaji = "Pembayaran gaji trainer {$trainer->name} "
+                . "({$jumlahSesi} sesi, {$tglMulai->format('d/m/Y')}-{$tglSelesai->format('d/m/Y')}) via {$metodeLabel}";
+
+            TransaksiKeuangan::create([
+                'akun_id'         => $akunBebanGaji->id,
+                'deskripsi'       => $deskripsiGaji,
+                'debit'           => $totalDibayarkan,
+                'kredit'          => 0,
+                'tanggal'         => $request->tgl_bayar,
+                'referensi_id'    => $riwayat->id,
+                'referensi_tabel' => 'riwayat_gaji_trainers',
+            ]);
+
+            TransaksiKeuangan::create([
+                'akun_id'         => $akunKas->id,
+                'deskripsi'       => $deskripsiGaji,
+                'debit'           => 0,
+                'kredit'          => $totalDibayarkan,
+                'tanggal'         => $request->tgl_bayar,
+                'referensi_id'    => $riwayat->id,
+                'referensi_tabel' => 'riwayat_gaji_trainers',
             ]);
 
             DB::commit();
