@@ -1,7 +1,7 @@
 @extends('layout.layout')
 @php
-    $title = 'Perpanjang Membership';
-    $subTitle = 'Perpanjang Membership';
+    $title = $isPerpanjang ? 'Perpanjang Membership' : 'Buat Membership';
+    $subTitle = $title;
 @endphp
 
 @section('content')
@@ -10,7 +10,7 @@
     <div class="col-span-12">
         <div class="card border-0">
             <div class="card-header">
-                <h6 class="text-lg font-semibold mb-0">Perpanjang Membership — {{ $anggota->name }}</h6>
+                <h6 class="text-lg font-semibold mb-0">{{ $title }} — {{ $anggota->name }}</h6>
             </div>
             <div class="card-body">
                 <form action="{{ route('anggota_membership.perpanjang.store', $anggota->id) }}" method="POST">
@@ -69,7 +69,9 @@
                             <label class="form-label">Tanggal Mulai</label>
                             <input type="date" name="tgl_mulai" id="tgl_mulai" class="form-control"
                                 min="{{ $floorDate->format('Y-m-d') }}" value="{{ old('tgl_mulai', $floorDate->format('Y-m-d')) }}" required>
-                            <small class="text-muted">Tidak bisa memilih tanggal sebelum {{ $floorDate->format('d-m-Y') }} karena masa aktif membership sebelumnya masih berjalan.</small>
+                            @if ($isPerpanjang)
+                                <small class="text-muted">Tidak bisa memilih tanggal sebelum {{ $floorDate->format('d-m-Y') }} karena masa aktif membership sebelumnya masih berjalan.</small>
+                            @endif
                         </div>
                         <div class="col-span-12 md:col-span-6">
                             <label class="form-label">Tanggal Selesai</label>
@@ -119,7 +121,7 @@
                         {{-- Action Buttons --}}
                         <div class="col-span-12">
                             <div class="form-group flex items-center justify-end gap-2">
-                                <button type="submit" class="btn btn-primary-600">Perpanjang Membership</button>
+                                <button type="submit" class="btn btn-primary-600">{{ $isPerpanjang ? 'Simpan Perpanjangan' : 'Simpan Membership' }}</button>
                                 <a href="{{ route('anggota_membership.index') }}" class="text-danger-600 focus:bg-danger-600 hover:bg-danger-700 border border-danger-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-danger-300 font-medium rounded-lg text-base px-6 py-3 text-center inline-flex items-center dark:text-danger-400 dark:hover:text-white dark:focus:text-white dark:focus:ring-danger-800">Kembali</a>
                             </div>
                         </div>

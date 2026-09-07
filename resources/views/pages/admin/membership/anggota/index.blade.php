@@ -296,7 +296,10 @@
             const perpanjangBtn = item.can_perpanjang ? `
                         <a href="${esc(item.perpanjang_url)}" title="Perpanjang Membership" class="btn-action">
                             <iconify-icon icon="lucide:calendar-plus" style="font-size:13px"></iconify-icon>
-                        </a>` : '';
+                        </a>` : `
+                        <a href="${esc(item.perpanjang_url)}" title="Buat Membership" class="btn-action">
+                            <iconify-icon icon="lucide:user-plus" style="font-size:13px"></iconify-icon>
+                        </a>`;
 
             const aksiCell = showAksi ? `
                 <td class="px-4 md:px-6 py-3 whitespace-nowrap">

@@ -470,13 +470,15 @@ class AnggotaMembershipController extends Controller
     {
         $anggota = Anggota::findOrFail($id);
 
-        $floorDate = $this->hitungFloorTanggalMulaiPerpanjangan($anggota);
-        $pakets    = PaketMembership::all();
+        $floorDate     = $this->hitungFloorTanggalMulaiPerpanjangan($anggota);
+        $pakets        = PaketMembership::all();
+        $isPerpanjang  = $anggota->anggotaMemberships()->exists();
 
         return view('pages.admin.membership.anggota-paket-member.perpanjang', compact(
             'anggota',
             'pakets',
-            'floorDate'
+            'floorDate',
+            'isPerpanjang'
         ));
     }
 
