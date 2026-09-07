@@ -104,6 +104,20 @@ class Anggota extends TenantModel
     }
 
     /**
+     * Membership dengan tgl_selesai PALING AKHIR milik anggota ini, apa pun
+     * tgl_mulai-nya. Ini sumber kebenaran untuk SEMUA tampilan tanggal
+     * berakhir/expired/masa berlaku + paket terkait — supaya perpanjangan
+     * yang belum mulai tetap tercermin di tanggal berakhir yang ditampilkan.
+     *
+     * JANGAN dipakai untuk cek "apakah member aktif sekarang" — untuk itu
+     * tetap pakai status_keanggotaan / active_membership.
+     */
+    public function getLatestMembershipAttribute()
+    {
+        return $this->anggotaMemberships()->orderByDesc('tgl_selesai')->first();
+    }
+
+    /**
      * Relasi ke MemberTrainer
      */
     public function memberTrainers()

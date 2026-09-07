@@ -293,12 +293,18 @@
                     <iconify-icon icon="lucide:scan-line" style="font-size:14px"></iconify-icon>
                 </button>`;
 
+            const perpanjangBtn = item.can_perpanjang ? `
+                        <a href="${esc(item.perpanjang_url)}" title="Perpanjang Membership" class="btn-action">
+                            <iconify-icon icon="lucide:calendar-plus" style="font-size:13px"></iconify-icon>
+                        </a>` : '';
+
             const aksiCell = showAksi ? `
                 <td class="px-4 md:px-6 py-3 whitespace-nowrap">
                     <div class="flex items-center gap-1.5">
                         <a href="${esc(item.edit_url)}" title="Edit" class="btn-action">
                             <iconify-icon icon="lucide:edit" style="font-size:13px"></iconify-icon>
                         </a>
+                        ${perpanjangBtn}
                         <button type="button" onclick="confirmDelete('${esc(item.delete_url)}')" title="Hapus"
                             class="btn-action btn-action-del">
                             <iconify-icon icon="mingcute:delete-2-line" style="font-size:13px"></iconify-icon>

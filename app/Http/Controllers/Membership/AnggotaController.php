@@ -68,7 +68,7 @@ class AnggotaController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
 
-            return redirect()->back()->with('error', 'Gagal export PDF: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal export PDF. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -144,7 +144,7 @@ class AnggotaController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
 
-            return redirect()->back()->with('error', 'Gagal export Excel: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal export Excel. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -174,9 +174,8 @@ class AnggotaController extends Controller
         $query = Anggota::with([
             'user',
             'anggotaMemberships' => fn($q) => $q
-                ->where('tgl_mulai', '<=', $today)
-                ->where('tgl_selesai', '>=', $today)
-                ->orderByDesc('tgl_selesai'),
+                ->orderByDesc('tgl_selesai')
+                ->with('paketMembership'),
         ])->orderByRaw("FIELD(status_finger, 0, 1, 2)");
 
         if ($search) {
@@ -206,8 +205,19 @@ class AnggotaController extends Controller
         $data  = (clone $query)->skip(($page - 1) * $perPage)->take($perPage)->get();
 
         return response()->json([
-            'data' => $data->map(function ($item, $index) use ($page, $perPage) {
-                $activeMembership = $item->anggotaMemberships->first();
+            'data' => $data->map(function ($item, $index) use ($page, $perPage, $today) {
+                // anggotaMemberships sudah di-eager-load terurut tgl_selesai desc,
+                // jadi first() = membership dengan tgl_selesai PALING AKHIR (latest),
+                // apa pun tgl_mulai-nya (mis. perpanjangan yang belum mulai).
+                $memberships = $item->anggotaMemberships;
+                $latest      = $memberships->first();
+
+                // Status Aktif/Tidak Aktif TETAP dari "ada membership yang mencakup hari ini"
+                // — jangan pakai $latest untuk ini.
+                $isActive = $memberships->contains(
+                    fn($m) => $m->tgl_mulai->format('Y-m-d') <= $today && $m->tgl_selesai->format('Y-m-d') >= $today
+                );
+
                 return [
                     'no'                => (($page - 1) * $perPage) + $index + 1,
                     'id'                => $item->id,
@@ -216,14 +226,16 @@ class AnggotaController extends Controller
                     'name'              => $item->user?->name ?? '-',
                     'email'             => $item->user?->email ?? '-',
                     'no_telp'           => $item->no_telp ?? '-',
-                    'paket'             => $activeMembership?->nama_paket ?? '-',
-                    'status'            => $activeMembership !== null,
+                    'paket'             => $latest?->paketMembership?->nama_paket ?? $latest?->nama_paket ?? '-',
+                    'status'            => $isActive,
                     'bergabung'         => $item->tgl_daftar ? $item->tgl_daftar->format('d M Y') : '-',
-                    'berakhir'          => $activeMembership ? $activeMembership->tgl_selesai->format('d M Y') : '-',
+                    'berakhir'          => $latest ? $latest->tgl_selesai->format('d M Y') : '-',
                     'status_finger'     => $item->status_finger,
                     'edit_url'          => route('anggota.edit', $item->id),
                     'delete_url'        => route('anggota.destroy', $item->id),
                     'status_finger_url' => route('anggota.update_status_finger', $item->id),
+                    'can_perpanjang'    => $memberships->isNotEmpty(),
+                    'perpanjang_url'    => route('anggota_membership.perpanjang', $item->id),
                 ];
             }),
             'total'    => $total,
@@ -326,7 +338,7 @@ class AnggotaController extends Controller
 
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Gagal menambahkan anggota: ' . $e->getMessage());
+                ->with('error', 'Gagal menambahkan anggota. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -423,7 +435,7 @@ class AnggotaController extends Controller
 
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Gagal update anggota: ' . $e->getMessage());
+                ->with('error', 'Gagal mengubah data anggota. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -483,7 +495,7 @@ class AnggotaController extends Controller
             Log::error('Gagal hapus anggota', ['error' => $e->getMessage()]);
 
             return redirect()->back()
-                ->with('error', 'Gagal menghapus anggota: ' . $e->getMessage());
+                ->with('error', 'Gagal menghapus anggota. Silakan coba lagi atau hubungi admin.');
         }
     }
 }

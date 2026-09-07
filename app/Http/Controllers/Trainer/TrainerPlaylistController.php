@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\PlaylistTrainer;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class TrainerPlaylistController extends Controller
 {
@@ -35,8 +36,12 @@ class TrainerPlaylistController extends Controller
             $playlists = PlaylistTrainer::where('id_trainer', $trainerId)->get();
             return view('pages.trainer.playlist.index', compact('playlists'));
         } catch (\Exception $e) {
+            Log::error('Gagal memuat playlist trainer', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->back()
-                ->with('danger', 'Error: ' . $e->getMessage());
+                ->with('danger', 'Gagal memuat playlist. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -97,8 +102,12 @@ class TrainerPlaylistController extends Controller
             return redirect()->route('trainerplaylist.index')
                 ->with('success', 'Playlist berhasil ditambahkan!');
         } catch (\Exception $e) {
+            Log::error('Gagal menambahkan playlist trainer', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->back()
-                ->with('danger', 'Gagal menambahkan playlist: ' . $e->getMessage());
+                ->with('danger', 'Gagal menambahkan playlist. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -125,8 +134,12 @@ class TrainerPlaylistController extends Controller
             return redirect()->route('trainerplaylist.index')
                 ->with('success', 'Playlist berhasil diupdate!');
         } catch (\Exception $e) {
+            Log::error('Gagal mengupdate playlist trainer', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->back()
-                ->with('danger', 'Gagal mengupdate playlist: ' . $e->getMessage());
+                ->with('danger', 'Gagal mengupdate playlist. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -147,8 +160,12 @@ class TrainerPlaylistController extends Controller
             return redirect()->route('trainerplaylist.index')
                 ->with('success', 'Playlist berhasil dihapus!');
         } catch (\Exception $e) {
+            Log::error('Gagal menghapus playlist trainer', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->back()
-                ->with('danger', 'Gagal menghapus playlist: ' . $e->getMessage());
+                ->with('danger', 'Gagal menghapus playlist. Silakan coba lagi atau hubungi admin.');
         }
     }
 }

@@ -38,12 +38,11 @@ class DashboardController extends Controller
 
         $memberTerbaru = Anggota::with([
             'user',
-            'anggotaMemberships' => fn($q) => $q->orderByDesc('tgl_selesai'),
+            'anggotaMemberships' => fn($q) => $q->orderByDesc('tgl_selesai')->with('paketMembership'),
         ])->latest()->take(5)->get()->map(function ($anggota) use ($todayStr) {
-            $active = $anggota->anggotaMemberships
-                ->filter(fn($m) => $m->tgl_mulai->format('Y-m-d') <= $todayStr && $m->tgl_selesai->format('Y-m-d') >= $todayStr)
-                ->first();
-            $latest = $active ?? $anggota->anggotaMemberships->first();
+            // anggotaMemberships terurut tgl_selesai desc, jadi first() = latest
+            // (tgl_selesai paling akhir) — bukan yang aktif hari ini.
+            $latest = $anggota->anggotaMemberships->first();
 
             if (!$latest || $latest->tgl_selesai->format('Y-m-d') < $todayStr) {
                 $statusLabel = $latest ? 'Expired' : 'Belum daftar';
@@ -61,7 +60,7 @@ class DashboardController extends Controller
                 'name'         => $anggota->name,
                 'email'        => $anggota->user?->email ?? '-',
                 'photo_url'    => $anggota->photo_url,
-                'nama_paket'   => $latest?->nama_paket ?? '-',
+                'nama_paket'   => $latest?->paketMembership?->nama_paket ?? $latest?->nama_paket ?? '-',
                 'tgl_selesai'  => $latest ? $latest->tgl_selesai->format('d M Y') : '-',
                 'status_label' => $statusLabel,
                 'status_type'  => $statusType,

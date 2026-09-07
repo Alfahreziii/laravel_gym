@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 
 use App\Models\KategoriPaketMembership;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class KategoriPaketController extends Controller
 {
@@ -66,8 +67,12 @@ class KategoriPaketController extends Controller
 
             return redirect()->route('kategori_paket_membership.index')->with('success', 'Kategori berhasil ditambahkan.');
         } catch (\Exception $e) {
+            Log::error('Gagal menambahkan kategori paket membership', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->back()
-                            ->with('danger', 'Gagal menambahkan kategori: ' . $e->getMessage())
+                            ->with('danger', 'Gagal menambahkan kategori. Silakan coba lagi atau hubungi admin.')
                             ->withInput();
         }
     }
@@ -87,8 +92,12 @@ class KategoriPaketController extends Controller
 
             return redirect()->route('kategori_paket_membership.index')->with('success', 'Kategori berhasil diperbarui.');
         } catch (\Exception $e) {
+            Log::error('Gagal memperbarui kategori paket membership', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->back()
-                            ->with('danger', 'Gagal memperbarui kategori: ' . $e->getMessage())
+                            ->with('danger', 'Gagal memperbarui kategori. Silakan coba lagi atau hubungi admin.')
                             ->withInput();
         }
     }
@@ -104,8 +113,12 @@ class KategoriPaketController extends Controller
             return redirect()->route('kategori_paket_membership.index')
                             ->with('success', 'Kategori berhasil dihapus.');
         } catch (\Exception $e) {
+            Log::error('Gagal menghapus kategori paket membership', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->back()
-                            ->with('danger', 'Gagal menghapus kategori: ' . $e->getMessage());
+                            ->with('danger', 'Gagal menghapus kategori. Silakan coba lagi atau hubungi admin.');
         }
     }
 }

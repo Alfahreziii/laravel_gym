@@ -87,7 +87,7 @@ class KehadiranTrainerController extends Controller
             ]);
 
             return redirect()->back()
-                ->with('danger', 'Gagal export PDF: ' . $e->getMessage());
+                ->with('danger', 'Gagal export PDF. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -178,7 +178,7 @@ class KehadiranTrainerController extends Controller
             ]);
 
             return redirect()->back()
-                ->with('danger', 'Gagal export Excel: ' . $e->getMessage());
+                ->with('danger', 'Gagal export Excel. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -282,8 +282,12 @@ class KehadiranTrainerController extends Controller
             return redirect()->route('kehadirantrainer.index')
                 ->with('success', 'Absensi untuk trainer ' . e($trainer->name) . ' berhasil dicatat.');
         } catch (\Exception $e) {
+            Log::error('Gagal menyimpan data absensi trainer', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->route('kehadirantrainer.index')
-                ->with('danger', 'Gagal menyimpan data absensi: ' . $e->getMessage());
+                ->with('danger', 'Gagal menyimpan data absensi. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -301,8 +305,12 @@ class KehadiranTrainerController extends Controller
             return redirect()->route('kehadirantrainer.index')
                 ->with('success', 'Data kehadiran berhasil dihapus.');
         } catch (\Exception $e) {
+            Log::error('Gagal menghapus data kehadiran trainer', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->route('kehadirantrainer.index')
-                ->with('danger', 'Gagal menghapus data kehadiran: ' . $e->getMessage());
+                ->with('danger', 'Gagal menghapus data kehadiran. Silakan coba lagi atau hubungi admin.');
         }
     }
 }

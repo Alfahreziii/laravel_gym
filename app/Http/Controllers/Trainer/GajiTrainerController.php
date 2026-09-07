@@ -8,6 +8,7 @@ use App\Models\SettingParameterGajiTrainer;
 use App\Models\Trainer;
 use App\Models\LevelTrainer;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class GajiTrainerController extends Controller
 {
@@ -109,8 +110,12 @@ class GajiTrainerController extends Controller
                 ->with('success', 'Setting gaji trainer berhasil ditambahkan!');
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Gagal menambahkan setting gaji trainer', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->back()
-                ->with('danger', 'Gagal menambahkan setting gaji: ' . $e->getMessage())
+                ->with('danger', 'Gagal menambahkan setting gaji. Silakan coba lagi atau hubungi admin.')
                 ->withInput();
         }
     }
@@ -159,8 +164,12 @@ class GajiTrainerController extends Controller
                 ->with('success', 'Setting gaji trainer berhasil diupdate!');
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Gagal mengupdate setting gaji trainer', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->back()
-                ->with('danger', 'Gagal mengupdate setting gaji: ' . $e->getMessage())
+                ->with('danger', 'Gagal mengupdate setting gaji. Silakan coba lagi atau hubungi admin.')
                 ->withInput();
         }
     }
@@ -180,8 +189,12 @@ class GajiTrainerController extends Controller
                 ->with('success', 'Setting gaji trainer berhasil dihapus!');
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Gagal menghapus setting gaji trainer', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->back()
-                ->with('danger', 'Gagal menghapus setting gaji: ' . $e->getMessage());
+                ->with('danger', 'Gagal menghapus setting gaji. Silakan coba lagi atau hubungi admin.');
         }
     }
 }

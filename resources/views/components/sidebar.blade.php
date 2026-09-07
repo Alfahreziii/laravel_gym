@@ -429,6 +429,12 @@
                         <span>Profile Saya</span>
                     </a>
                 </li>
+                <li class="sidebar-menu-link {{ request()->routeIs('member.paket') ? 'active' : '' }}">
+                    <a href="{{ route('member.paket') }}">
+                        <x-icon.paket-member class="menu-icon" />
+                        <span>Paket &amp; Harga</span>
+                    </a>
+                </li>
             @endhasanyrole
         </ul>
     </div>

@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('transaksi_keuangans', function (Blueprint $table) {
             $table->id();
             $table->foreignId('akun_id')->constrained('akun_keuangans')->onDelete('cascade');
-            $table->string('deskripsi');
+            $table->text('deskripsi');
             $table->decimal('debit', 15, 2)->default(0);
             $table->decimal('kredit', 15, 2)->default(0);
             $table->date('tanggal');

@@ -21,20 +21,22 @@ class KehadiranMemberObserver
         $fotoUrl          = $kehadiran->foto ? asset('storage/' . $kehadiran->foto) : null;
 
         if ($anggota) {
-            $isAktif          = $anggota->status_keanggotaan;
-            $activeMembership = $anggota->active_membership;
+            // Status "aktif" tetap dari status_keanggotaan (cek keabsahan hari ini),
+            // tapi tanggal/sisa hari yang DITAMPILKAN ikut latest_membership supaya
+            // perpanjangan yang belum mulai tetap tercermin.
+            $isAktif = $anggota->status_keanggotaan;
+            $latestMembership = $anggota->latest_membership;
 
-            if ($isAktif && $activeMembership) {
-                $sisaHari   = (int) tenant_today()->diffInDays($activeMembership->tgl_selesai->endOfDay(), false);
-                $tglSelesai = $activeMembership->tgl_selesai->format('d M Y');
+            if ($isAktif && $latestMembership) {
+                $sisaHari   = (int) tenant_today()->diffInDays($latestMembership->tgl_selesai->endOfDay(), false);
+                $tglSelesai = $latestMembership->tgl_selesai->format('d M Y');
             } else {
-                $latest = $anggota->anggotaMemberships()->latest('tgl_selesai')->first();
-                if (!$latest) {
+                if (!$latestMembership) {
                     $alasanTidakAktif = 'Belum pernah memiliki membership';
-                } elseif ($latest->status_pembayaran !== 'lunas') {
+                } elseif ($latestMembership->status_pembayaran !== 'lunas') {
                     $alasanTidakAktif = 'Pembayaran membership belum lunas';
                 } else {
-                    $alasanTidakAktif = 'Membership expired sejak ' . $latest->tgl_selesai->format('d M Y');
+                    $alasanTidakAktif = 'Membership expired sejak ' . $latestMembership->tgl_selesai->format('d M Y');
                 }
             }
         }

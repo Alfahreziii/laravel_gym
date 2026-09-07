@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 
 use App\Models\Specialisasi;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Exception;
 
 class SpecialisasiController extends Controller
@@ -67,9 +68,13 @@ class SpecialisasiController extends Controller
             return redirect()->route('specialisasi.index')
                             ->with('success', 'Specialisasi berhasil ditambahkan.');
         } catch (Exception $e) {
+            Log::error('Gagal menambahkan specialisasi', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->back()
                             ->withInput()
-                            ->with('error', 'Gagal menambahkan specialisasi: ' . $e->getMessage());
+                            ->with('error', 'Gagal menambahkan specialisasi. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -90,9 +95,13 @@ class SpecialisasiController extends Controller
             return redirect()->route('specialisasi.index')
                             ->with('success', 'Specialisasi berhasil diperbarui.');
         } catch (Exception $e) {
+            Log::error('Gagal memperbarui specialisasi', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->back()
                             ->withInput()
-                            ->with('error', 'Gagal memperbarui specialisasi: ' . $e->getMessage());
+                            ->with('error', 'Gagal memperbarui specialisasi. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -107,8 +116,12 @@ class SpecialisasiController extends Controller
             return redirect()->route('specialisasi.index')
                             ->with('success', 'Specialisasi berhasil dihapus.');
         } catch (Exception $e) {
+            Log::error('Gagal menghapus specialisasi', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->back()
-                            ->with('error', 'Gagal menghapus specialisasi: ' . $e->getMessage());
+                            ->with('error', 'Gagal menghapus specialisasi. Silakan coba lagi atau hubungi admin.');
         }
     }
 }

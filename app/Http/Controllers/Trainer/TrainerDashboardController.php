@@ -185,7 +185,7 @@ class TrainerDashboardController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Gagal memulai sesi', ['error' => $e->getMessage()]);
-            return redirect()->back()->with('error', 'Gagal memulai sesi: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal memulai sesi. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -256,7 +256,7 @@ class TrainerDashboardController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Gagal menyelesaikan sesi', ['error' => $e->getMessage()]);
-            return redirect()->back()->with('error', 'Gagal menyelesaikan sesi: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal menyelesaikan sesi. Silakan coba lagi atau hubungi admin.');
         }
     }
 

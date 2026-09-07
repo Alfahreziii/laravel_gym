@@ -135,7 +135,7 @@ class AnggotaMembershipController extends Controller
             ]);
 
             return redirect()->back()
-                ->with('danger', 'Gagal export PDF: ' . $e->getMessage());
+                ->with('danger', 'Gagal export PDF. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -295,7 +295,7 @@ class AnggotaMembershipController extends Controller
             ]);
 
             return redirect()->back()
-                ->with('danger', 'Gagal export Excel: ' . $e->getMessage());
+                ->with('danger', 'Gagal export Excel. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -407,12 +407,14 @@ class AnggotaMembershipController extends Controller
         DB::beginTransaction();
         try {
             $kodeTransaksi = 'TRX-' . date('Ymd') . '-' . strtoupper(uniqid());
+            $paket         = PaketMembership::find($request->id_paket_membership);
 
             // 1️⃣ Simpan membership
             $anggotaMembership = AnggotaMembership::create([
                 'kode_transaksi'      => $kodeTransaksi,
                 'id_anggota'          => $request->id_anggota,
                 'id_paket_membership' => $request->id_paket_membership,
+                'nama_paket'          => $paket->nama_paket ?? null,
                 'tgl_mulai'           => $request->tgl_mulai,
                 'tgl_selesai'         => $request->tgl_selesai,
                 'diskon'              => $request->diskon ?? 0,
@@ -454,7 +456,7 @@ class AnggotaMembershipController extends Controller
             ]);
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Gagal menyimpan data membership: ' . $e->getMessage());
+                ->with('error', 'Gagal menyimpan data membership. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -462,6 +464,112 @@ class AnggotaMembershipController extends Controller
     {
         $anggotaMembership = AnggotaMembership::with('pembayaranMemberships.anggotaMembership')->findOrFail($id);
         return view('pages.admin.membership.anggota-paket-member.show', compact('anggotaMembership'));
+    }
+
+    public function perpanjang($id)
+    {
+        $anggota = Anggota::findOrFail($id);
+
+        $floorDate = $this->hitungFloorTanggalMulaiPerpanjangan($anggota);
+        $pakets    = PaketMembership::all();
+
+        return view('pages.admin.membership.anggota-paket-member.perpanjang', compact(
+            'anggota',
+            'pakets',
+            'floorDate'
+        ));
+    }
+
+    public function storePerpanjang(Request $request, $id)
+    {
+        $anggota = Anggota::findOrFail($id);
+
+        $request->validate([
+            'id_paket_membership' => 'required|exists:paket_memberships,id',
+            'tgl_mulai'           => 'required|date',
+            'tgl_selesai'         => 'required|date|after_or_equal:tgl_mulai',
+            'diskon'              => 'nullable|numeric|min:0',
+            'total_biaya'         => 'required|numeric|min:0',
+            'tgl_bayar'           => 'required|date',
+            'jumlah_bayar'        => 'required|numeric|min:0',
+            'metode_pembayaran'   => 'required|string',
+        ]);
+
+        $floorDate = $this->hitungFloorTanggalMulaiPerpanjangan($anggota);
+        if (Carbon::parse($request->tgl_mulai)->lt($floorDate)) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Tanggal mulai tidak boleh sebelum masa aktif berjalan.');
+        }
+
+        DB::beginTransaction();
+        try {
+            $kodeTransaksi = 'TRX-' . date('Ymd') . '-' . strtoupper(uniqid());
+            $paket         = PaketMembership::find($request->id_paket_membership);
+
+            // 1️⃣ Simpan membership baru (perpanjangan)
+            $anggotaMembership = AnggotaMembership::create([
+                'kode_transaksi'      => $kodeTransaksi,
+                'id_anggota'          => $anggota->id,
+                'id_paket_membership' => $request->id_paket_membership,
+                'nama_paket'          => $paket->nama_paket ?? null,
+                'tgl_mulai'           => $request->tgl_mulai,
+                'tgl_selesai'         => $request->tgl_selesai,
+                'diskon'              => $request->diskon ?? 0,
+                'total_biaya'         => $request->total_biaya,
+                'status_pembayaran'   => $request->jumlah_bayar >= $request->total_biaya ? 'Lunas' : 'Belum Lunas',
+            ]);
+
+            // 2️⃣ Catat piutang awal
+            $this->createPiutangAwalMembership($anggotaMembership, $request->tgl_bayar);
+
+            // 3️⃣ Simpan pembayaran pertama
+            $pembayaran = PembayaranMembership::create([
+                'id_anggota_membership' => $anggotaMembership->id,
+                'tgl_bayar'             => $request->tgl_bayar,
+                'jumlah_bayar'          => $request->jumlah_bayar,
+                'metode_pembayaran'     => $request->metode_pembayaran,
+            ]);
+
+            // 4️⃣ Catat transaksi keuangan pembayaran
+            $this->createTransaksiKeuanganForPembayaran(
+                $pembayaran,
+                $anggotaMembership,
+                $request->jumlah_bayar,
+                $request->tgl_bayar,
+                'Perpanjangan membership'
+            );
+
+            DB::commit();
+
+            return redirect()->route('anggota_membership.index')
+                ->with('success', 'Membership berhasil diperpanjang beserta pembayaran.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Gagal memperpanjang membership', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Gagal memperpanjang data membership. Silakan coba lagi atau hubungi admin.');
+        }
+    }
+
+    /**
+     * Hitung batas bawah (floor) tanggal mulai untuk perpanjangan membership.
+     * floor = max(tgl_selesai membership terbaru + 1 hari, hari ini)
+     */
+    protected function hitungFloorTanggalMulaiPerpanjangan(Anggota $anggota): Carbon
+    {
+        $today  = tenant_today();
+        $latest = $anggota->anggotaMemberships()->latest('tgl_selesai')->first();
+
+        if ($latest && Carbon::parse($latest->tgl_selesai)->gte($today)) {
+            return Carbon::parse($latest->tgl_selesai)->addDay();
+        }
+
+        return $today;
     }
 
     public function edit($id)
@@ -518,7 +626,7 @@ class AnggotaMembershipController extends Controller
             Log::error('Gagal update membership', ['error' => $e->getMessage()]);
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Gagal update membership: ' . $e->getMessage());
+                ->with('error', 'Gagal mengubah data membership. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -573,7 +681,7 @@ class AnggotaMembershipController extends Controller
             DB::rollBack();
             Log::error('Gagal tambah pembayaran', ['error' => $e->getMessage()]);
             return redirect()->back()
-                ->with('error', 'Gagal menambah pembayaran: ' . $e->getMessage());
+                ->with('error', 'Gagal menambah pembayaran. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -604,7 +712,7 @@ class AnggotaMembershipController extends Controller
             DB::rollBack();
             Log::error('Gagal hapus membership', ['error' => $e->getMessage()]);
             return redirect()->back()
-                ->with('error', 'Gagal menghapus membership: ' . $e->getMessage());
+                ->with('error', 'Gagal menghapus membership. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -635,7 +743,7 @@ class AnggotaMembershipController extends Controller
             DB::rollBack();
             Log::error('Gagal hapus pembayaran', ['error' => $e->getMessage()]);
             return redirect()->back()
-                ->with('error', 'Gagal menghapus pembayaran: ' . $e->getMessage());
+                ->with('error', 'Gagal menghapus pembayaran. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -698,7 +806,7 @@ class AnggotaMembershipController extends Controller
             DB::rollBack();
             Log::error('Gagal update pembayaran', ['error' => $e->getMessage()]);
             return redirect()->back()
-                ->with('error', 'Gagal update pembayaran: ' . $e->getMessage());
+                ->with('error', 'Gagal mengubah pembayaran. Silakan coba lagi atau hubungi admin.');
         }
     }
 

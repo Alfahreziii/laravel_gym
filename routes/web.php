@@ -47,6 +47,7 @@ Route::post('/register/trainer', [TrainerRegisterController::class, 'register'])
 Route::middleware(['auth', 'verified', LastActivityMiddleware::class, RoleMiddleware::class . ':member'])->group(function () {
     Route::controller(MemberProfileController::class)->group(function () {
         Route::get('/member/profile', 'index')->name('member.profile');
+        Route::get('/member/paket', 'paket')->name('member.paket');
         Route::get('/member/download-card', 'downloadCard')->name('member.download-card');
         Route::get('/member/barcode', 'showBarcode')->name('member.barcode');
     });
@@ -289,6 +290,10 @@ Route::middleware(['auth', 'verified', LastActivityMiddleware::class])->group(fu
             Route::put('/pembayaran-membership/{id}', 'tambahPembayaran')->name('pembayaran_membership.tambahPembayaran');
             Route::post('/anggota-membership/{id}/tambah-pembayaran', 'tambahPembayaran')->name('anggota_membership.tambahPembayaran');
             Route::delete('/pembayaran-membership/{id}', 'destroyPembayaran')->name('pembayaran_membership.destroy');
+
+            // Perpanjang membership — beraksi atas ANGGOTA ({id} = id anggota, bukan id membership)
+            Route::get('/anggota/{id}/perpanjang', 'perpanjang')->name('anggota_membership.perpanjang');
+            Route::post('/anggota/{id}/perpanjang', 'storePerpanjang')->name('anggota_membership.perpanjang.store');
         });
         Route::get('/anggota-membership/{id}/edit', 'edit')->middleware(RoleMiddleware::class . ':admin|spv')->name('anggota_membership.edit');
         Route::get('/anggota-membership/{id}/pembayaran/datatable', 'datatablePembayaran')->middleware(RoleMiddleware::class . ':admin|spv')->name('anggota_membership.datatablePembayaran');

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Anggota;
+use App\Models\PaketMembership;
+use App\Models\PaketPersonalTrainer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
@@ -45,6 +47,31 @@ class MemberProfileController extends Controller
             ->count();
 
         return view('pages.member.profile', compact('anggota', 'totalKehadiran', 'kehadiranBulanIni'));
+    }
+
+    /**
+     * Tampilkan katalog paket membership & personal trainer untuk member
+     */
+    public function paket()
+    {
+        $user = Auth::user();
+
+        if (!$user->isMember()) {
+            abort(403, 'Unauthorized access');
+        }
+
+        $anggota = $user->anggota;
+
+        if (!$anggota) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Data anggota tidak ditemukan');
+        }
+
+        $paketMemberships = PaketMembership::with('kategori')->get();
+        $paketTrainers    = PaketPersonalTrainer::get();
+        $tenant           = app('tenant');
+
+        return view('pages.member.paket', compact('anggota', 'paketMemberships', 'paketTrainers', 'tenant'));
     }
 
     /**

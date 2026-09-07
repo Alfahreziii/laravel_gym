@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PaketMembership;
 use App\Models\KategoriPaketMembership;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class PaketMembershipController extends Controller
 {
@@ -90,8 +91,12 @@ class PaketMembershipController extends Controller
             return redirect()->route('paket_membership.index')
                             ->with('success', 'Paket membership berhasil ditambahkan.');
         } catch (\Exception $e) {
+            Log::error('Gagal menambahkan paket membership', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->back()
-                            ->with('danger', 'Gagal menambahkan paket: ' . $e->getMessage())
+                            ->with('danger', 'Gagal menambahkan paket. Silakan coba lagi atau hubungi admin.')
                             ->withInput();
         }
     }
@@ -125,8 +130,12 @@ class PaketMembershipController extends Controller
             return redirect()->route('paket_membership.index')
                             ->with('success', 'Paket membership berhasil diperbarui.');
         } catch (\Exception $e) {
+            Log::error('Gagal memperbarui paket membership', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->back()
-                            ->with('danger', 'Gagal memperbarui paket: ' . $e->getMessage())
+                            ->with('danger', 'Gagal memperbarui paket. Silakan coba lagi atau hubungi admin.')
                             ->withInput();
         }
     }
@@ -142,8 +151,12 @@ class PaketMembershipController extends Controller
             return redirect()->route('paket_membership.index')
                             ->with('success', 'Paket membership berhasil dihapus.');
         } catch (\Exception $e) {
+            Log::error('Gagal menghapus paket membership', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->back()
-                            ->with('danger', 'Gagal menghapus paket: ' . $e->getMessage());
+                            ->with('danger', 'Gagal menghapus paket. Silakan coba lagi atau hubungi admin.');
         }
     }
 }

@@ -138,7 +138,7 @@ class MemberTrainerController extends Controller
             ]);
 
             return redirect()->back()
-                ->with('danger', 'Gagal export PDF: ' . $e->getMessage());
+                ->with('danger', 'Gagal export PDF. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -305,7 +305,7 @@ class MemberTrainerController extends Controller
             ]);
 
             return redirect()->back()
-                ->with('danger', 'Gagal export Excel: ' . $e->getMessage());
+                ->with('danger', 'Gagal export Excel. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -474,7 +474,7 @@ class MemberTrainerController extends Controller
             ]);
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Gagal menyimpan data member trainer: ' . $e->getMessage());
+                ->with('error', 'Gagal menyimpan data member trainer. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -543,7 +543,7 @@ class MemberTrainerController extends Controller
             Log::error('Gagal update member trainer', ['error' => $e->getMessage()]);
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Gagal update member trainer: ' . $e->getMessage());
+                ->with('error', 'Gagal mengubah data member trainer. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -600,7 +600,7 @@ class MemberTrainerController extends Controller
             DB::rollBack();
             Log::error('Gagal tambah pembayaran PT', ['error' => $e->getMessage()]);
             return redirect()->back()
-                ->with('error', 'Gagal menambah pembayaran: ' . $e->getMessage());
+                ->with('error', 'Gagal menambah pembayaran. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -653,7 +653,7 @@ class MemberTrainerController extends Controller
             DB::rollBack();
             Log::error('Gagal hapus member trainer', ['error' => $e->getMessage()]);
             return redirect()->back()
-                ->with('error', 'Gagal menghapus member trainer: ' . $e->getMessage());
+                ->with('error', 'Gagal menghapus member trainer. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -685,7 +685,7 @@ class MemberTrainerController extends Controller
             DB::rollBack();
             Log::error('Gagal hapus pembayaran PT', ['error' => $e->getMessage()]);
             return redirect()->back()
-                ->with('error', 'Gagal menghapus pembayaran: ' . $e->getMessage());
+                ->with('error', 'Gagal menghapus pembayaran. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -750,7 +750,7 @@ class MemberTrainerController extends Controller
             DB::rollBack();
             Log::error('Gagal update pembayaran PT', ['error' => $e->getMessage()]);
             return redirect()->back()
-                ->with('error', 'Gagal update pembayaran: ' . $e->getMessage());
+                ->with('error', 'Gagal mengubah pembayaran. Silakan coba lagi atau hubungi admin.');
         }
     }
 

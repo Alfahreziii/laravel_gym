@@ -208,10 +208,7 @@ class RiwayatGajiTrainerController extends Controller
             
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
+                'message' => 'Terjadi kesalahan saat memproses data. Silakan coba lagi atau hubungi admin.',
             ], 500);
         }
     }
@@ -346,7 +343,7 @@ class RiwayatGajiTrainerController extends Controller
             
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                'message' => 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi atau hubungi admin.'
             ], 500);
         }
     }
@@ -380,7 +377,7 @@ class RiwayatGajiTrainerController extends Controller
             Log::error('Error in history page: ' . $e->getMessage());
             
             return redirect()->route('riwayat-gaji-trainer.index')
-                ->with('danger', 'Gagal memuat history: ' . $e->getMessage());
+                ->with('danger', 'Gagal memuat history. Silakan coba lagi atau hubungi admin.');
         }
     }
 }

@@ -162,6 +162,27 @@ if (! function_exists('tenant_month_range')) {
     }
 }
 
+if (! function_exists('wa_number')) {
+    /**
+     * Normalisasi nomor telepon ke format yang siap dipakai wa.me (62xxxxxxxxxx),
+     * apa pun format aslinya di DB: "0812...", "+62812...", atau "62812...".
+     */
+    function wa_number(?string $raw): string
+    {
+        $digits = preg_replace('/\D/', '', (string) $raw);
+
+        if ($digits === '') {
+            return '';
+        }
+
+        if (str_starts_with($digits, '0')) {
+            $digits = '62' . substr($digits, 1);
+        }
+
+        return $digits;
+    }
+}
+
 if (! function_exists('tenant_module')) {
     /**
      * Cek apakah modul tertentu aktif untuk tenant yang sedang aktif di request ini.

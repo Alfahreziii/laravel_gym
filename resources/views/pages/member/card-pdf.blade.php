@@ -179,10 +179,10 @@
         </div>
 
         <!-- Card Footer -->
-        @if ($anggota->active_membership)
+        @if ($anggota->latest_membership)
             <div class="card-footer">
                 <div class="valid-until">
-                    Valid Until: {{ $anggota->active_membership->tgl_selesai->format('d M Y') }}
+                    Valid Until: {{ $anggota->latest_membership->tgl_selesai->format('d M Y') }}
                 </div>
             </div>
         @endif

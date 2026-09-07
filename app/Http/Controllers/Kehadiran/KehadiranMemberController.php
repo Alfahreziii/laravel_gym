@@ -97,7 +97,7 @@ class KehadiranMemberController extends Controller
             ]);
 
             return redirect()->back()
-                ->with('danger', 'Gagal export PDF: ' . $e->getMessage());
+                ->with('danger', 'Gagal export PDF. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -191,7 +191,7 @@ class KehadiranMemberController extends Controller
             ]);
 
             return redirect()->back()
-                ->with('danger', 'Gagal export Excel: ' . $e->getMessage());
+                ->with('danger', 'Gagal export Excel. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -328,8 +328,12 @@ class KehadiranMemberController extends Controller
             return redirect()->route('kehadiranmember.index')
                 ->with('success', 'Absensi ' . strtoupper($status) . ' untuk ' . e($anggota->name) . ' berhasil dicatat.');
         } catch (\Exception $e) {
+            Log::error('Gagal menyimpan data absensi member', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->route('kehadiranmember.index')
-                ->with('danger', 'Gagal menyimpan data absensi: ' . $e->getMessage());
+                ->with('danger', 'Gagal menyimpan data absensi. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -348,8 +352,12 @@ class KehadiranMemberController extends Controller
             return redirect()->route('kehadiranmember.index')
                 ->with('success', 'Data kehadiran berhasil dihapus.');
         } catch (\Exception $e) {
+            Log::error('Gagal menghapus data kehadiran member', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->route('kehadiranmember.index')
-                ->with('danger', 'Gagal menghapus data kehadiran: ' . $e->getMessage());
+                ->with('danger', 'Gagal menghapus data kehadiran. Silakan coba lagi atau hubungi admin.');
         }
     }
 }

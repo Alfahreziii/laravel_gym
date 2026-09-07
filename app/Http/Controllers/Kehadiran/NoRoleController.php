@@ -10,6 +10,7 @@ use App\Models\Trainer;
 use App\Models\KehadiranMember;
 use App\Models\Anggota;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Concerns\ResolvesMemberExpiry;
 
 class NoRoleController extends Controller
@@ -78,7 +79,11 @@ class NoRoleController extends Controller
             if ($isAjax) return response()->json(['success' => true, 'message' => $msg]);
             return redirect()->route('absensi.trainer')->with('success', $msg);
         } catch (\Exception $e) {
-            $msg = 'Gagal menyimpan data absensi: ' . $e->getMessage();
+            Log::error('Gagal menyimpan data absensi trainer (layout scanner)', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            $msg = 'Gagal menyimpan data absensi. Silakan coba lagi atau hubungi admin.';
             if ($isAjax) return response()->json(['success' => false, 'message' => $msg], 500);
             return redirect()->route('absensi.trainer')->with('danger', $msg);
         }
@@ -207,19 +212,21 @@ class NoRoleController extends Controller
 
             if ($isAjax) {
                 // Build notif payload langsung di sini (tidak tunggu observer/cache)
-                $isAktif  = $anggota->status_keanggotaan;
-                $activeMembership = $anggota->active_membership;
+                // Status "aktif" tetap dari status_keanggotaan (cek keabsahan hari ini),
+                // tapi tanggal/sisa hari yang DITAMPILKAN ikut latest_membership supaya
+                // perpanjangan yang belum mulai tetap tercermin.
+                $isAktif = $anggota->status_keanggotaan;
+                $latestMembership = $anggota->latest_membership;
                 $sisaHari = null;
                 $tglSelesai = null;
                 $alasanTidakAktif = null;
-                if ($isAktif && $activeMembership) {
-                    $sisaHari   = (int) tenant_today()->diffInDays($activeMembership->tgl_selesai->endOfDay(), false);
-                    $tglSelesai = $activeMembership->tgl_selesai->format('d M Y');
+                if ($isAktif && $latestMembership) {
+                    $sisaHari   = (int) tenant_today()->diffInDays($latestMembership->tgl_selesai->endOfDay(), false);
+                    $tglSelesai = $latestMembership->tgl_selesai->format('d M Y');
                 } else {
-                    $latest = $anggota->anggotaMemberships()->latest('tgl_selesai')->first();
-                    if (!$latest) $alasanTidakAktif = 'Belum pernah memiliki membership';
-                    elseif ($latest->status_pembayaran !== 'lunas') $alasanTidakAktif = 'Pembayaran membership belum lunas';
-                    else $alasanTidakAktif = 'Membership expired sejak ' . $latest->tgl_selesai->format('d M Y');
+                    if (!$latestMembership) $alasanTidakAktif = 'Belum pernah memiliki membership';
+                    elseif ($latestMembership->status_pembayaran !== 'lunas') $alasanTidakAktif = 'Pembayaran membership belum lunas';
+                    else $alasanTidakAktif = 'Membership expired sejak ' . $latestMembership->tgl_selesai->format('d M Y');
                 }
                 return response()->json([
                     'success' => true,
@@ -242,11 +249,15 @@ class NoRoleController extends Controller
             return redirect()->route('absen.index')
                 ->with('success', 'Absensi ' . strtoupper($status) . ' untuk ' . e($anggota->name) . ' berhasil dicatat!');
         } catch (\Exception $e) {
+            Log::error('Gagal menyimpan data absensi member', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             if ($isAjax) {
-                return response()->json(['success' => false, 'message' => 'Gagal: ' . $e->getMessage()], 500);
+                return response()->json(['success' => false, 'message' => 'Gagal menyimpan data absensi. Silakan coba lagi atau hubungi admin.'], 500);
             }
             return redirect()->route('absen.index')
-                ->with('danger', 'Gagal menyimpan data absensi: ' . $e->getMessage());
+                ->with('danger', 'Gagal menyimpan data absensi. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -264,8 +275,12 @@ class NoRoleController extends Controller
 
             return redirect()->route('absen.index')->with('success', 'Data kehadiran berhasil dihapus.');
         } catch (\Exception $e) {
+            Log::error('Gagal menghapus data kehadiran member', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->route('absen.index')
-                ->with('danger', 'Gagal menghapus data kehadiran: ' . $e->getMessage());
+                ->with('danger', 'Gagal menghapus data kehadiran. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -371,8 +386,12 @@ class NoRoleController extends Controller
             return redirect()->route('absentrainer.index')
                 ->with('success', 'Absensi ' . strtoupper($status) . ' untuk ' . e($trainer->name) . ' berhasil dicatat!');
         } catch (\Exception $e) {
+            Log::error('Gagal menyimpan data absensi trainer', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->route('absentrainer.index')
-                ->with('danger', 'Gagal menyimpan data absensi: ' . $e->getMessage());
+                ->with('danger', 'Gagal menyimpan data absensi. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -390,8 +409,12 @@ class NoRoleController extends Controller
 
             return redirect()->route('absentrainer.index')->with('success', 'Data kehadiran berhasil dihapus.');
         } catch (\Exception $e) {
+            Log::error('Gagal menghapus data kehadiran trainer', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->route('absentrainer.index')
-                ->with('danger', 'Gagal menghapus data kehadiran: ' . $e->getMessage());
+                ->with('danger', 'Gagal menghapus data kehadiran. Silakan coba lagi atau hubungi admin.');
         }
     }
 }

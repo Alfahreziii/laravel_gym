@@ -154,7 +154,7 @@ class NeracaController extends Controller
             ]);
 
             return back()
-                ->with('danger', 'Gagal menambahkan kas: ' . $e->getMessage())
+                ->with('danger', 'Gagal menambahkan kas. Silakan coba lagi atau hubungi admin.')
                 ->withInput();
         }
     }

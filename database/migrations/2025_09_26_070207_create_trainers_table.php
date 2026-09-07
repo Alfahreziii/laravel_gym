@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('experience', 100);
             $table->date('tgl_gabung');
             $table->string('status', 20);
-            $table->string('keterangan', 100);
+            $table->text('keterangan');
             $table->text('tempat_lahir');
             $table->date('tgl_lahir');
             $table->string('jenis_kelamin', 20);

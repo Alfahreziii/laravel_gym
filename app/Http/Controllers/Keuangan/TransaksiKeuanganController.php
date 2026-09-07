@@ -84,10 +84,13 @@ class TransaksiKeuanganController extends Controller
                 'total_kredit' => (float) $totalKredit,
             ]);
         } catch (\Exception $e) {
-            return response()->json([
+            Log::error('Gagal memuat datatable transaksi keuangan', [
                 'error' => $e->getMessage(),
-                'line'  => $e->getLine(),
-                'file'  => basename($e->getFile()),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memuat data transaksi. Silakan coba lagi atau hubungi admin.',
             ], 500);
         }
     }
@@ -220,7 +223,7 @@ class TransaksiKeuanganController extends Controller
             return $pdf->download('Laporan_Transaksi_Keuangan_' . date('Y-m-d_His') . '.pdf');
         } catch (\Exception $e) {
             Log::error('Gagal export PDF transaksi keuangan', ['error' => $e->getMessage()]);
-            return redirect()->back()->with('error', 'Gagal export PDF: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal export PDF. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -319,7 +322,7 @@ class TransaksiKeuanganController extends Controller
             return $this->excelDownload($html, $title, $filename);
         } catch (\Exception $e) {
             Log::error('Gagal export Excel transaksi keuangan', ['error' => $e->getMessage()]);
-            return redirect()->back()->with('error', 'Gagal export Excel: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal export Excel. Silakan coba lagi atau hubungi admin.');
         }
     }
 }

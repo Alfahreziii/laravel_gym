@@ -8,20 +8,25 @@
     $initials = strtoupper(substr($nameParts[0], 0, 1));
     if (count($nameParts) > 1) $initials .= strtoupper(substr(end($nameParts), 0, 1));
 
-    // Package duration badge & progress
+    // Package duration badge & progress — pakai membership dengan tgl_selesai
+    // PALING AKHIR (latest), bukan yang aktif hari ini, supaya perpanjangan
+    // yang belum mulai tetap tercermin di "Berlaku s/d" & sisa hari.
+    $latestMembership = $anggota->latest_membership;
     $packageBadge  = '';
     $daysRemaining = 0;
     $daysTotal     = 1;
     $progressPct   = 0;
-    if ($anggota->active_membership) {
-        $dur = $anggota->active_membership->tgl_mulai->diffInDays($anggota->active_membership->tgl_selesai);
+    if ($latestMembership) {
+        $dur = $latestMembership->tgl_mulai->diffInDays($latestMembership->tgl_selesai);
         if ($dur >= 330)     $packageBadge = 'TAHUNAN';
         elseif ($dur >= 25)  $packageBadge = 'BULANAN';
         elseif ($dur >= 7)   $packageBadge = 'MINGGUAN';
         else                 $packageBadge = 'HARIAN';
-        $daysRemaining = max(0, now()->startOfDay()->diffInDays($anggota->active_membership->tgl_selesai, false));
-        $daysTotal     = max(1, $anggota->active_membership->tgl_mulai->diffInDays($anggota->active_membership->tgl_selesai));
-        $progressPct   = min(100, (int) round(($anggota->active_membership->tgl_mulai->diffInDays(now()) / $daysTotal) * 100));
+        $daysRemaining = max(0, now()->startOfDay()->diffInDays($latestMembership->tgl_selesai, false));
+        $daysTotal     = max(1, $latestMembership->tgl_mulai->diffInDays($latestMembership->tgl_selesai));
+        $progressPct   = $latestMembership->tgl_mulai->isFuture()
+            ? 0
+            : min(100, (int) round(($latestMembership->tgl_mulai->diffInDays(now()) / $daysTotal) * 100));
     }
 
     // BMI
@@ -465,17 +470,17 @@
                     </div>
                 @endif
 
-                @if ($anggota->active_membership)
+                @if ($latestMembership)
                     <div class="mp-pkg">
                         <div class="mp-pkg-top">
                             <span class="mp-pkg-lbl">Paket aktif</span>
                             <span class="mp-pkg-dur">{{ $packageBadge }}</span>
                         </div>
                         <div class="mp-pkg-name">
-                            {{ optional($anggota->active_membership->paketMembership)->nama_paket ?? $anggota->active_membership->nama_paket }}
+                            {{ optional($latestMembership->paketMembership)->nama_paket ?? $latestMembership->nama_paket }}
                         </div>
                         <div class="mp-pkg-dates">
-                            <span>Berlaku s/d {{ $anggota->active_membership->tgl_selesai->format('d M Y') }}</span>
+                            <span>Berlaku s/d {{ $latestMembership->tgl_selesai->format('d M Y') }}</span>
                             <span class="mp-pkg-days">{{ $daysRemaining }} hari</span>
                         </div>
                         <div class="mp-pkgbar"><div class="mp-pkgbar-f" style="width:{{ $progressPct }}%"></div></div>
@@ -693,6 +698,7 @@
     {{-- END RIGHT --}}
 
 </div>
+
 </div>
 
 {{-- QR MODAL --}}

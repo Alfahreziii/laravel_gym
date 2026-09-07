@@ -18,7 +18,7 @@ return new class extends Migration
             $table->smallInteger('durasi')->unsigned();
             $table->string('periode', 20);
             $table->integer('harga')->unsigned();
-            $table->string('keterangan', 100);
+            $table->text('keterangan');
             $table->timestamps();
         });
     }

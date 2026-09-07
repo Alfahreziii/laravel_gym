@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 
 use App\Models\PaketPersonalTrainer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class PaketPersonalTrainerController extends Controller
 {
@@ -84,8 +85,12 @@ class PaketPersonalTrainerController extends Controller
             return redirect()->route('paket_personal_trainer.index')
                             ->with('success', 'Paket personal trainer berhasil ditambahkan.');
         } catch (\Exception $e) {
+            Log::error('Gagal menambahkan paket personal trainer', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->back()
-                            ->with('danger', 'Gagal menambahkan paket: ' . $e->getMessage())
+                            ->with('danger', 'Gagal menambahkan paket. Silakan coba lagi atau hubungi admin.')
                             ->withInput();
         }
     }
@@ -117,8 +122,12 @@ class PaketPersonalTrainerController extends Controller
             return redirect()->route('paket_personal_trainer.index')
                             ->with('success', 'Paket personal trainer berhasil diperbarui.');
         } catch (\Exception $e) {
+            Log::error('Gagal memperbarui paket personal trainer', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->back()
-                            ->with('danger', 'Gagal memperbarui paket: ' . $e->getMessage())
+                            ->with('danger', 'Gagal memperbarui paket. Silakan coba lagi atau hubungi admin.')
                             ->withInput();
         }
     }
@@ -134,8 +143,12 @@ class PaketPersonalTrainerController extends Controller
             return redirect()->route('paket_personal_trainer.index')
                             ->with('success', 'Paket personal trainer berhasil dihapus.');
         } catch (\Exception $e) {
+            Log::error('Gagal menghapus paket personal trainer', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->back()
-                            ->with('danger', 'Gagal menghapus paket: ' . $e->getMessage());
+                            ->with('danger', 'Gagal menghapus paket. Silakan coba lagi atau hubungi admin.');
         }
     }
 }

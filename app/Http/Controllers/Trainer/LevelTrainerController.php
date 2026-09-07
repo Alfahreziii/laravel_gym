@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Trainer;
 use App\Models\LevelTrainer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 
 class LevelTrainerController extends Controller
@@ -72,8 +73,12 @@ class LevelTrainerController extends Controller
                 ->with('success', 'Level Trainer berhasil ditambahkan!');
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Gagal menambahkan level trainer', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->back()
-                ->with('danger', 'Gagal menambahkan level: ' . $e->getMessage());
+                ->with('danger', 'Gagal menambahkan level. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -101,8 +106,12 @@ class LevelTrainerController extends Controller
                 ->with('success', 'Level Trainer berhasil diupdate!');
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Gagal mengupdate level trainer', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->back()
-                ->with('danger', 'Gagal mengupdate level: ' . $e->getMessage());
+                ->with('danger', 'Gagal mengupdate level. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -128,8 +137,12 @@ class LevelTrainerController extends Controller
                 ->with('success', 'Level Trainer berhasil dihapus!');
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Gagal menghapus level trainer', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->back()
-                ->with('danger', 'Gagal menghapus level: ' . $e->getMessage());
+                ->with('danger', 'Gagal menghapus level. Silakan coba lagi atau hubungi admin.');
         }
     }
 }

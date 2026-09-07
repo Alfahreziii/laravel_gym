@@ -114,7 +114,7 @@ class TrainerRegisterController extends Controller
 
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Gagal melakukan pendaftaran: ' . $e->getMessage());
+                ->with('error', 'Gagal melakukan pendaftaran. Silakan coba lagi atau hubungi admin.');
         }
     }
 }

@@ -128,7 +128,11 @@ class UsersController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('danger', 'Terjadi kesalahan: ' . $e->getMessage());
+            Log::error('Gagal mengubah role user', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return redirect()->back()->with('danger', 'Terjadi kesalahan saat mengubah role. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -161,7 +165,11 @@ class UsersController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('danger', 'Terjadi kesalahan: ' . $e->getMessage());
+            Log::error('Gagal mengubah role beberapa user', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return redirect()->back()->with('danger', 'Terjadi kesalahan saat mengubah role. Silakan coba lagi atau hubungi admin.');
         }
     }
     
@@ -234,9 +242,14 @@ class UsersController extends Controller
                 Storage::disk('public')->delete($userData['photo']);
             }
 
+            Log::error('Gagal memperbarui profile user', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Gagal memperbarui profile: ' . $e->getMessage());
+                ->with('error', 'Gagal memperbarui profile. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -272,8 +285,12 @@ class UsersController extends Controller
             return redirect()->back()->with('success', 'Password berhasil diubah!');
 
         } catch (\Exception $e) {
+            Log::error('Gagal mengubah password user', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->back()
-                ->with('error', 'Gagal mengubah password: ' . $e->getMessage());
+                ->with('error', 'Gagal mengubah password. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -296,7 +313,11 @@ class UsersController extends Controller
             return redirect()->back()->with('info', 'Tidak ada foto untuk dihapus');
 
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal menghapus foto: ' . $e->getMessage());
+            Log::error('Gagal menghapus foto profile user', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return redirect()->back()->with('error', 'Gagal menghapus foto. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -370,7 +391,7 @@ class UsersController extends Controller
                 'user_id' => $user->id
             ]);
             
-            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat memperbarui profile trainer. Silakan coba lagi atau hubungi admin.');
         }
     }
     

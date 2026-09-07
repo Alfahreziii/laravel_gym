@@ -62,7 +62,7 @@ class ProductController extends Controller
             return $pdf->download('Laporan_Produk_' . date('Y-m-d_His') . '.pdf');
         } catch (\Exception $e) {
             Log::error('Gagal export PDF produk', ['error' => $e->getMessage()]);
-            return redirect()->back()->with('danger', 'Gagal export PDF: ' . $e->getMessage());
+            return redirect()->back()->with('danger', 'Gagal export PDF. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -150,7 +150,7 @@ class ProductController extends Controller
             return $this->excelDownload($html, 'Laporan Data Produk', $filename);
         } catch (\Exception $e) {
             Log::error('Gagal export Excel produk', ['error' => $e->getMessage()]);
-            return redirect()->back()->with('danger', 'Gagal export Excel: ' . $e->getMessage());
+            return redirect()->back()->with('danger', 'Gagal export Excel. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -274,7 +274,11 @@ class ProductController extends Controller
             return back()->with('success', 'Produk berhasil ditambahkan.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('danger', 'Gagal menambahkan produk: ' . $e->getMessage())->withInput();
+            Log::error('Gagal menambahkan produk', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return back()->with('danger', 'Gagal menambahkan produk. Silakan coba lagi atau hubungi admin.')->withInput();
         }
     }
 
@@ -314,7 +318,11 @@ class ProductController extends Controller
 
             return back()->with('success', 'Produk berhasil diperbarui.');
         } catch (\Exception $e) {
-            return back()->with('danger', 'Gagal memperbarui produk: ' . $e->getMessage())->withInput();
+            Log::error('Gagal memperbarui produk', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return back()->with('danger', 'Gagal memperbarui produk. Silakan coba lagi atau hubungi admin.')->withInput();
         }
     }
 
@@ -347,7 +355,11 @@ class ProductController extends Controller
             return redirect()->route('products.index')->with('success', 'Produk berhasil dihapus.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('danger', 'Gagal menghapus produk: ' . $e->getMessage());
+            Log::error('Gagal menghapus produk', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return back()->with('danger', 'Gagal menghapus produk. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -409,7 +421,11 @@ class ProductController extends Controller
             return back()->with('success', 'Stok produk berhasil diperbarui.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('danger', 'Gagal memperbarui stok: ' . $e->getMessage());
+            Log::error('Gagal memperbarui stok produk', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return back()->with('danger', 'Gagal memperbarui stok. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -652,7 +668,12 @@ class ProductController extends Controller
                 DB::commit();
             } catch (\Exception $e) {
                 DB::rollBack();
-                $errors[] = "Baris {$rowNum}: Gagal disimpan — " . $e->getMessage();
+                Log::error('Gagal menyimpan baris import produk', [
+                    'row'   => $rowNum,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+                $errors[] = "Baris {$rowNum}: Gagal disimpan, periksa kembali datanya.";
             }
         }
 

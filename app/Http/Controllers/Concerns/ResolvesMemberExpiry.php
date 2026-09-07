@@ -62,10 +62,11 @@ trait ResolvesMemberExpiry
 
         $todayStr = tenant_today()->format('Y-m-d');
 
-        $active = $anggota->anggotaMemberships
-            ->filter(fn ($m) => $m->tgl_mulai->format('Y-m-d') <= $todayStr && $m->tgl_selesai->format('Y-m-d') >= $todayStr)
-            ->first();
-        $latest = $active ?? $anggota->anggotaMemberships->first();
+        // $anggota->anggotaMemberships di-eager-load terurut tgl_selesai desc
+        // (lihat anggotaMapForRfids), jadi first() = tgl_selesai PALING AKHIR
+        // (latest) — bukan yang aktif hari ini. Tanggal/badge expired HARUS
+        // ikut latest supaya perpanjangan yang belum mulai tetap tercermin.
+        $latest = $anggota->anggotaMemberships->first();
 
         if (! $latest || $latest->tgl_selesai->format('Y-m-d') < $todayStr) {
             $statusLabel = $latest ? 'Expired' : 'Belum daftar';

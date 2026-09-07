@@ -10,6 +10,7 @@ use App\Models\PlaylistMemberTrainer;
 use App\Models\Trainer;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Controllers\Concerns\ExportsExcel;
 
@@ -68,8 +69,12 @@ class PlaylistMemberTrainerController extends Controller
 
             return view('pages.trainer.playlist-member-trainer.monitoring', compact('trainer', 'activeMember', 'playlists', 'savedPlaylists', 'sesiKe'));
         } catch (\Exception $e) {
+            Log::error('Gagal memuat monitoring playlist trainer', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->back()
-                ->with('error', 'Error: ' . $e->getMessage());
+                ->with('error', 'Gagal memuat data monitoring. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -131,7 +136,11 @@ class PlaylistMemberTrainerController extends Controller
             return redirect()->back()->with('success', 'Playlist training berhasil disimpan!');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Gagal menyimpan: ' . $e->getMessage());
+            Log::error('Gagal menyimpan playlist training', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return redirect()->back()->with('error', 'Gagal menyimpan playlist. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -175,9 +184,13 @@ class PlaylistMemberTrainerController extends Controller
             }
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Gagal menghapus playlist training', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menghapus: ' . $e->getMessage()
+                'message' => 'Gagal menghapus playlist. Silakan coba lagi atau hubungi admin.'
             ], 500);
         }
     }
@@ -253,8 +266,12 @@ class PlaylistMemberTrainerController extends Controller
 
             return view('pages.trainer.playlist-member-trainer.index', compact('trainer', 'memberTrainer', 'history', 'durasiPerSesi', 'tanggalPerSesi'));
         } catch (\Exception $e) {
+            Log::error('Gagal memuat riwayat playlist training', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return redirect()->back()
-                ->with('error', 'Error: ' . $e->getMessage());
+                ->with('error', 'Gagal memuat data riwayat. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -323,7 +340,11 @@ class PlaylistMemberTrainerController extends Controller
 
             return $pdf->download($filename);
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal export PDF: ' . $e->getMessage());
+            Log::error('Gagal export PDF riwayat playlist training', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return redirect()->back()->with('error', 'Gagal export PDF. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -434,7 +455,11 @@ class PlaylistMemberTrainerController extends Controller
 
             return $this->excelDownload($html, $title, $filename);
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal export Excel: ' . $e->getMessage());
+            Log::error('Gagal export Excel riwayat playlist training', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return redirect()->back()->with('error', 'Gagal export Excel. Silakan coba lagi atau hubungi admin.');
         }
     }
 }

@@ -57,7 +57,7 @@ class KasirController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal generate nota: ' . $e->getMessage()
+                'message' => 'Gagal membuat nota. Silakan coba lagi atau hubungi admin.'
             ], 500);
         }
     }
@@ -201,7 +201,7 @@ class KasirController extends Controller
             ]);
 
             return redirect()->back()
-                ->with('danger', 'Gagal export PDF: ' . $e->getMessage());
+                ->with('danger', 'Gagal export PDF. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -428,7 +428,7 @@ class KasirController extends Controller
             ]);
 
             return redirect()->back()
-                ->with('danger', 'Gagal export Excel: ' . $e->getMessage());
+                ->with('danger', 'Gagal export Excel. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -620,7 +620,7 @@ class KasirController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menyimpan transaksi: ' . $e->getMessage()
+                'message' => 'Gagal menyimpan transaksi. Silakan coba lagi atau hubungi admin.'
             ], 500);
         }
     }
@@ -710,7 +710,7 @@ class KasirController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menyimpan transaksi hold: ' . $e->getMessage()
+                'message' => 'Gagal menyimpan transaksi hold. Silakan coba lagi atau hubungi admin.'
             ], 500);
         }
     }
@@ -948,7 +948,7 @@ class KasirController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menghapus transaksi: ' . $e->getMessage()
+                'message' => 'Gagal menghapus transaksi. Silakan coba lagi atau hubungi admin.'
             ], 500);
         }
     }

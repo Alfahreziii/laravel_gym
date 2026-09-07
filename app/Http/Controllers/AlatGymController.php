@@ -61,7 +61,7 @@ class AlatGymController extends Controller
             ]);
 
             return redirect()->back()
-                ->with('error', 'Gagal export PDF: ' . $e->getMessage());
+                ->with('error', 'Gagal export PDF. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -139,7 +139,7 @@ class AlatGymController extends Controller
             ]);
 
             return redirect()->back()
-                ->with('error', 'Gagal export Excel: ' . $e->getMessage());
+                ->with('error', 'Gagal export Excel. Silakan coba lagi atau hubungi admin.');
         }
     }
 

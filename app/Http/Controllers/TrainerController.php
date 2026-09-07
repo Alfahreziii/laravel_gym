@@ -70,7 +70,7 @@ class TrainerController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
 
-            return redirect()->back()->with('error', 'Gagal export PDF: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal export PDF. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -156,7 +156,7 @@ class TrainerController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
 
-            return redirect()->back()->with('error', 'Gagal export Excel: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal export Excel. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -325,7 +325,7 @@ class TrainerController extends Controller
 
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Gagal menambahkan trainer: ' . $e->getMessage());
+                ->with('error', 'Gagal menambahkan trainer. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -441,7 +441,7 @@ class TrainerController extends Controller
 
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Gagal update trainer: ' . $e->getMessage());
+                ->with('error', 'Gagal mengubah data trainer. Silakan coba lagi atau hubungi admin.');
         }
     }
 
@@ -488,7 +488,7 @@ class TrainerController extends Controller
             DB::rollBack();
             Log::error('Gagal hapus trainer', ['error' => $e->getMessage()]);
 
-            return redirect()->back()->with('error', 'Gagal menghapus trainer: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal menghapus trainer. Silakan coba lagi atau hubungi admin.');
         }
     }
 }
