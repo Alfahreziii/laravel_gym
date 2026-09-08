@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Kasir;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\ExportsExcel;
 
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -21,6 +22,8 @@ use Illuminate\Support\Facades\Auth;
 
 class KasirController extends Controller
 {
+    use ExportsExcel;
+
     public function printNota($transactionId)
     {
         try {
@@ -289,137 +292,85 @@ class KasirController extends Controller
 
             $filename = 'Laporan_Penjualan_' . $filterSlug . '.xls';
 
-            $headers = [
-                'Content-Type'        => 'application/vnd.ms-excel; charset=UTF-8',
-                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-                'Pragma'              => 'no-cache',
-                'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
-                'Expires'             => '0',
-            ];
-
-            $fmt = fn($n) => number_format((float)$n, 0, ',', '.');
-
-            $callback = function () use (
-                $transactions, $productHppMap, $filterLabel,
-                $grandTotal, $grandTotalHPP, $grandLaba,
-                $grandDiskonBarang, $grandDiskonManual,
-                $grandDibayarkan, $grandKembalian, $grandSblDiskon, $fmt
-            ) {
-                echo chr(0xEF) . chr(0xBB) . chr(0xBF); // BOM UTF-8
-                ?>
-<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
-<head><meta charset="UTF-8">
-<style>
-  body { font-family: Arial; font-size: 10pt; }
-  table { border-collapse: collapse; width: 100%; }
-  th {
-    background-color: #2c3e50; color: #ffffff;
-    border: 1px solid #999; padding: 6px 8px;
-    text-align: center; font-size: 10pt;
-    white-space: nowrap;
-  }
-  td {
-    border: 1px solid #ccc; padding: 5px 8px;
-    font-size: 10pt; vertical-align: middle;
-  }
-  tr:nth-child(even) td { background-color: #f2f2f2; }
-  .num { text-align: right; mso-number-format:'\#\,\#\#0'; }
-  .center { text-align: center; }
-  .title { font-size: 14pt; font-weight: bold; }
-  .subtitle { font-size: 10pt; color: #555; }
-  .summary-label { font-weight: bold; background-color: #ecf0f1; }
-  .summary-val { text-align: right; font-weight: bold; color: #27ae60; }
-  .grand-row td { background-color: #2c3e50; color: #fff; font-weight: bold; }
-  .grand-row .num { text-align: right; }
-</style>
-</head>
-<body>
-<table>
-  <tr><td colspan="13" class="title">Laporan Riwayat Penjualan</td></tr>
-  <tr><td colspan="13" class="subtitle">Periode: <?= htmlspecialchars($filterLabel) ?> &nbsp;|&nbsp; Dicetak: <?= tenant_now()->locale('id')->isoFormat('D MMMM YYYY HH:mm') ?> <?= tz_label() ?></td></tr>
-  <tr><td colspan="13"></td></tr>
-
-  <!-- Ringkasan -->
-  <tr>
-    <td colspan="3" class="summary-label">Total Transaksi</td>
-    <td colspan="3" class="summary-val"><?= $transactions->count() ?> transaksi</td>
-    <td colspan="3" class="summary-label">Total Pendapatan Bersih</td>
-    <td colspan="5" class="summary-val">Rp <?= $fmt($grandTotal) ?></td>
-  </tr>
-  <tr>
-    <td colspan="3" class="summary-label">Total HPP</td>
-    <td colspan="3" class="summary-val">Rp <?= $fmt($grandTotalHPP) ?></td>
-    <td colspan="3" class="summary-label">Laba Kotor</td>
-    <td colspan="5" class="summary-val">Rp <?= $fmt($grandLaba) ?></td>
-  </tr>
-  <tr><td colspan="13"></td></tr>
-
-  <!-- Header tabel -->
-  <tr>
-    <th>No</th>
-    <th>Kode Transaksi</th>
-    <th>Nama Pelanggan</th>
-    <th>Tanggal</th>
-    <th>Metode</th>
-    <th>Harga Sbl Diskon</th>
-    <th>Total Diskon</th>
-    <th>Total Tagihan</th>
-    <th>Dibayarkan</th>
-    <th>Kembalian</th>
-    <th>Total HPP</th>
-    <th>Laba Kotor</th>
-    <th>Detail Item</th>
-  </tr>
-
-<?php
-                $no = 1;
-                foreach ($transactions as $trx) {
-                    $hppTrx = 0;
-                    foreach ($trx->items as $item) {
-                        $hppTrx += $productHppMap->get($item->product_id, 0) * $item->qty;
-                    }
-                    $totalDiskon = $trx->diskon_barang + $trx->diskon;
-                    $labaKotor   = $trx->total_amount - $hppTrx;
-                    $detailItem  = $trx->items->map(function ($it) {
-                        $subtotal = ($it->price * $it->qty) - ($it->diskon ?? 0);
-                        return $it->product_name . ' x' . $it->qty . ' (Rp' . number_format($subtotal, 0, ',', '.') . ')';
-                    })->implode(', ');
-                    echo '<tr>';
-                    echo '<td class="center">' . $no++ . '</td>';
-                    echo '<td>' . htmlspecialchars($trx->transaction_code) . '</td>';
-                    echo '<td>' . htmlspecialchars($trx->customer_name ?? '-') . '</td>';
-                    echo '<td class="center">' . to_tenant_tz($trx->created_at)->format('d/m/Y H:i') . '</td>';
-                    echo '<td class="center">' . htmlspecialchars($trx->metode_pembayaran ?? '-') . '</td>';
-                    echo '<td class="num">Rp ' . $fmt($trx->harga_sebelum_diskon) . '</td>';
-                    echo '<td class="num">Rp ' . $fmt($totalDiskon) . '</td>';
-                    echo '<td class="num">Rp ' . $fmt($trx->total_amount) . '</td>';
-                    echo '<td class="num">Rp ' . $fmt($trx->dibayarkan) . '</td>';
-                    echo '<td class="num">Rp ' . $fmt($trx->kembalian) . '</td>';
-                    echo '<td class="num">Rp ' . $fmt($hppTrx) . '</td>';
-                    echo '<td class="num">Rp ' . $fmt($labaKotor) . '</td>';
-                    echo '<td>' . (htmlspecialchars($detailItem) ?: '-') . '</td>';
-                    echo '</tr>';
+            $rows = '';
+            $no = 1;
+            foreach ($transactions as $trx) {
+                $hppTrx = 0;
+                foreach ($trx->items as $item) {
+                    $hppTrx += $productHppMap->get($item->product_id, 0) * $item->qty;
                 }
-?>
+                $totalDiskon = $trx->diskon_barang + $trx->diskon;
+                $labaKotor   = $trx->total_amount - $hppTrx;
+                $detailItem  = $trx->items->map(function ($it) {
+                    $subtotal = ($it->price * $it->qty) - ($it->diskon ?? 0);
+                    return $it->product_name . ' x' . $it->qty . ' (Rp' . $this->exNum($subtotal) . ')';
+                })->implode(', ');
 
-  <!-- Grand total row -->
-  <tr class="grand-row">
-    <td colspan="5" style="text-align:center;">GRAND TOTAL</td>
-    <td class="num">Rp <?= $fmt($grandSblDiskon) ?></td>
-    <td class="num">Rp <?= $fmt($grandDiskonBarang + $grandDiskonManual) ?></td>
-    <td class="num">Rp <?= $fmt($grandTotal) ?></td>
-    <td class="num">Rp <?= $fmt($grandDibayarkan) ?></td>
-    <td class="num">Rp <?= $fmt($grandKembalian) ?></td>
-    <td class="num">Rp <?= $fmt($grandTotalHPP) ?></td>
-    <td class="num">Rp <?= $fmt($grandLaba) ?></td>
-    <td></td>
-  </tr>
-</table>
-</body></html>
-<?php
-            };
+                $rows .= '<tr>'
+                    . '<td class="center">' . $no++ . '</td>'
+                    . '<td>' . $this->exEsc($trx->transaction_code) . '</td>'
+                    . '<td>' . $this->exEsc($trx->customer_name ?? '-') . '</td>'
+                    . '<td class="center">' . to_tenant_tz($trx->created_at)->format('d/m/Y H:i') . '</td>'
+                    . '<td class="center">' . $this->exEsc($trx->metode_pembayaran ?? '-') . '</td>'
+                    . '<td class="num">Rp ' . $this->exNum($trx->harga_sebelum_diskon) . '</td>'
+                    . '<td class="num">Rp ' . $this->exNum($totalDiskon) . '</td>'
+                    . '<td class="num">Rp ' . $this->exNum($trx->total_amount) . '</td>'
+                    . '<td class="num">Rp ' . $this->exNum($trx->dibayarkan) . '</td>'
+                    . '<td class="num">Rp ' . $this->exNum($trx->kembalian) . '</td>'
+                    . '<td class="num">Rp ' . $this->exNum($hppTrx) . '</td>'
+                    . '<td class="num">Rp ' . $this->exNum($labaKotor) . '</td>'
+                    . '<td>' . $this->exEsc($detailItem) . '</td>'
+                    . '</tr>';
+            }
 
-            return response()->stream($callback, 200, $headers);
+            $title = 'Laporan Riwayat Penjualan';
+
+            $html = '<table>';
+            $html .= '<tr><td colspan="13" class="title">' . $this->exEsc($title) . '</td></tr>';
+            $subtitle = 'Periode: ' . $filterLabel . ' | Dicetak: '
+                . tenant_now()->locale('id')->isoFormat('D MMMM YYYY HH:mm') . ' ' . tz_label();
+            $html .= '<tr><td colspan="13" class="subtitle">' . $this->exEsc($subtitle) . '</td></tr>';
+            $html .= '<tr><td colspan="13"></td></tr>';
+
+            // Ringkasan
+            $html .= '<tr>'
+                . '<td colspan="3" class="summary-label">Total Transaksi</td>'
+                . '<td colspan="3" class="summary-val">' . $transactions->count() . ' transaksi</td>'
+                . '<td colspan="3" class="summary-label">Total Pendapatan Bersih</td>'
+                . '<td colspan="5" class="summary-val">Rp ' . $this->exNum($grandTotal) . '</td>'
+                . '</tr>';
+            $html .= '<tr>'
+                . '<td colspan="3" class="summary-label">Total HPP</td>'
+                . '<td colspan="3" class="summary-val">Rp ' . $this->exNum($grandTotalHPP) . '</td>'
+                . '<td colspan="3" class="summary-label">Laba Kotor</td>'
+                . '<td colspan="5" class="summary-val">Rp ' . $this->exNum($grandLaba) . '</td>'
+                . '</tr>';
+            $html .= '<tr><td colspan="13"></td></tr>';
+
+            // Header tabel
+            $html .= '<tr>'
+                . '<th>No</th><th>Kode Transaksi</th><th>Nama Pelanggan</th><th>Tanggal</th><th>Metode</th>'
+                . '<th>Harga Sbl Diskon</th><th>Total Diskon</th><th>Total Tagihan</th><th>Dibayarkan</th>'
+                . '<th>Kembalian</th><th>Total HPP</th><th>Laba Kotor</th><th>Detail Item</th>'
+                . '</tr>';
+
+            $html .= $rows;
+
+            // Grand total row
+            $html .= '<tr class="grand-row">'
+                . '<td colspan="5" style="text-align:center;">GRAND TOTAL</td>'
+                . '<td class="num">Rp ' . $this->exNum($grandSblDiskon) . '</td>'
+                . '<td class="num">Rp ' . $this->exNum($grandDiskonBarang + $grandDiskonManual) . '</td>'
+                . '<td class="num">Rp ' . $this->exNum($grandTotal) . '</td>'
+                . '<td class="num">Rp ' . $this->exNum($grandDibayarkan) . '</td>'
+                . '<td class="num">Rp ' . $this->exNum($grandKembalian) . '</td>'
+                . '<td class="num">Rp ' . $this->exNum($grandTotalHPP) . '</td>'
+                . '<td class="num">Rp ' . $this->exNum($grandLaba) . '</td>'
+                . '<td></td>'
+                . '</tr>';
+            $html .= '</table>';
+
+            return $this->excelDownload($html, $title, $filename);
 
         } catch (\Exception $e) {
             Log::error('Gagal export Excel penjualan', [

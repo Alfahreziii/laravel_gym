@@ -2,6 +2,17 @@
    Ajax Table - Global Styles
    ============================================= */
 
+/* Potong teks panjang (keterangan/deskripsi/alamat/dll) jadi 1 baris + elipsis,
+   teks penuh muncul lewat title (tooltip) saat hover. */
+.cell-ellipsis {
+    display: inline-block;
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
 /* Tabel minimal width agar bisa scroll horizontal */
 .ajax-table {
     min-width: 600px;

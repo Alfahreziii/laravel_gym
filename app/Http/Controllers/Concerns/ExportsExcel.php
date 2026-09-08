@@ -2,43 +2,166 @@
 
 namespace App\Http\Controllers\Concerns;
 
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Reader\Html as HtmlReader;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * Trait untuk export laporan ke Excel (.xls).
+ * Trait untuk export laporan ke Excel (.xlsx asli / OpenXML).
  *
- * Menggunakan format HTML table dengan namespace Office (sama seperti
- * yang sudah dipakai di KasirController::exportCsv), sehingga Excel
- * membuka file ini secara native lengkap dengan styling, tanpa perlu
- * dependency tambahan (Maatwebsite/Excel dll).
+ * Setiap controller membangun satu blok HTML (tepat satu <table>, judul/
+ * subjudul/summary sebagai baris ber-colspan di dalamnya). HTML itu diparse
+ * oleh PhpSpreadsheet\Reader\Html lalu ditulis ulang sebagai .xlsx asli via
+ * PhpSpreadsheet\Writer\Xlsx — jadi klien Excel tidak lagi mendapat warning
+ * "file format and extension don't match" dan copy-paste berjalan normal.
+ *
+ * Keterbatasan yang diterima: reader HTML hanya menerapkan sebagian styling,
+ * mso-number-format tidak ikut terbawa (angka polos jadi number, string
+ * seperti "Rp 200.000" tetap teks apa adanya). colspan pada baris judul/
+ * summary tetap menjadi merged cell.
  */
 trait ExportsExcel
 {
     /**
-     * Bungkus $bodyHtml (isi <table> dst) menjadi response download .xls
+     * Bungkus $bodyHtml (isi <table> dst) menjadi response download .xlsx asli.
      */
-    protected function excelDownload(string $bodyHtml, string $title, string $filename): StreamedResponse
+    protected function excelDownload(string $bodyHtml, string $title, string $filename): StreamedResponse|RedirectResponse
     {
-        $headers = [
-            'Content-Type'        => 'application/vnd.ms-excel; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-            'Pragma'              => 'no-cache',
-            'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
-            'Expires'             => '0',
+        // Normalisasi ekstensi: apa pun yang masuk (.xls/.xlsx/tanpa ekstensi), paksa jadi .xlsx
+        $filename = preg_replace('/\.xlsx?$/i', '', $filename) . '.xlsx';
+
+        $html = '<html><head><meta charset="UTF-8"><title>' . $this->exEsc($title) . '</title>'
+            . '<style>' . $this->excelStyles() . '</style></head><body>' . $bodyHtml . '</body></html>';
+
+        try {
+            $reader = new HtmlReader();
+
+            if (method_exists($reader, 'loadFromString')) {
+                $spreadsheet = $reader->loadFromString($html);
+            } else {
+                $tmpFile = tempnam(sys_get_temp_dir(), 'xlsx_html_');
+                file_put_contents($tmpFile, $html);
+                $spreadsheet = $reader->load($tmpFile);
+                unlink($tmpFile);
+            }
+
+            $this->applyReportStyling($spreadsheet);
+
+            $writer = new Xlsx($spreadsheet);
+        } catch (\Throwable $e) {
+            Log::error('Gagal membuat file Excel (xlsx)', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return redirect()->back()
+                ->with('danger', 'Gagal membuat file Excel. Silakan coba lagi atau hubungi admin.');
+        }
+
+        return response()->streamDownload(function () use ($writer, $spreadsheet) {
+            $writer->save('php://output');
+            $spreadsheet->disconnectWorksheets();
+            unset($spreadsheet);
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
+    }
+
+    /**
+     * Terapkan styling langsung ke sel via kode PhpSpreadsheet, karena
+     * Reader\Html membuang CSS dari excelStyles() saat parsing. Meniru
+     * tampilan HTML lama: header gelap #2C3E50/putih bold, border tipis
+     * #CCCCCC, zebra #F2F2F2 pada baris data, dan semua kolom auto-lebar.
+     *
+     * Batasan yang diterima: styling per-kelas lama (.summary-val hijau,
+     * .title 14pt, .grand-row gelap, dst.) tidak direproduksi persis karena
+     * info class CSS hilang saat parsing HTML — kalau butuh fidelity penuh,
+     * itu perlu penulisan sel per-controller (di luar scope perbaikan ini).
+     */
+    protected function applyReportStyling(Spreadsheet $spreadsheet): void
+    {
+        $sheet           = $spreadsheet->getActiveSheet();
+        $highestRow      = $sheet->getHighestRow();
+        $highestCol      = $sheet->getHighestColumn();
+        $highestColIndex = Coordinate::columnIndexFromString($highestCol);
+
+        // 1) Auto-lebar semua kolom — perbaikan paling terlihat, cegah teks kepotong
+        for ($colIndex = 1; $colIndex <= $highestColIndex; $colIndex++) {
+            $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($colIndex))->setAutoSize(true);
+        }
+
+        // 2) Deteksi baris header: baris pertama yang SEMUA selnya (kolom 1..N) terisi.
+        // Baris judul/subjudul/summary tidak akan "penuh" (banyak sel kosong / ter-merge).
+        $headerRow = null;
+        for ($row = 1; $row <= $highestRow; $row++) {
+            $isFullRow = true;
+            for ($colIndex = 1; $colIndex <= $highestColIndex; $colIndex++) {
+                $value = $sheet->getCell([$colIndex, $row])->getValue();
+                if ($value === null || $value === '') {
+                    $isFullRow = false;
+                    break;
+                }
+            }
+            if ($isFullRow) {
+                $headerRow = $row;
+                break;
+            }
+        }
+
+        $thinBorder = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color'       => ['rgb' => 'CCCCCC'],
+                ],
+            ],
         ];
 
-        $styles = $this->excelStyles();
+        if ($headerRow === null) {
+            // Pengaman: baris header tak terdeteksi (report tak biasa). Jangan error,
+            // cukup auto-size (sudah dilakukan di atas) + border seluruh range terpakai.
+            $sheet->getStyle("A1:{$highestCol}{$highestRow}")->applyFromArray($thinBorder);
+            return;
+        }
 
-        $callback = function () use ($bodyHtml, $title, $styles) {
-            echo chr(0xEF) . chr(0xBB) . chr(0xBF); // BOM UTF-8 agar karakter Indonesia tampil benar
-            echo '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">';
-            echo '<head><meta charset="UTF-8"><title>' . $this->exEsc($title) . '</title>';
-            echo '<style>' . $styles . '</style></head><body>';
-            echo $bodyHtml;
-            echo '</body></html>';
-        };
+        // 2a) Style baris header
+        $sheet->getStyle("A{$headerRow}:{$highestCol}{$headerRow}")->applyFromArray([
+            'font' => [
+                'bold'  => true,
+                'color' => ['rgb' => 'FFFFFF'],
+            ],
+            'fill' => [
+                'fillType'   => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '2C3E50'],
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical'   => Alignment::VERTICAL_CENTER,
+            ],
+        ]);
 
-        return response()->stream($callback, 200, $headers);
+        // 2b) Border tipis untuk seluruh range data (header s.d. baris terakhir)
+        $sheet->getStyle("A{$headerRow}:{$highestCol}{$highestRow}")->applyFromArray($thinBorder);
+
+        // 2c) Zebra pada baris data + vertical align middle
+        for ($row = $headerRow + 1; $row <= $highestRow; $row++) {
+            $rowRange = "A{$row}:{$highestCol}{$row}";
+            $sheet->getStyle($rowRange)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+
+            $dataIndex = $row - $headerRow;
+            if ($dataIndex % 2 === 0) {
+                $sheet->getStyle($rowRange)->getFill()
+                    ->setFillType(Fill::FILL_SOLID)
+                    ->getStartColor()->setRGB('F2F2F2');
+            }
+        }
     }
 
     /**
@@ -73,7 +196,7 @@ trait ExportsExcel
     /**
      * Format angka ala Indonesia (1.000.000), tanpa desimal.
      */
-    protected function exNum($n): string
+    protected function exNum(mixed $n): string
     {
         return number_format((float) $n, 0, ',', '.');
     }
@@ -81,7 +204,7 @@ trait ExportsExcel
     /**
      * HTML-escape singkat, fallback ke '-' kalau null/empty.
      */
-    protected function exEsc($val): string
+    protected function exEsc(mixed $val): string
     {
         $val = $val === null || $val === '' ? '-' : $val;
         return htmlspecialchars((string) $val, ENT_QUOTES, 'UTF-8');

@@ -194,7 +194,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 + '<td class="whitespace-nowrap">' + item.no + '</td>'
                 + actionCol
                 + '<td>' + item.name + '</td>'
-                + '<td>' + (item.description || '-') + '</td>'
+                + '<td><span class="cell-ellipsis" title="' + htmlEsc(item.description) + '">' + (item.description || '-') + '</span></td>'
                 + '</tr>';
         }
     });

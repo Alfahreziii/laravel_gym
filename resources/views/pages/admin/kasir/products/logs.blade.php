@@ -46,6 +46,10 @@
 <script src="{{ asset('assets/js/ajax-table.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    function htmlEsc(str) {
+        return String(str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
     AjaxTable.init('logStok', {
         url: '{{ route('products.logs.datatable', $products->id) }}',
         colSpan: 7,
@@ -59,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <td class="whitespace-nowrap">${typeBadge}</td>
                 <td class="whitespace-nowrap text-center">${item.quantity}</td>
                 <td class="whitespace-nowrap text-center">${item.current_quantity}</td>
-                <td class="whitespace-nowrap">${item.description}</td>
+                <td><span class="cell-ellipsis" title="${htmlEsc(item.description)}">${item.description}</span></td>
                 <td class="whitespace-nowrap">${item.created_at}</td>
             </tr>`;
         }

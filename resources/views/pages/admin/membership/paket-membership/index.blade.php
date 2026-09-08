@@ -55,6 +55,10 @@
 document.addEventListener("DOMContentLoaded", function () {
     const isAdmin = {{ $isAdmin ? 'true' : 'false' }};
 
+    function htmlEsc(str) {
+        return String(str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
     window.confirmDelete = function(url) {
         Swal.fire({
             title: 'Apakah kamu yakin?',
@@ -104,7 +108,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 <td class="whitespace-nowrap">${item.durasi}</td>
                 <td class="whitespace-nowrap">${item.periode}</td>
                 <td class="whitespace-nowrap">${item.harga}</td>
-                <td class="whitespace-nowrap">${item.keterangan}</td>
+                <td><span class="cell-ellipsis" title="${htmlEsc(item.keterangan)}">${item.keterangan}</span></td>
             </tr>`;
         }
     });

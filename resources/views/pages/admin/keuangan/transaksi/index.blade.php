@@ -178,6 +178,10 @@
                 return 'Rp ' + Number(n || 0).toLocaleString('id-ID');
             }
 
+            function htmlEsc(str) {
+                return String(str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            }
+
             // Label sumber transaksi
             var referensiLabel = {
                 'anggota_memberships': 'Membership',
@@ -249,8 +253,8 @@
                         item.kode_akun + '</span></td>' +
                         '<td class="whitespace-nowrap">' + item.nama_akun + '</td>' +
                         '<td class="whitespace-nowrap">' + kategoriBadge(item.kategori_akun) + '</td>' +
-                        '<td class="max-w-xs truncate" title="' + item.deskripsi + '">' + item
-                        .deskripsi + '</td>' +
+                        '<td><span class="cell-ellipsis" title="' + htmlEsc(item.deskripsi) + '">' + item
+                        .deskripsi + '</span></td>' +
                         '<td class="whitespace-nowrap">' + sumberBadge + '</td>' +
                         '<td class="whitespace-nowrap text-right">' + debitCell + '</td>' +
                         '<td class="whitespace-nowrap text-right">' + kreditCell + '</td>' +

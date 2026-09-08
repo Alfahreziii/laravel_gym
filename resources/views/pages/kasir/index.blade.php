@@ -340,6 +340,10 @@ document.addEventListener('DOMContentLoaded', function () {
     let diskonBarang = 0;
     let currentTransactionId = null;
 
+    function htmlEsc(str) {
+        return String(str ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
     const cartContainer = document.querySelector('.cart-produk .produk-body-container');
     const customerNameInput = document.getElementById('customer_name_cart'); // ← TAMBAH INI
     const totalItemEl = document.querySelector('.produk-footer .total-items');
@@ -876,7 +880,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <tr>
                             <td>${i + 1}</td>
                             <td>${it.product_name}</td>
-                            <td>${it.keterangan ?? '-'}</td>
+                            <td><span class="cell-ellipsis" title="${htmlEsc(it.keterangan ?? '-')}">${it.keterangan ?? '-'}</span></td>
                             <td>${it.qty}</td>
                             <td>Rp ${it.price.toLocaleString('id-ID')}</td>
                             <td>Rp ${it.diskon.toLocaleString('id-ID')}</td>

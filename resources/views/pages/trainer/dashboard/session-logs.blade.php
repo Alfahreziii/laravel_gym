@@ -217,6 +217,10 @@
 <script>
 document.addEventListener("DOMContentLoaded", function() {
 
+    function htmlEsc(str) {
+        return String(str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
     AjaxTable.init('sessionLogs', {
         url: '{{ route('trainer.session.logs.datatable') }}',
         colSpan: 6,
@@ -231,7 +235,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 + '<td class="whitespace-nowrap">' + typeBadge + '</td>'
                 + '<td class="whitespace-nowrap tabular-nums">' + item.sesi + '</td>'
                 + '<td class="whitespace-nowrap tabular-nums">' + item.current_sesi + '</td>'
-                + '<td>' + item.description + '</td>'
+                + '<td><span class="cell-ellipsis" title="' + htmlEsc(item.description) + '">' + item.description + '</span></td>'
                 + '</tr>';
         }
     });

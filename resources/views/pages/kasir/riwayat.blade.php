@@ -165,6 +165,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Map transaction ID -> items (populated per renderRow, used by view-detail handler)
     const txItems = {};
 
+    function htmlEsc(str) {
+        return String(str ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
     AjaxTable.init('riwayatKasir', {
         url: '{{ route('kasir.riwayat.datatable') }}',
         colSpan: 13,
@@ -234,7 +238,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <tr>
                         <td>${index + 1}</td>
                         <td>${it.product_name}</td>
-                        <td>${it.keterangan ?? '-'}</td>
+                        <td><span class="cell-ellipsis" title="${htmlEsc(it.keterangan ?? '-')}">${it.keterangan ?? '-'}</span></td>
                         <td>${it.qty}</td>
                         <td>Rp ${parseFloat(it.price).toLocaleString('id-ID')}</td>
                         <td>Rp ${parseFloat(it.hpp || 0).toLocaleString('id-ID')}</td>
