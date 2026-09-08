@@ -411,9 +411,9 @@ class MemberTrainerController extends Controller
             'id_paket_personal_trainer' => 'required|exists:paket_personal_trainers,id',
             'id_trainer'                => 'required|exists:trainers,id',
             'tgl_mulai'                 => 'required|date',
-            'tgl_selesai'               => 'required|date|after_or_equal:tgl_mulai',
+            'tgl_selesai'               => 'nullable|date|after_or_equal:tgl_mulai',
             'diskon'                    => 'nullable|numeric|min:0',
-            'total_biaya'               => 'required|numeric|min:0',
+            'total_biaya'               => 'nullable|numeric|min:0',
             'tgl_bayar'                 => 'required|date',
             'jumlah_bayar'              => 'required|numeric|min:0',
             'metode_pembayaran'         => 'required|string',
@@ -424,6 +424,15 @@ class MemberTrainerController extends Controller
             $kodeTransaksi = 'TRX-' . date('Ymd') . '-' . strtoupper(uniqid());
             $paket = PaketPersonalTrainer::findOrFail($request->id_paket_personal_trainer);
 
+            // Safety net: hitung tgl_selesai & total_biaya di server kalau JS gagal mengisi.
+            $totalBiaya = $request->filled('total_biaya')
+                ? $request->total_biaya
+                : max(($paket->biaya ?? 0) - ($request->diskon ?? 0), 0);
+
+            $tglSelesai = $request->filled('tgl_selesai')
+                ? $request->tgl_selesai
+                : $this->hitungTglSelesaiDariPaket(Carbon::parse($request->tgl_mulai), $paket);
+
             // 1️⃣ Simpan member trainer dengan sesi = jumlah_sesi paket (sisa sesi yang tersedia)
             $memberTrainer = MemberTrainer::create([
                 'kode_transaksi'            => $kodeTransaksi,
@@ -431,10 +440,10 @@ class MemberTrainerController extends Controller
                 'id_paket_personal_trainer' => $request->id_paket_personal_trainer,
                 'id_trainer'                => $request->id_trainer,
                 'tgl_mulai'                 => $request->tgl_mulai,
-                'tgl_selesai'               => $request->tgl_selesai,
+                'tgl_selesai'               => $tglSelesai,
                 'diskon'                    => $request->diskon ?? 0,
-                'total_biaya'               => $request->total_biaya,
-                'status_pembayaran'         => $request->jumlah_bayar >= $request->total_biaya ? 'Lunas' : 'Belum Lunas',
+                'total_biaya'               => $totalBiaya,
+                'status_pembayaran'         => $request->jumlah_bayar >= $totalBiaya ? 'Lunas' : 'Belum Lunas',
                 'sesi'                      => $paket->jumlah_sesi,
             ]);
 
@@ -752,6 +761,28 @@ class MemberTrainerController extends Controller
             return redirect()->back()
                 ->with('error', 'Gagal mengubah pembayaran. Silakan coba lagi atau hubungi admin.');
         }
+    }
+
+    /**
+     * Hitung tanggal selesai dari tanggal mulai + durasi & periode paket.
+     * Cadangan server-side untuk logic JS `hitungTanggalSelesai()` di form.
+     */
+    protected function hitungTglSelesaiDariPaket(Carbon $tglMulai, ?PaketPersonalTrainer $paket): Carbon
+    {
+        $durasi  = (int) ($paket->durasi ?? 0);
+        $periode = strtolower($paket->periode ?? 'bulan');
+        $selesai = $tglMulai->copy();
+
+        if ($durasi <= 0) {
+            return $selesai;
+        }
+
+        return match ($periode) {
+            'hari'   => $selesai->addDays($durasi),
+            'minggu' => $selesai->addWeeks($durasi),
+            'tahun'  => $selesai->addYears($durasi),
+            default  => $selesai->addMonths($durasi),
+        };
     }
 
     // =====================================================

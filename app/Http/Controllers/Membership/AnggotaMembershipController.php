@@ -396,9 +396,9 @@ class AnggotaMembershipController extends Controller
             'id_anggota'          => 'required|exists:anggotas,id',
             'id_paket_membership' => 'required|exists:paket_memberships,id',
             'tgl_mulai'           => 'required|date',
-            'tgl_selesai'         => 'required|date|after_or_equal:tgl_mulai',
+            'tgl_selesai'         => 'nullable|date|after_or_equal:tgl_mulai',
             'diskon'              => 'nullable|numeric|min:0',
-            'total_biaya'         => 'required|numeric|min:0',
+            'total_biaya'         => 'nullable|numeric|min:0',
             'tgl_bayar'           => 'required|date',
             'jumlah_bayar'        => 'required|numeric|min:0',
             'metode_pembayaran'   => 'required|string',
@@ -409,17 +409,26 @@ class AnggotaMembershipController extends Controller
             $kodeTransaksi = 'TRX-' . date('Ymd') . '-' . strtoupper(uniqid());
             $paket         = PaketMembership::find($request->id_paket_membership);
 
+            // Safety net: hitung tgl_selesai & total_biaya di server kalau JS gagal mengisi
+            // (misal searchable-dropdown tidak sempat trigger 'change').
+            $totalBiaya = $request->filled('total_biaya')
+                ? $request->total_biaya
+                : max(($paket->harga ?? 0) - ($request->diskon ?? 0), 0);
+
+            $tglSelesai = $request->filled('tgl_selesai')
+                ? $request->tgl_selesai
+                : $this->hitungTglSelesaiDariPaket(Carbon::parse($request->tgl_mulai), $paket);
+
             // 1️⃣ Simpan membership
             $anggotaMembership = AnggotaMembership::create([
                 'kode_transaksi'      => $kodeTransaksi,
                 'id_anggota'          => $request->id_anggota,
                 'id_paket_membership' => $request->id_paket_membership,
-                'nama_paket'          => $paket->nama_paket ?? null,
                 'tgl_mulai'           => $request->tgl_mulai,
-                'tgl_selesai'         => $request->tgl_selesai,
+                'tgl_selesai'         => $tglSelesai,
                 'diskon'              => $request->diskon ?? 0,
-                'total_biaya'         => $request->total_biaya,
-                'status_pembayaran'   => $request->jumlah_bayar >= $request->total_biaya ? 'Lunas' : 'Belum Lunas',
+                'total_biaya'         => $totalBiaya,
+                'status_pembayaran'   => $request->jumlah_bayar >= $totalBiaya ? 'Lunas' : 'Belum Lunas',
             ]);
 
             // 2️⃣ Catat piutang awal
@@ -489,9 +498,9 @@ class AnggotaMembershipController extends Controller
         $request->validate([
             'id_paket_membership' => 'required|exists:paket_memberships,id',
             'tgl_mulai'           => 'required|date',
-            'tgl_selesai'         => 'required|date|after_or_equal:tgl_mulai',
+            'tgl_selesai'         => 'nullable|date|after_or_equal:tgl_mulai',
             'diskon'              => 'nullable|numeric|min:0',
-            'total_biaya'         => 'required|numeric|min:0',
+            'total_biaya'         => 'nullable|numeric|min:0',
             'tgl_bayar'           => 'required|date',
             'jumlah_bayar'        => 'required|numeric|min:0',
             'metode_pembayaran'   => 'required|string',
@@ -509,17 +518,25 @@ class AnggotaMembershipController extends Controller
             $kodeTransaksi = 'TRX-' . date('Ymd') . '-' . strtoupper(uniqid());
             $paket         = PaketMembership::find($request->id_paket_membership);
 
+            // Safety net: hitung tgl_selesai & total_biaya di server kalau JS gagal mengisi.
+            $totalBiaya = $request->filled('total_biaya')
+                ? $request->total_biaya
+                : max(($paket->harga ?? 0) - ($request->diskon ?? 0), 0);
+
+            $tglSelesai = $request->filled('tgl_selesai')
+                ? $request->tgl_selesai
+                : $this->hitungTglSelesaiDariPaket(Carbon::parse($request->tgl_mulai), $paket);
+
             // 1️⃣ Simpan membership baru (perpanjangan)
             $anggotaMembership = AnggotaMembership::create([
                 'kode_transaksi'      => $kodeTransaksi,
                 'id_anggota'          => $anggota->id,
                 'id_paket_membership' => $request->id_paket_membership,
-                'nama_paket'          => $paket->nama_paket ?? null,
                 'tgl_mulai'           => $request->tgl_mulai,
-                'tgl_selesai'         => $request->tgl_selesai,
+                'tgl_selesai'         => $tglSelesai,
                 'diskon'              => $request->diskon ?? 0,
-                'total_biaya'         => $request->total_biaya,
-                'status_pembayaran'   => $request->jumlah_bayar >= $request->total_biaya ? 'Lunas' : 'Belum Lunas',
+                'total_biaya'         => $totalBiaya,
+                'status_pembayaran'   => $request->jumlah_bayar >= $totalBiaya ? 'Lunas' : 'Belum Lunas',
             ]);
 
             // 2️⃣ Catat piutang awal
@@ -572,6 +589,28 @@ class AnggotaMembershipController extends Controller
         }
 
         return $today;
+    }
+
+    /**
+     * Hitung tanggal selesai dari tanggal mulai + durasi & periode paket.
+     * Cadangan server-side untuk logic JS `hitungTanggalSelesai()` di form.
+     */
+    protected function hitungTglSelesaiDariPaket(Carbon $tglMulai, ?PaketMembership $paket): Carbon
+    {
+        $durasi  = (int) ($paket->durasi ?? 0);
+        $periode = strtolower($paket->periode ?? 'bulan');
+        $selesai = $tglMulai->copy();
+
+        if ($durasi <= 0) {
+            return $selesai;
+        }
+
+        return match ($periode) {
+            'hari'   => $selesai->addDays($durasi),
+            'minggu' => $selesai->addWeeks($durasi),
+            'tahun'  => $selesai->addYears($durasi),
+            default  => $selesai->addMonths($durasi),
+        };
     }
 
     public function edit($id)

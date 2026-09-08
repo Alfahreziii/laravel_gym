@@ -26,8 +26,20 @@
                                     <a href="{{ route('anggota_membership.index') }}" class="text-success-600 focus:bg-success-600 hover:bg-success-700 border border-success-600 hover:text-white focus:text-white focus:ring-4 focus:outline-none focus:ring-success-300 rounded-lg text-sm px-4 py-1">Kembali</a>
                                 </x-alert>
                             @endif
+                            @if(session('error'))
+                                <x-alert type="danger">{{ session('error') }}</x-alert>
+                            @endif
                             @if(session('danger'))
                                 <x-alert type="danger">{{ session('danger') }}</x-alert>
+                            @endif
+                            @if($errors->any())
+                                <x-alert type="danger">
+                                    <ul class="mb-0 ps-4" style="list-style: disc;">
+                                        @foreach($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </x-alert>
                             @endif
                         </div>
 
@@ -69,7 +81,8 @@
                                     <option value="{{ $paket->id }}"
                                         data-durasi="{{ $paket->durasi }}"
                                         data-periode="{{ $paket->periode }}"
-                                        data-harga="{{ $paket->harga }}">
+                                        data-harga="{{ $paket->harga }}"
+                                        {{ old('id_paket_membership') == $paket->id ? 'selected' : '' }}>
                                         {{ $paket->nama_paket }} ({{ $paket->durasi }} {{ $paket->periode }}) - Rp {{ number_format($paket->harga,0,',','.') }}
                                     </option>
                                 @endforeach
@@ -79,21 +92,21 @@
                         {{-- Tgl Mulai & Selesai --}}
                         <div class="col-span-12 md:col-span-6">
                             <label class="form-label">Tanggal Mulai</label>
-                            <input type="date" name="tgl_mulai" id="tgl_mulai" class="form-control" required>
+                            <input type="date" name="tgl_mulai" id="tgl_mulai" class="form-control" value="{{ old('tgl_mulai') }}" required>
                         </div>
                         <div class="col-span-12 md:col-span-6">
                             <label class="form-label">Tanggal Selesai</label>
-                            <input type="date" name="tgl_selesai" id="tgl_selesai" class="form-control" readonly>
+                            <input type="date" name="tgl_selesai" id="tgl_selesai" class="form-control" value="{{ old('tgl_selesai') }}" readonly>
                         </div>
 
                         {{-- Diskon & Total Biaya --}}
                         <div class="col-span-12 md:col-span-6">
                             <label class="form-label">Diskon (Rp)</label>
-                            <input type="number" name="diskon" id="diskon" class="form-control" value="0">
+                            <input type="number" name="diskon" id="diskon" class="form-control" value="{{ old('diskon', 0) }}">
                         </div>
                         <div class="col-span-12 md:col-span-6">
                             <label class="form-label">Total Biaya</label>
-                            <input type="number" name="total_biaya" id="total_biaya" class="form-control" readonly>
+                            <input type="number" name="total_biaya" id="total_biaya" class="form-control" value="{{ old('total_biaya') }}" readonly>
                         </div>
 
                         {{-- Metode Pembayaran --}}
@@ -116,16 +129,16 @@
                         </div>
                         <div class="col-span-12 md:col-span-6">
                             <label class="form-label">Total Dibayarkan Diawal</label>
-                            <input type="number" name="jumlah_bayar" id="jumlah_bayar" class="form-control" value="0">
+                            <input type="number" name="jumlah_bayar" id="jumlah_bayar" class="form-control" value="{{ old('jumlah_bayar', 0) }}">
                             <small class="text-muted" id="warning_text" style="display: none; color: #dc3545; margin-top: 4px;"></small>
                         </div>
-                        
+
                         {{-- Status Pembayaran --}}
                         <div class="col-span-12">
                             <label class="form-label">Status Pembayaran</label>
                             <input type="text" name="status_pembayaran" id="status_pembayaran" class="form-control" readonly>
                         </div>
-                        
+
                         {{-- Action Buttons --}}
                         <div class="col-span-12">
                             <div class="form-group flex items-center justify-end gap-2">

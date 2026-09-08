@@ -39,10 +39,20 @@
                                     text-danger-600 dark:text-danger-400 border-danger-100 
                                     px-6 py-[11px] mb-4 font-semibold text-lg rounded-lg flex items-center justify-between">
                                     {{ session('danger') }}
-                                    <button class="remove-button text-danger-600 text-2xl"> 
+                                    <button class="remove-button text-danger-600 text-2xl">
                                         <iconify-icon icon="iconamoon:sign-times-light"></iconify-icon>
                                     </button>
                                 </div>
+                            @endif
+
+                            @if($errors->any())
+                                <x-alert type="danger">
+                                    <ul class="mb-0 ps-4" style="list-style: disc;">
+                                        @foreach($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </x-alert>
                             @endif
                         </div>
 
@@ -105,7 +115,8 @@
                                     <option value="{{ $paket->id }}"
                                         data-durasi="{{ $paket->durasi }}"
                                         data-periode="{{ $paket->periode }}"
-                                        data-biaya="{{ $paket->biaya }}">
+                                        data-biaya="{{ $paket->biaya }}"
+                                        {{ old('id_paket_personal_trainer') == $paket->id ? 'selected' : '' }}>
                                         {{ $paket->nama_paket }} ({{ $paket->durasi }} {{ $paket->periode }}) - Rp {{ number_format($paket->biaya,0,',','.') }}
                                     </option>
                                 @endforeach

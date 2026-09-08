@@ -13,7 +13,6 @@ class AnggotaMembership extends TenantModel
     protected $fillable = [
         'kode_transaksi',
         'id_anggota',
-        'nama_paket',
         'id_paket_membership',
         'tgl_mulai',
         'tgl_selesai',
