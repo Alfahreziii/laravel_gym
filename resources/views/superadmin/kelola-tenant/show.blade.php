@@ -230,6 +230,30 @@ html.dark .sa-sts-expired  { background: rgba(244,63,94,.12);  color: #FB7185; b
 html.dark .sa-sts-expired  .sa-sts-dot { background: #F43F5E; }
 html.dark .sa-sts-archived { background: rgba(255,255,255,.05); color: #A8A29A; border-color: rgba(255,255,255,.1); }
 html.dark .sa-sts-archived .sa-sts-dot { background: #6E685F; }
+
+/* ── Responsive (kelola tenant detail) ───────────────── */
+@media (max-width: 1023px) {
+    .kt-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+    .kt-page-header { flex-wrap: wrap; gap: .75rem; }
+    .kt-page-header > div { min-width: 0; }
+
+    .kt-card { padding: 1.125rem 1rem; }
+    .kt-archived-notice { padding: .875rem 1rem; }
+
+    .kt-field-row { flex-direction: column; gap: .375rem; }
+    .kt-field-label { min-width: 0; padding-top: 0; }
+
+    .kt-save-bar,
+    .kt-save-bar-inline {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .kt-save-bar .sa-btn,
+    .kt-save-bar-inline .sa-btn { width: 100%; justify-content: center; }
+    .kt-save-bar-inline span { margin-right: 0; }
+}
 </style>
 
 {{-- Page header --}}

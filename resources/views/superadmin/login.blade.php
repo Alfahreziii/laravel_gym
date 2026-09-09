@@ -191,6 +191,13 @@
             color: #9C978E;
             letter-spacing: .01em;
         }
+
+        /* ── Responsive ───────────────────────────────────── */
+        @media (max-width: 640px) {
+            body { padding: 1rem; }
+            .card-accent { padding: 1.75rem 1.5rem 1.5rem; }
+            .card-body { padding: 1.75rem 1.5rem 2rem; }
+        }
     </style>
 </head>
 <body>

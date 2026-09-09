@@ -258,6 +258,7 @@
         .sa-main {
             margin-left: var(--sa-sidebar-w);
             flex: 1;
+            min-width: 0;
             display: flex;
             flex-direction: column;
             min-height: 100vh;
@@ -442,6 +443,7 @@
         /* ── Page content ─────────────────────────────────────── */
         .sa-page-content {
             flex: 1;
+            min-width: 0;
             padding: 1.75rem 2rem 2rem;
             max-width: 1200px;
             width: 100%;
@@ -537,6 +539,7 @@
             border: 1px solid var(--sa-border);
             border-radius: 14px;
             overflow: hidden;
+            min-width: 0;
         }
 
         .sa-table-header {
@@ -850,5 +853,53 @@
         }
 
         html.dark .sa-warn-db-name { background: #28231D; }
+
+        /* ══════════════════════════════════════════════════════
+           Responsive — konten global sa-* (frame sidebar/topbar
+           TIDAK disentuh, sudah responsive bawaan)
+           ══════════════════════════════════════════════════════ */
+        @media (max-width: 1023px) {
+            .sa-stat-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 640px) {
+            .sa-page-content { padding: 1rem 1rem 1.5rem; }
+
+            .sa-stat-grid { grid-template-columns: 1fr; }
+            .sa-stat-card { padding: 1rem; }
+
+            .sa-table-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: .75rem;
+            }
+            .sa-table-header .sa-btn { justify-content: center; }
+
+            .sa-modal-backdrop { padding: 1rem; }
+            .sa-modal {
+                max-width: calc(100% - 2rem);
+                max-height: calc(100vh - 2rem);
+                display: flex;
+                flex-direction: column;
+            }
+            .sa-modal-header,
+            .sa-modal-footer { padding-left: 1.25rem; padding-right: 1.25rem; }
+            .sa-modal-body { padding: 1.125rem 1.25rem; overflow-y: auto; flex: 1 1 auto; }
+            .sa-modal-footer {
+                flex-direction: column;
+                align-items: stretch;
+                gap: .625rem;
+            }
+            .sa-modal-footer form { width: 100%; }
+            .sa-modal-footer .sa-btn,
+            .sa-modal-footer .sa-btn-danger { width: 100%; justify-content: center; }
+
+            .sa-footer {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: .375rem;
+                padding: 1.125rem 1.25rem;
+            }
+        }
     </style>
 </head>

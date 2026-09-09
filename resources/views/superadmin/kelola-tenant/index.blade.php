@@ -140,6 +140,21 @@ html.dark .sa-search-input:focus { background: #1F1B17; }
 html.dark .sa-btn-tbl:hover      { background: rgba(242,98,46,.12); }
 html.dark .sa-btn-tbl.sa-btn-tbl-danger             { color: #F87171; border-color: rgba(220,38,38,.4); }
 html.dark .sa-btn-tbl.sa-btn-tbl-danger:hover       { background: rgba(220,38,38,.15); border-color: rgba(220,38,38,.6); }
+
+/* ── Responsive (kelola tenant content) ──────────────── */
+@media (max-width: 640px) {
+    .sa-table-header-r {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        gap: .5rem;
+    }
+    .sa-search-wrap { width: 100%; }
+    .sa-search-input { width: 100%; }
+    .sa-table-header-r .sa-btn { width: 100%; }
+
+    .sa-tbl-acts { flex-wrap: wrap; }
+}
 </style>
 
 <div class="sa-table-card">

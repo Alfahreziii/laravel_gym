@@ -41,6 +41,7 @@ class PaketMembershipController extends Controller
                     'periode'       => ucfirst($item->periode),
                     'harga'         => 'Rp ' . number_format($item->harga, 0, ',', '.'),
                     'keterangan'    => $item->keterangan ?? '-',
+                    'show_url'      => route('paket_membership.show', $item->id),
                     'edit_url'      => route('paket_membership.edit', $item->id),
                     'delete_url'    => route('paket_membership.destroy', $item->id),
                 ];
@@ -99,6 +100,15 @@ class PaketMembershipController extends Controller
                             ->with('danger', 'Gagal menambahkan paket. Silakan coba lagi atau hubungi admin.')
                             ->withInput();
         }
+    }
+
+    /**
+     * Tampilkan detail paket (read-only)
+     */
+    public function show(PaketMembership $paket_membership)
+    {
+        $kategori = KategoriPaketMembership::all();
+        return view('pages.admin.membership.paket-membership.show', compact('paket_membership', 'kategori'));
     }
 
     /**

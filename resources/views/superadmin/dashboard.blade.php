@@ -177,6 +177,28 @@ html.dark .sa-expired-pills span {
 html.dark .sa-search-input       { background: #28231D; }
 html.dark .sa-search-input:focus { background: #1F1B17; }
 html.dark .sa-btn-tbl:hover      { background: rgba(242,98,46,.12); }
+
+/* ── Responsive (dashboard content) ──────────────────── */
+@media (max-width: 1023px) {
+    .sa-stat-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+    .sa-stat-grid { grid-template-columns: 1fr; }
+
+    .sa-table-header-r {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        gap: .5rem;
+    }
+    .sa-search-wrap { width: 100%; }
+    .sa-search-input { width: 100%; }
+    .sa-table-header-r .sa-btn { width: 100%; }
+
+    .sa-tbl-acts { flex-wrap: wrap; }
+
+    .sa-expired-banner { padding: .875rem 1rem; }
+}
 </style>
 
 {{-- ── Stat cards ──────────────────────────────────────────── --}}

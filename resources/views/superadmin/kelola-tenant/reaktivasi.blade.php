@@ -152,6 +152,13 @@ html.dark .sa-act-actions { background: var(--sa-card-bg); }
 html.dark .sa-act-note {
     background: rgba(249,115,22,.1); border-color: rgba(249,115,22,.3); color: #FDBA74;
 }
+
+/* ── Responsive (reaktivasi content) ─────────────────── */
+@media (max-width: 640px) {
+    .sa-readonly-row { flex-direction: column; gap: .25rem; }
+    .sa-readonly-label { min-width: 0; }
+    .sa-act-actions { padding: 1rem 1.125rem; }
+}
 </style>
 
 <div style="margin-bottom:1.25rem">

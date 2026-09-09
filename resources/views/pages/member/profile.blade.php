@@ -536,6 +536,63 @@
             </div>
         </div>
 
+        {{-- PERSONAL TRAINER CARD --}}
+        <div class="mp-card">
+            <div class="mp-ch">
+                <h3>Personal Trainer</h3>
+            </div>
+            <div style="padding:16px 20px;">
+                @if ($ptMembership)
+                    @php
+                        $ptIsSessionsCompleted = $ptMembership->isSessionsCompleted();
+                        if ($ptMembership->is_active && !$ptIsSessionsCompleted) {
+                            $ptStatusLabel = 'Aktif';
+                            $ptBadgeClass  = 'mp-badge-ok';
+                        } elseif ($ptIsSessionsCompleted) {
+                            $ptStatusLabel = 'Sesi habis';
+                            $ptBadgeClass  = 'mp-badge-off';
+                        } else {
+                            $ptStatusLabel = 'Berakhir';
+                            $ptBadgeClass  = 'mp-badge-off';
+                        }
+                    @endphp
+                    <div class="mp-badge {{ $ptBadgeClass }}" style="margin-bottom:12px;">
+                        @if ($ptBadgeClass === 'mp-badge-ok')
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" style="width:13px;height:13px;flex:none"><path d="M20 6 9 17l-5-5"/></svg>
+                        @else
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" style="width:13px;height:13px;flex:none"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
+                        @endif
+                        {{ $ptStatusLabel }}
+                    </div>
+
+                    <div class="mp-pkg" style="margin-bottom:0;">
+                        <div class="mp-pkg-top">
+                            <span class="mp-pkg-lbl">Personal Trainer aktif</span>
+                        </div>
+                        <div class="mp-pkg-name">
+                            {{ optional($ptMembership->paketPersonalTrainer)->nama_paket ?? '-' }}
+                        </div>
+                        <div style="font-size:12px;color:var(--t2);margin-bottom:10px;">
+                            Trainer: {{ optional($ptMembership->trainer)->name ?? '-' }}
+                        </div>
+                        <div class="mp-pkg-dates">
+                            <span>Sisa {{ $ptSisaSesi }} dari {{ $ptTotalSesi }} sesi</span>
+                        </div>
+                        <div class="mp-pkgbar" style="margin-bottom:10px;"><div class="mp-pkgbar-f" style="width:{{ $ptSessionPct }}%"></div></div>
+                        <div class="mp-pkg-dates">
+                            <span>Berlaku s/d {{ $ptMembership->tgl_selesai->format('d M Y') }}</span>
+                            <span class="mp-pkg-days">{{ $ptDaysRemaining }} hari</span>
+                        </div>
+                    </div>
+                @else
+                    <div style="text-align:center;padding:14px 0;color:var(--t3);">
+                        <div style="font-size:13px;margin-bottom:10px;">Belum ada paket personal trainer aktif.</div>
+                        <a href="{{ route('member.paket') }}" style="font-size:13px;font-weight:600;color:var(--at);text-decoration:none;">Lihat paket &rarr;</a>
+                    </div>
+                @endif
+            </div>
+        </div>
+
     </div>
     {{-- END LEFT --}}
 

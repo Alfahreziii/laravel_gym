@@ -88,6 +88,10 @@ document.addEventListener("DOMContentLoaded", function () {
             const actionCol = isAdmin
                 ? `<td class="whitespace-nowrap">
                        <div class="flex gap-2">
+                           <a href="${item.show_url}" title="Lihat Detail"
+                              class="btn-action">
+                               <iconify-icon icon="lucide:eye"></iconify-icon>
+                           </a>
                            <a href="${item.edit_url}" title="Edit Item"
                               class="btn-action">
                                <iconify-icon icon="lucide:edit"></iconify-icon>

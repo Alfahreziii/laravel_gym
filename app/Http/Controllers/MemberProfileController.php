@@ -37,7 +37,9 @@ class MemberProfileController extends Controller
             },
             'kehadirans' => function ($query) {
                 $query->latest()->limit(10);
-            }
+            },
+            'memberTrainers.trainer',
+            'memberTrainers.paketPersonalTrainer',
         ]);
 
         // Statistik kehadiran
@@ -46,7 +48,38 @@ class MemberProfileController extends Controller
             ->whereBetween('created_at', tenant_month_range())
             ->count();
 
-        return view('pages.member.profile', compact('anggota', 'totalKehadiran', 'kehadiranBulanIni'));
+        // Paket Personal Trainer yang relevan: aktif dulu, kalau tidak ada pakai yang terbaru
+        $ptMembership = $anggota->memberTrainers
+            ->filter(fn ($mt) => $mt->is_active)
+            ->sortByDesc('tgl_selesai')
+            ->first()
+            ?? $anggota->memberTrainers->sortByDesc('tgl_selesai')->first();
+
+        $ptSisaSesi      = 0;
+        $ptTotalSesi     = 0;
+        $ptSesiDijalani  = 0;
+        $ptDaysRemaining = 0;
+        $ptSessionPct    = 0;
+
+        if ($ptMembership) {
+            $ptSisaSesi      = $ptMembership->sisa_sesi;
+            $ptTotalSesi     = optional($ptMembership->paketPersonalTrainer)->jumlah_sesi ?? 0;
+            $ptSesiDijalani  = max($ptTotalSesi - $ptSisaSesi, 0);
+            $ptDaysRemaining = max(0, tenant_today()->diffInDays($ptMembership->tgl_selesai, false));
+            $ptSessionPct    = $ptTotalSesi > 0 ? (int) round($ptSesiDijalani / $ptTotalSesi * 100) : 0;
+        }
+
+        return view('pages.member.profile', compact(
+            'anggota',
+            'totalKehadiran',
+            'kehadiranBulanIni',
+            'ptMembership',
+            'ptSisaSesi',
+            'ptTotalSesi',
+            'ptSesiDijalani',
+            'ptDaysRemaining',
+            'ptSessionPct'
+        ));
     }
 
     /**

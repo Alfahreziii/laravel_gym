@@ -96,6 +96,20 @@ html.dark .sa-dl-badge-yes { color: #4ADE80; }
 
 /* ── Empty state ────────────────────────────────────── */
 .sa-empty-icon { width:36px;height:36px;margin:0 auto .75rem;display:block;color:var(--sa-text-3); }
+
+/* ── Responsive (arsip backup content) ───────────────── */
+@media (max-width: 640px) {
+    .sa-table-header-r {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        gap: .5rem;
+    }
+    .sa-search-wrap { width: 100%; }
+    .sa-search-input { width: 100%; }
+
+    .sa-tbl-acts { flex-wrap: wrap; }
+}
 </style>
 
 <div class="sa-table-card">
